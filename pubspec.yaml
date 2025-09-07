@@ -32,7 +32,7 @@ dependencies:
   # Background Services & Notifications
   flutter_local_notifications: ^18.0.1
   flutter_background_service: ^5.0.10
-  workmanager: ^0.5.2
+  # workmanager: ^0.5.2  # 暫時移除，待後續修復
   
   # Audio
   audioplayers: ^6.1.0

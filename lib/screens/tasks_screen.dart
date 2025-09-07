@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/task.dart';
+import '../providers/task_provider.dart';
+import '../widgets/task_form_dialog.dart';
 
-class TasksScreen extends StatelessWidget {
+class TasksScreen extends ConsumerWidget {
   const TasksScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final taskNotifier = ref.watch(taskProvider);
     
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -30,73 +34,65 @@ class TasksScreen extends StatelessWidget {
             
             // 内容区域
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // 进行中任务
-                    _buildSectionHeader('進行中', theme),
-                    const SizedBox(height: 15),
-                    
-                    _buildTaskCard(
-                      title: '撰寫產品需求文件 - 第一章節',
-                      pomodoroCount: 2,
-                      priority: 'high',
-                      theme: theme,
-                      context: context,
-                    ),
-                    
-                    const SizedBox(height: 30),
-                    
-                    // 待办事项
-                    _buildSectionHeader('待辦事項', theme),
-                    const SizedBox(height: 15),
-                    
-                    // AI 拆解卡片
-                    _buildAIBreakdownCard(theme),
-                    
-                    const SizedBox(height: 12),
-                    
-                    _buildTaskCard(
-                      title: '準備明天的會議簡報',
-                      pomodoroCount: 3,
-                      priority: 'medium',
-                      theme: theme,
-                      context: context,
-                    ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    _buildTaskCard(
-                      title: '回覆客戶郵件',
-                      pomodoroCount: 1,
-                      priority: 'low',
-                      theme: theme,
-                      context: context,
-                    ),
-                    
-                    const SizedBox(height: 30),
-                    
-                    // 已完成
-                    _buildSectionHeader('已完成', theme),
-                    const SizedBox(height: 15),
-                    
-                    Opacity(
-                      opacity: 0.6,
-                      child: _buildTaskCard(
-                        title: '檢查並回覆 Slack 訊息',
-                        pomodoroCount: 1,
-                        priority: 'completed',
-                        theme: theme,
-                        context: context,
+              child: taskNotifier.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // 进行中任务
+                          if (taskNotifier.inProgressTasks.isNotEmpty) ...[
+                            _buildSectionHeader('進行中', theme),
+                            const SizedBox(height: 15),
+                            ...taskNotifier.inProgressTasks.map((task) =>
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _buildTaskCard(task, theme, context, ref),
+                              ),
+                            ),
+                            const SizedBox(height: 30),
+                          ],
+                          
+                          // 待办事项
+                          _buildSectionHeader('待辦事項', theme),
+                          const SizedBox(height: 15),
+                          
+                          // AI 拆解卡片
+                          _buildAIBreakdownCard(theme),
+                          const SizedBox(height: 12),
+                          
+                          if (taskNotifier.pendingTasks.isEmpty)
+                            _buildEmptyState('暫無待辦任務', theme)
+                          else
+                            ...taskNotifier.pendingTasks.map((task) =>
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _buildTaskCard(task, theme, context, ref),
+                              ),
+                            ),
+                          
+                          const SizedBox(height: 30),
+                          
+                          // 已完成
+                          if (taskNotifier.completedTasks.isNotEmpty) ...[
+                            _buildSectionHeader('已完成', theme),
+                            const SizedBox(height: 15),
+                            ...taskNotifier.completedTasks.map((task) =>
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Opacity(
+                                  opacity: 0.6,
+                                  child: _buildTaskCard(task, theme, context, ref),
+                                ),
+                              ),
+                            ),
+                          ],
+                          
+                          const SizedBox(height: 100), // Add bottom padding for FAB
+                        ],
                       ),
                     ),
-                    
-                    const SizedBox(height: 100), // Add bottom padding for FAB
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -113,9 +109,7 @@ class TasksScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             FloatingActionButton.small(
-              onPressed: () {
-                // TODO: Add Task
-              },
+              onPressed: () => _showAddTaskDialog(context, ref),
               heroTag: "addTaskButton",
               elevation: 0,
               shape: const CircleBorder(),
@@ -136,6 +130,90 @@ class TasksScreen extends StatelessWidget {
     );
   }
 
+  
+  void _showAddTaskDialog(BuildContext context, WidgetRef ref) async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => const TaskFormDialog(),
+    );
+    
+    if (result != null) {
+      await ref.read(taskProvider.notifier).addTask(
+        title: result['title'],
+        description: result['description'],
+        pomodoroCount: result['pomodoroCount'],
+        priority: result['priority'],
+        status: result['status'],
+      );
+    }
+  }
+  
+  void _showEditTaskDialog(BuildContext context, WidgetRef ref, Task task) async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => TaskFormDialog(task: task),
+    );
+    
+    if (result != null) {
+      final updatedTask = task.copyWith(
+        title: result['title'],
+        description: result['description'],
+        pomodoroCount: result['pomodoroCount'],
+        priority: result['priority'],
+        status: result['status'],
+      );
+      
+      await ref.read(taskProvider.notifier).updateTask(updatedTask);
+    }
+  }
+  
+  void _showDeleteConfirmDialog(BuildContext context, WidgetRef ref, Task task) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('刪除任務'),
+        content: Text('確定要刪除「${task.title}」嗎？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ref.read(taskProvider.notifier).deleteTask(task.id);
+            },
+            child: const Text('刪除'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildEmptyState(String message, ThemeData theme) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          children: [
+            Icon(
+              Icons.task_alt,
+              size: 64,
+              color: theme.colorScheme.outline,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(String title, ThemeData theme) {
     return Row(
       children: [
@@ -149,42 +227,28 @@ class TasksScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTaskCard({
-    required String title,
-    required int pomodoroCount,
-    required String priority,
-    required ThemeData theme,
-    required BuildContext context,
-  }) {
+  Widget _buildTaskCard(
+    Task task,
+    ThemeData theme,
+    BuildContext context,
+    WidgetRef ref,
+  ) {
     Color priorityColor;
     Color priorityBackgroundColor;
-    String priorityText;
     
-    switch (priority) {
-      case 'high':
+    switch (task.priority) {
+      case TaskPriority.high:
         priorityColor = theme.colorScheme.error;
         priorityBackgroundColor = theme.colorScheme.errorContainer;
-        priorityText = '高優先級';
         break;
-      case 'medium':
+      case TaskPriority.medium:
         priorityColor = theme.colorScheme.tertiary;
         priorityBackgroundColor = theme.colorScheme.tertiaryContainer;
-        priorityText = '中優先級';
         break;
-      case 'low':
+      case TaskPriority.low:
         priorityColor = theme.colorScheme.primary;
         priorityBackgroundColor = theme.colorScheme.primaryContainer;
-        priorityText = '低優先級';
         break;
-      case 'completed':
-        priorityColor = theme.colorScheme.secondary;
-        priorityBackgroundColor = theme.colorScheme.secondaryContainer;
-        priorityText = '已完成';
-        break;
-      default:
-        priorityColor = theme.colorScheme.onSurfaceVariant;
-        priorityBackgroundColor = theme.colorScheme.surfaceVariant;
-        priorityText = '';
     }
     
     return Card(
@@ -195,9 +259,7 @@ class TasksScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: InkWell(
-        onTap: () {
-          // TODO: 编辑任务
-        },
+        onTap: () => _showEditTaskDialog(context, ref, task),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -206,90 +268,181 @@ class TasksScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
+                  // 狀態切換按鈕
+                  IconButton(
+                    onPressed: () {
+                      ref.read(taskProvider.notifier).toggleTaskStatus(task.id);
+                    },
+                    icon: Icon(
+                      task.status == TaskStatus.completed
+                          ? Icons.check_circle
+                          : task.status == TaskStatus.inProgress
+                              ? Icons.play_circle
+                              : Icons.radio_button_unchecked,
+                      color: task.status == TaskStatus.completed
+                          ? theme.colorScheme.secondary
+                          : task.status == TaskStatus.inProgress
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.outline,
+                    ),
+                    tooltip: task.status == TaskStatus.completed
+                        ? '標記為未完成'
+                        : task.status == TaskStatus.inProgress
+                            ? '標記為已完成'
+                            : '開始任務',
+                  ),
                   Expanded(
                     child: Text(
-                      title,
+                      task.title,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w500,
+                        decoration: task.status == TaskStatus.completed
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      // 顯示任務詳情的AI分析
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Row(
-                            children: [
-                              Text('AI 任務分析', style: theme.textTheme.titleLarge),
-                            ],
-                          ),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('任務名稱: $title'),
-                              const SizedBox(height: 10),
-                              Text('預估時間: $pomodoroCount 個番茄鐘（${pomodoroCount * 25} 分鐘）'),
-                              const SizedBox(height: 10),
-                              Text('AI 建議:'),
-                              const SizedBox(height: 5),
-                              Text('• 將任務分成小步驟以提高完成率'),
-                              Text('• 每個番茄鐘後記得休息 5 分鐘'),
-                              Text('• 設定明確的完成標準'),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text('關閉'),
-                            ),
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'edit':
+                          _showEditTaskDialog(context, ref, task);
+                          break;
+                        case 'delete':
+                          _showDeleteConfirmDialog(context, ref, task);
+                          break;
+                        case 'ai_analysis':
+                          _showAIAnalysisDialog(context, task, theme);
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit),
+                            SizedBox(width: 8),
+                            Text('編輯'),
                           ],
                         ),
-                      );
-                    },
-                    tooltip: 'AI 任務分析',
-                    icon: const Icon(Symbols.sticky_note_2, fill: 1,),
-                    style: IconButton.styleFrom(
-                      minimumSize: const Size(32, 32),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'ai_analysis',
+                        child: Row(
+                          children: [
+                            Icon(Icons.psychology),
+                            SizedBox(width: 8),
+                            Text('AI 分析'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('刪除', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      '$pomodoroCount 個番茄鐘',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 15),
-                Chip(
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  labelPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: -2),
-                  padding: EdgeInsets.zero,
-                  backgroundColor: priorityBackgroundColor,
-                  label: Text(
-                    priorityText,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: priorityColor,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                    ),
+              if (task.description != null && task.description!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  task.description!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  visualDensity: VisualDensity.compact,
                 ),
               ],
-            ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.schedule,
+                        size: 16,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${task.pomodoroCount} 個番茄鐘',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 15),
+                  Chip(
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: -2),
+                    padding: EdgeInsets.zero,
+                    backgroundColor: priorityBackgroundColor,
+                    label: Text(
+                      task.priorityText,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: priorityColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  void _showAIAnalysisDialog(BuildContext context, Task task, ThemeData theme) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.psychology, color: theme.colorScheme.primary),
+            const SizedBox(width: 8),
+            Text('AI 任務分析', style: theme.textTheme.titleLarge),
           ],
         ),
-      ),),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('任務名稱: ${task.title}'),
+            const SizedBox(height: 10),
+            Text('預估時間: ${task.pomodoroCount} 個番茄鐘（${task.pomodoroCount * 25} 分鐘）'),
+            const SizedBox(height: 10),
+            Text('優先級: ${task.priorityText}'),
+            const SizedBox(height: 10),
+            Text('狀態: ${task.statusText}'),
+            const SizedBox(height: 15),
+            Text('AI 建議:', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 5),
+            const Text('• 將任務分成小步驟以提高完成率'),
+            const Text('• 每個番茄鐘後記得休息 5 分鐘'),
+            const Text('• 設定明確的完成標準'),
+            if (task.priority == TaskPriority.high)
+              const Text('• 高優先級任務建議優先處理'),
+            if (task.pomodoroCount > 4)
+              const Text('• 長時間任務建議分階段執行'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('關閉'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -310,6 +463,11 @@ class TasksScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
+              Icon(
+                Icons.auto_awesome,
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   '讓 AI 幫你拆解大任務',
