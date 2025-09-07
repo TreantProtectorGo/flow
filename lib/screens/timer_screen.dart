@@ -212,12 +212,21 @@ class _TimerScreenState extends State<TimerScreen>
             
             // Main content area
             Expanded(
-              child: SingleChildScrollView(
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Center(
+                    child: SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                          maxWidth: 400, // 限制最大寬度，避免在平板上過寬
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
                     // Current task card
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -381,8 +390,13 @@ class _TimerScreenState extends State<TimerScreen>
                     ),
                     
                     const SizedBox(height: 80), // Add bottom padding to prevent overflow
-                  ],
-                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
