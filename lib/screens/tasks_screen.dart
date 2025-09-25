@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../models/task.dart';
 import '../providers/task_provider.dart';
+import '../providers/timer_provider.dart';
 import '../widgets/task_form_dialog.dart';
 
 class TasksScreen extends ConsumerWidget {
@@ -98,34 +100,11 @@ class TasksScreen extends ConsumerWidget {
         ),
       ),
       
-      // 浮动操作按钮
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(28),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            FloatingActionButton.small(
-              onPressed: () => _showAddTaskDialog(context, ref),
-              heroTag: "addTaskButton",
-              elevation: 0,
-              shape: const CircleBorder(),
-              child: const Icon(Icons.add),
-            ),
-            FloatingActionButton.small(
-              onPressed: () {
-                // TODO: 显示AI对话框
-              },
-              heroTag: "aiButton",
-              elevation: 0,
-              shape: const CircleBorder(),
-              child: const Icon(Icons.smart_toy),
-            ),
-          ],
-        ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddTaskDialog(context, ref),
+        heroTag: "aiButton", 
+        icon: const Icon(Icons.auto_awesome),
+        label: const Text('新增任務'), 
       ),
     );
   }
@@ -302,6 +281,17 @@ class TasksScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  // 開始番茄鐘按鈕
+                  if (task.status != TaskStatus.completed)
+                    IconButton(
+                      onPressed: () => _startPomodoroForTask(context, ref, task),
+                      icon: const Icon(Icons.timer),
+                      tooltip: '開始番茄鐘',
+                      style: IconButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primaryContainer,
+                        foregroundColor: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
                   PopupMenuButton<String>(
                     onSelected: (value) {
                       switch (value) {
@@ -442,6 +432,29 @@ class TasksScreen extends ConsumerWidget {
             child: const Text('關閉'),
           ),
         ],
+      ),
+    );
+  }
+  
+  void _startPomodoroForTask(BuildContext context, WidgetRef ref, Task task) {
+    // 設置為當前任務
+    ref.read(taskProvider.notifier).setCurrentTask(task.id);
+    
+    // 切換到番茄鐘畫面
+    context.go('/timer');
+    
+    // 顯示提示訊息
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('已選擇任務：${task.title}'),
+        duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: '開始',
+          onPressed: () {
+            // 自動開始番茄鐘
+            ref.read(timerProvider.notifier).startTimer();
+          },
+        ),
       ),
     );
   }

@@ -12,9 +12,24 @@ final taskProvider = ChangeNotifierProvider<TaskProvider>((ref) {
 class TaskProvider with ChangeNotifier {
   List<Task> _tasks = [];
   bool _isLoading = false;
+  String? _currentTaskId; // 當前正在進行的任務ID
 
   List<Task> get tasks => _tasks;
   bool get isLoading => _isLoading;
+  String? get currentTaskId => _currentTaskId;
+  
+  // 獲取當前正在進行的任務
+  Task? get currentTask {
+    if (_currentTaskId == null) return null;
+    
+    try {
+      return _tasks.firstWhere((task) => task.id == _currentTaskId);
+    } catch (e) {
+      // 如果找不到指定的任務，清除當前任務ID並返回null
+      _currentTaskId = null;
+      return null;
+    }
+  }
 
   List<Task> get pendingTasks => 
       _tasks.where((task) => task.status == TaskStatus.pending).toList();
@@ -36,10 +51,13 @@ class TaskProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final tasksJson = prefs.getStringList('tasks') ?? [];
+      final currentTaskId = prefs.getString('currentTaskId');
       
       _tasks = tasksJson
           .map((taskString) => Task.fromJson(jsonDecode(taskString)))
           .toList();
+      
+      _currentTaskId = currentTaskId;
       
       // 按創建時間排序
       _tasks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -60,6 +78,13 @@ class TaskProvider with ChangeNotifier {
           .toList();
       
       await prefs.setStringList('tasks', tasksJson);
+      
+      // 保存當前任務ID
+      if (_currentTaskId != null) {
+        await prefs.setString('currentTaskId', _currentTaskId!);
+      } else {
+        await prefs.remove('currentTaskId');
+      }
     } catch (e) {
       debugPrint('保存任務時發生錯誤: $e');
     }
@@ -149,6 +174,41 @@ class TaskProvider with ChangeNotifier {
         status: TaskStatus.completed,
         completedAt: DateTime.now(),
       );
+      
+      // 如果完成的是當前任務，清除當前任務
+      if (_currentTaskId == taskId) {
+        _currentTaskId = null;
+      }
+      
+      notifyListeners();
+      await _saveTasks();
+    }
+  }
+
+  // 設置當前正在進行的任務
+  Future<void> setCurrentTask(String? taskId) async {
+    _currentTaskId = taskId;
+    
+    // 如果設置了新的當前任務，自動將其狀態設為進行中
+    if (taskId != null) {
+      await moveTaskToInProgress(taskId);
+    }
+    
+    notifyListeners();
+    await _saveTasks();
+  }
+
+  // 完成番茄鐘後，為當前任務增加一個番茄鐘
+  Future<void> completePomodoroForCurrentTask() async {
+    if (_currentTaskId == null) return;
+    
+    final index = _tasks.indexWhere((task) => task.id == _currentTaskId);
+    if (index != -1) {
+      final task = _tasks[index];
+      // 這裡可以添加完成的番茄鐘計數邏輯
+      // 暫時只確保任務狀態為進行中
+      _tasks[index] = task.copyWith(status: TaskStatus.inProgress);
+      
       notifyListeners();
       await _saveTasks();
     }
