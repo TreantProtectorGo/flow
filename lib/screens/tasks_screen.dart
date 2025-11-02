@@ -5,6 +5,7 @@ import '../models/task.dart';
 import '../providers/task_provider.dart';
 import '../providers/timer_provider.dart';
 import '../widgets/task_form_dialog.dart';
+import 'ai_chat_screen.dart';
 
 class TasksScreen extends ConsumerWidget {
   const TasksScreen({super.key});
@@ -19,21 +20,6 @@ class TasksScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // 頭部
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '今日任務',
-                    style: theme.textTheme.headlineLarge,
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            
             // 内容区域
             Expanded(
               child: taskNotifier.isLoading
@@ -61,7 +47,7 @@ class TasksScreen extends ConsumerWidget {
                           const SizedBox(height: 15),
                           
                           // AI 拆解卡片
-                          _buildAIBreakdownCard(theme),
+                          _buildAIBreakdownCard(theme, context),
                           const SizedBox(height: 12),
                           
                           if (taskNotifier.pendingTasks.isEmpty)
@@ -102,14 +88,13 @@ class TasksScreen extends ConsumerWidget {
       
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddTaskDialog(context, ref),
-        heroTag: "aiButton", 
-        icon: const Icon(Icons.auto_awesome),
+        heroTag: "addTaskButton", 
+        icon: const Icon(Icons.add),
         label: const Text('新增任務'), 
       ),
     );
   }
 
-  
   void _showAddTaskDialog(BuildContext context, WidgetRef ref) async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -122,9 +107,25 @@ class TasksScreen extends ConsumerWidget {
         description: result['description'],
         pomodoroCount: result['pomodoroCount'],
         priority: result['priority'],
-        status: result['status'],
       );
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('已新增任務：${result['title']}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     }
+  }
+  
+  void _openAIChatScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const AIChatScreen(),
+      ),
+    );
   }
   
   void _showEditTaskDialog(BuildContext context, WidgetRef ref, Task task) async {
@@ -459,7 +460,7 @@ class TasksScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAIBreakdownCard(ThemeData theme) {
+  Widget _buildAIBreakdownCard(ThemeData theme, BuildContext context) {
     return Card(
       elevation: 2,
       margin: EdgeInsets.zero,
@@ -469,7 +470,7 @@ class TasksScreen extends ConsumerWidget {
       ),
       child: InkWell(
         onTap: () {
-          // TODO: AI 拆解任務處理
+          _openAIChatScreen(context);
         },
         borderRadius: BorderRadius.circular(16),
         child: Padding(

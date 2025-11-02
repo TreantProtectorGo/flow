@@ -1,8 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/task.dart';
+import '../services/database_helper.dart';
+import '../services/data_migration_helper.dart';
 
 // Riverpod provider
 final taskProvider = ChangeNotifierProvider<TaskProvider>((ref) {
@@ -13,6 +14,7 @@ class TaskProvider with ChangeNotifier {
   List<Task> _tasks = [];
   bool _isLoading = false;
   String? _currentTaskId; // 當前正在進行的任務ID
+  final DatabaseHelper _db = DatabaseHelper.instance;
 
   List<Task> get tasks => _tasks;
   bool get isLoading => _isLoading;
@@ -41,7 +43,22 @@ class TaskProvider with ChangeNotifier {
       _tasks.where((task) => task.status == TaskStatus.completed).toList();
 
   TaskProvider() {
-    _loadTasks();
+    _initializeAndLoadTasks();
+  }
+
+  Future<void> _initializeAndLoadTasks() async {
+    // 檢查是否需要資料遷移
+    if (await DataMigrationHelper.needsMigration()) {
+      debugPrint('🔄 需要執行資料遷移');
+      try {
+        await DataMigrationHelper.migrate();
+      } catch (e) {
+        debugPrint('❌ 資料遷移失敗，將繼續載入: $e');
+      }
+    }
+    
+    // 載入任務
+    await _loadTasks();
   }
 
   Future<void> _loadTasks() async {
@@ -49,21 +66,18 @@ class TaskProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      // 從 SQLite 資料庫載入任務
+      _tasks = await _db.getAllTasks();
+      
+      // 從 SharedPreferences 載入當前任務ID
       final prefs = await SharedPreferences.getInstance();
-      final tasksJson = prefs.getStringList('tasks') ?? [];
-      final currentTaskId = prefs.getString('currentTaskId');
+      _currentTaskId = prefs.getString('currentTaskId');
       
-      _tasks = tasksJson
-          .map((taskString) => Task.fromJson(jsonDecode(taskString)))
-          .toList();
-      
-      _currentTaskId = currentTaskId;
-      
-      // 按創建時間排序
+      // 按創建時間排序（資料庫查詢已排序，但保留以防萬一）
       _tasks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     } catch (e) {
       debugPrint('載入任務時發生錯誤: $e');
-      _tasks = _getDefaultTasks();
+      _tasks = [];
     }
 
     _isLoading = false;
@@ -72,14 +86,9 @@ class TaskProvider with ChangeNotifier {
 
   Future<void> _saveTasks() async {
     try {
+      // SQLite 會自動保存，這裡只需保存當前任務ID
       final prefs = await SharedPreferences.getInstance();
-      final tasksJson = _tasks
-          .map((task) => jsonEncode(task.toJson()))
-          .toList();
       
-      await prefs.setStringList('tasks', tasksJson);
-      
-      // 保存當前任務ID
       if (_currentTaskId != null) {
         await prefs.setString('currentTaskId', _currentTaskId!);
       } else {
@@ -107,6 +116,10 @@ class TaskProvider with ChangeNotifier {
       createdAt: DateTime.now(),
     );
 
+    // 保存到資料庫
+    await _db.insertTask(task);
+    
+    // 更新記憶體中的列表
     _tasks.insert(0, task);
     notifyListeners();
     await _saveTasks();
@@ -115,6 +128,10 @@ class TaskProvider with ChangeNotifier {
   Future<void> updateTask(Task updatedTask) async {
     final index = _tasks.indexWhere((task) => task.id == updatedTask.id);
     if (index != -1) {
+      // 更新資料庫
+      await _db.updateTask(updatedTask);
+      
+      // 更新記憶體中的列表
       _tasks[index] = updatedTask;
       notifyListeners();
       await _saveTasks();
@@ -122,6 +139,10 @@ class TaskProvider with ChangeNotifier {
   }
 
   Future<void> deleteTask(String taskId) async {
+    // 從資料庫刪除
+    await _db.deleteTask(taskId);
+    
+    // 從記憶體中移除
     _tasks.removeWhere((task) => task.id == taskId);
     notifyListeners();
     await _saveTasks();
@@ -148,11 +169,16 @@ class TaskProvider with ChangeNotifier {
           break;
       }
 
-      _tasks[index] = task.copyWith(
+      final updatedTask = task.copyWith(
         status: newStatus,
         completedAt: completedAt,
       );
       
+      // 更新資料庫
+      await _db.updateTask(updatedTask);
+      
+      // 更新記憶體
+      _tasks[index] = updatedTask;
       notifyListeners();
       await _saveTasks();
     }
@@ -161,7 +187,13 @@ class TaskProvider with ChangeNotifier {
   Future<void> moveTaskToInProgress(String taskId) async {
     final index = _tasks.indexWhere((task) => task.id == taskId);
     if (index != -1) {
-      _tasks[index] = _tasks[index].copyWith(status: TaskStatus.inProgress);
+      final updatedTask = _tasks[index].copyWith(status: TaskStatus.inProgress);
+      
+      // 更新資料庫
+      await _db.updateTask(updatedTask);
+      
+      // 更新記憶體
+      _tasks[index] = updatedTask;
       notifyListeners();
       await _saveTasks();
     }
@@ -170,10 +202,16 @@ class TaskProvider with ChangeNotifier {
   Future<void> markTaskAsCompleted(String taskId) async {
     final index = _tasks.indexWhere((task) => task.id == taskId);
     if (index != -1) {
-      _tasks[index] = _tasks[index].copyWith(
+      final updatedTask = _tasks[index].copyWith(
         status: TaskStatus.completed,
         completedAt: DateTime.now(),
       );
+      
+      // 更新資料庫
+      await _db.updateTask(updatedTask);
+      
+      // 更新記憶體
+      _tasks[index] = updatedTask;
       
       // 如果完成的是當前任務，清除當前任務
       if (_currentTaskId == taskId) {
@@ -201,55 +239,20 @@ class TaskProvider with ChangeNotifier {
   // 完成番茄鐘後，為當前任務增加一個番茄鐘
   Future<void> completePomodoroForCurrentTask() async {
     if (_currentTaskId == null) return;
-    
+
     final index = _tasks.indexWhere((task) => task.id == _currentTaskId);
     if (index != -1) {
       final task = _tasks[index];
-      // 這裡可以添加完成的番茄鐘計數邏輯
-      // 暫時只確保任務狀態為進行中
-      _tasks[index] = task.copyWith(status: TaskStatus.inProgress);
+      final updatedTask = task.copyWith(status: TaskStatus.inProgress);
+      
+      // 更新資料庫
+      await _db.updateTask(updatedTask);
+      
+      // 更新記憶體
+      _tasks[index] = updatedTask;
       
       notifyListeners();
       await _saveTasks();
     }
-  }
-
-  List<Task> _getDefaultTasks() {
-    final now = DateTime.now();
-    return [
-      Task(
-        id: '1',
-        title: '撰寫產品需求文件 - 第一章節',
-        pomodoroCount: 2,
-        priority: TaskPriority.high,
-        status: TaskStatus.inProgress,
-        createdAt: now.subtract(const Duration(hours: 2)),
-      ),
-      Task(
-        id: '2',
-        title: '準備明天的會議簡報',
-        pomodoroCount: 3,
-        priority: TaskPriority.medium,
-        status: TaskStatus.pending,
-        createdAt: now.subtract(const Duration(hours: 1)),
-      ),
-      Task(
-        id: '3',
-        title: '回覆客戶郵件',
-        pomodoroCount: 1,
-        priority: TaskPriority.low,
-        status: TaskStatus.pending,
-        createdAt: now.subtract(const Duration(minutes: 30)),
-      ),
-      Task(
-        id: '4',
-        title: '檢查並回覆 Slack 訊息',
-        pomodoroCount: 1,
-        priority: TaskPriority.low,
-        status: TaskStatus.completed,
-        createdAt: now.subtract(const Duration(hours: 3)),
-        completedAt: now.subtract(const Duration(hours: 1)),
-      ),
-    ];
   }
 }

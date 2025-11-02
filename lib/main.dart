@@ -104,7 +104,7 @@ final GoRouter _router = GoRouter(
         ),
         GoRoute(
           path: '/stats',
-          builder: (context, state) => const StatsScreen(),
+          builder: (context, state) => const StatisticsScreen(),
         ),
         GoRoute(
           path: '/settings',

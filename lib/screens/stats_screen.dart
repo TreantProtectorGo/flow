@@ -1,128 +1,89 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_chart/fl_chart.dart';
+import '../providers/statistics_provider.dart';
+import '../widgets/stats_goal_card.dart';
+import '../widgets/stats_streak_card.dart';
+import '../widgets/stats_heatmap.dart';
+import '../widgets/stats_time_of_day_chart.dart';
+import '../widgets/stats_achievement_card.dart';
 
-class StatsScreen extends StatelessWidget {
-  const StatsScreen({super.key});
+class StatisticsScreen extends ConsumerStatefulWidget {
+  const StatisticsScreen({super.key});
+
+  @override
+  ConsumerState<StatisticsScreen> createState() => _StatisticsScreenState();
+}
+
+class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+    final stats = ref.watch(statisticsProvider);
+
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
-            // 头部
-            Container(
+            // 頭部
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                border: Border(
-                  bottom: BorderSide(
-                    color: theme.colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-                ),
-              ),
-              child: Column(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '專注統計',
-                    style: theme.textTheme.headlineLarge,
-                  ),
-                  const SizedBox(height: 15),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildPeriodButton('今天', false, theme),
-                        const SizedBox(width: 6), // Reduced spacing
-                        _buildPeriodButton('本週', true, theme),
-                        const SizedBox(width: 6), // Reduced spacing
-                        _buildPeriodButton('本月', false, theme),
-                        const SizedBox(width: 6), // Reduced spacing
-                        _buildPeriodButton('全部', false, theme),
-                      ],
-                    ),
+                  Text('統計數據', style: theme.textTheme.headlineLarge),
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () {
+                      if (mounted) {
+                        ref.read(statisticsProvider.notifier).loadStatistics();
+                      }
+                    },
+                    tooltip: '重新整理',
                   ),
                 ],
               ),
             ),
-            
-            // 内容区域
+            const Divider(height: 1),
+
+            // Tab Bar
+            TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: '今日'),
+                Tab(text: '本週'),
+                Tab(text: '本月'),
+              ],
+            ),
+
+            // 內容
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // 统计卡片网格
-                    Row(
+              child: stats.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : TabBarView(
+                      controller: _tabController,
                       children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            icon: '🍅',
-                            value: '23',
-                            label: '完成番茄鐘',
-                            color: const Color(0xFFEF4444),
-                            theme: theme,
-                          ),
-                        ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: _buildStatCard(
-                            icon: '⏰',
-                            value: '9.5',
-                            label: '專注小時',
-                            color: const Color(0xFF3B82F6),
-                            theme: theme,
-                          ),
-                        ),
+                        _buildTodayView(context, theme, stats.state),
+                        _buildWeekView(context, theme, stats.state),
+                        _buildMonthView(context, theme, stats.state),
                       ],
                     ),
-                    const SizedBox(height: 15),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            icon: '🔥',
-                            value: '7',
-                            label: '連續天數',
-                            color: const Color(0xFFF59E0B),
-                            theme: theme,
-                          ),
-                        ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: _buildStatCard(
-                            icon: '📈',
-                            value: '3.3',
-                            label: '日均番茄鐘',
-                            color: const Color(0xFF10B981),
-                            theme: theme,
-                          ),
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 30),
-                    
-                    // 本周专注趋势
-                    _buildChartSection(theme),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // 专注热力图
-                    _buildHeatmapSection(theme),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // 成就徽章
-                    _buildAchievementsSection(theme),
-                    
-                    const SizedBox(height: 80), // Add bottom padding to prevent overflow
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -130,169 +91,112 @@ class StatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPeriodButton(String text, bool isActive, ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Reduced padding
-      decoration: BoxDecoration(
-        color: isActive ? theme.colorScheme.primary : theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isActive 
-              ? theme.colorScheme.primary
-              : theme.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-      ),
-      child: Text(
-        text,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: isActive 
-              ? theme.colorScheme.onPrimary
-              : theme.colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard({
-    required String icon,
-    required String value,
-    required String label,
-    required Color color,
-    required ThemeData theme,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+  Widget _buildTodayView(
+    BuildContext context,
+    ThemeData theme,
+    StatisticsState stats,
+  ) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            icon,
-            style: const TextStyle(fontSize: 24),
+          // 連續天數卡片
+          StatsStreakCard(
+            streakDays: stats.streakDays,
+            todayCompleted: stats.todayCompleted,
           ),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            style: theme.textTheme.displayLarge?.copyWith(
-              fontSize: 32,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildChartSection(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '📊 本週專注趨勢',
-            style: theme.textTheme.titleLarge,
-          ),
           const SizedBox(height: 20),
-          
-          // 简化的柱状图
-          Container(
-            height: 220, // Increased height to accommodate content
-            padding: const EdgeInsets.all(16), // Reduced padding
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _buildBar('週一', 50, 2, theme), // Reduced bar heights
-                _buildBar('週二', 65, 3, theme),
-                _buildBar('週三', 95, 5, theme),
-                _buildBar('週四', 80, 4, theme),
-                _buildBar('週五', 110, 6, theme),
-                _buildBar('週六', 50, 2, theme),
-                _buildBar('週日', 35, 1, theme),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildBar(String label, double height, int value, ThemeData theme) {
-    return Expanded(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min, // Important: minimize column size
-        children: [
-          Text(
-            value.toString(),
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-            ),
+          // 每日目標進度
+          StatsGoalCard(
+            title: '今日目標',
+            current: stats.todayCompleted,
+            goal: stats.dailyGoal,
+            icon: Icons.today,
+            color: theme.colorScheme.primary,
           ),
-          const SizedBox(height: 3), // Reduced spacing
-          Container(
-            width: 24, // Slightly smaller width
-            height: height,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  theme.colorScheme.primary,
-                  theme.colorScheme.primary.withValues(alpha: 0.7),
-                ],
+
+          const SizedBox(height: 20),
+
+          // 今日概覽卡片
+          _buildSummaryCard(
+            theme: theme,
+            title: '今日概覽',
+            stats: [
+              _StatItem(
+                icon: Icons.timer,
+                label: '完成番茄鐘',
+                value: '${stats.todayCompleted}',
+                color: theme.colorScheme.primary,
               ),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-            ),
+              _StatItem(
+                icon: Icons.schedule,
+                label: '專注時間',
+                value: '${stats.todayFocusMinutes} 分鐘',
+                color: theme.colorScheme.secondary,
+              ),
+              _StatItem(
+                icon: Icons.task_alt,
+                label: '完成任務',
+                value: '${stats.todayCompletedTasks}',
+                color: theme.colorScheme.tertiary,
+              ),
+              _StatItem(
+                icon: Icons.percent,
+                label: '完成率',
+                value: '${stats.todayCompletionRate.toStringAsFixed(0)}%',
+                color: stats.todayCompletionRate >= 70
+                    ? Colors.green
+                    : stats.todayCompletionRate >= 40
+                    ? Colors.orange
+                    : Colors.red,
+              ),
+            ],
           ),
-          const SizedBox(height: 6), // Reduced spacing
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 9, // Smaller font
+
+          const SizedBox(height: 20),
+
+          // 今日時間分布
+          _buildChartCard(
+            theme: theme,
+            title: '今日時間分布',
+            child: SizedBox(
+              height: 200,
+              child: stats.todayCompleted > 0
+                  ? PieChart(
+                      PieChartData(
+                        sections: [
+                          PieChartSectionData(
+                            value: stats.todayCompleted.toDouble(),
+                            title: '完成\n${stats.todayCompleted}',
+                            color: theme.colorScheme.primary,
+                            radius: 80,
+                            titleStyle: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          if (stats.todayIncomplete > 0)
+                            PieChartSectionData(
+                              value: stats.todayIncomplete.toDouble(),
+                              title: '未完成\n${stats.todayIncomplete}',
+                              color: theme.colorScheme.errorContainer,
+                              radius: 70,
+                              titleStyle: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onErrorContainer,
+                              ),
+                            ),
+                        ],
+                        sectionsSpace: 2,
+                        centerSpaceRadius: 40,
+                      ),
+                    )
+                  : _buildEmptyState('今天還沒有完成任何番茄鐘', theme),
             ),
           ),
         ],
@@ -300,221 +204,485 @@ class StatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeatmapSection(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+  Widget _buildWeekView(
+    BuildContext context,
+    ThemeData theme,
+    StatisticsState stats,
+  ) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              const Text('🔥 專注熱力圖'),
-              const Spacer(),
-              SizedBox(
-                width: 60,
-                height: 60,
-                child: Stack(
-                  children: [
-                    SizedBox(
-                      width: 60,
-                      height: 60,
-                      child: CircularProgressIndicator(
-                        value: 0.75,
-                        strokeWidth: 4,
-                        backgroundColor: theme.colorScheme.outline.withValues(alpha: 0.2),
-                        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
-                      ),
-                    ),
-                    Center(
-                      child: Text(
-                        '75%',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.primary,
+          // 本週概覽
+          _buildSummaryCard(
+            theme: theme,
+            title: '本週概覽',
+            stats: [
+              _StatItem(
+                icon: Icons.timer,
+                label: '完成番茄鐘',
+                value: '${stats.weekCompleted}',
+                color: theme.colorScheme.primary,
+              ),
+              _StatItem(
+                icon: Icons.schedule,
+                label: '專注時間',
+                value: '${(stats.weekFocusMinutes / 60).toStringAsFixed(1)} 小時',
+                color: theme.colorScheme.secondary,
+              ),
+              _StatItem(
+                icon: Icons.local_fire_department,
+                label: '連續天數',
+                value: '${stats.streakDays}',
+                color: Colors.orange,
+              ),
+              _StatItem(
+                icon: Icons.trending_up,
+                label: '日均完成',
+                value: '${(stats.weekCompleted / 7).toStringAsFixed(1)}',
+                color: theme.colorScheme.tertiary,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // 每週目標進度
+          StatsGoalCard(
+            title: '本週目標',
+            current: stats.weekCompleted,
+            goal: stats.weeklyGoal,
+            icon: Icons.calendar_today,
+            color: theme.colorScheme.secondary,
+          ),
+
+          const SizedBox(height: 20),
+
+          // 最佳專注時段分析
+          _buildChartCard(
+            theme: theme,
+            title: '最佳專注時段（最近 30 天）',
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: StatsTimeOfDayChart(data: stats.timeOfDayStats),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // 本週趨勢圖
+          _buildChartCard(
+            theme: theme,
+            title: '本週趨勢',
+            child: SizedBox(
+              height: 250,
+              child: stats.weeklyData.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: 20, top: 20),
+                      child: BarChart(
+                        BarChartData(
+                          alignment: BarChartAlignment.spaceAround,
+                          maxY:
+                              (stats.weeklyData.values.reduce(
+                                        (a, b) => a > b ? a : b,
+                                      ) +
+                                      2)
+                                  .toDouble(),
+                          barTouchData: BarTouchData(
+                            enabled: true,
+                            touchTooltipData: BarTouchTooltipData(
+                              getTooltipItem:
+                                  (group, groupIndex, rod, rodIndex) {
+                                    final day = stats.weeklyData.keys.elementAt(
+                                      group.x.toInt(),
+                                    );
+                                    return BarTooltipItem(
+                                      '$day\n${rod.toY.toInt()} 個番茄鐘',
+                                      const TextStyle(color: Colors.white),
+                                    );
+                                  },
+                            ),
+                          ),
+                          titlesData: FlTitlesData(
+                            show: true,
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  if (value.toInt() >= 0 &&
+                                      value.toInt() < stats.weeklyData.length) {
+                                    final day = stats.weeklyData.keys.elementAt(
+                                      value.toInt(),
+                                    );
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: Text(
+                                        day,
+                                        style: theme.textTheme.bodySmall,
+                                      ),
+                                    );
+                                  }
+                                  return const Text('');
+                                },
+                              ),
+                            ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 40,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    value.toInt().toString(),
+                                    style: theme.textTheme.bodySmall,
+                                  );
+                                },
+                              ),
+                            ),
+                            topTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          gridData: FlGridData(
+                            show: true,
+                            drawVerticalLine: false,
+                            horizontalInterval: 2,
+                          ),
+                          borderData: FlBorderData(show: false),
+                          barGroups: List.generate(
+                            stats.weeklyData.length,
+                            (index) => BarChartGroupData(
+                              x: index,
+                              barRods: [
+                                BarChartRodData(
+                                  toY: stats.weeklyData.values
+                                      .elementAt(index)
+                                      .toDouble(),
+                                  color: theme.colorScheme.primary,
+                                  width: 30,
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(6),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    )
+                  : _buildEmptyState('本週還沒有統計資料', theme),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthView(
+    BuildContext context,
+    ThemeData theme,
+    StatisticsState stats,
+  ) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 本月概覽
+          _buildSummaryCard(
+            theme: theme,
+            title: '本月概覽',
+            stats: [
+              _StatItem(
+                icon: Icons.timer,
+                label: '完成番茄鐘',
+                value: '${stats.monthCompleted}',
+                color: theme.colorScheme.primary,
+              ),
+              _StatItem(
+                icon: Icons.schedule,
+                label: '專注時間',
+                value:
+                    '${(stats.monthFocusMinutes / 60).toStringAsFixed(1)} 小時',
+                color: theme.colorScheme.secondary,
+              ),
+              _StatItem(
+                icon: Icons.calendar_today,
+                label: '工作天數',
+                value: '${stats.monthActiveDays}',
+                color: theme.colorScheme.tertiary,
+              ),
+              _StatItem(
+                icon: Icons.star,
+                label: '最佳單日',
+                value: '${stats.monthBestDay}',
+                color: Colors.amber,
               ),
             ],
           ),
-          const SizedBox(height: 15),
-          
-          // 简化的热力图
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              childAspectRatio: 1,
-              crossAxisSpacing: 2,
-              mainAxisSpacing: 2,
+
+          const SizedBox(height: 20),
+
+          // 月度熱力圖
+          _buildChartCard(
+            theme: theme,
+            title: '月度專注熱力圖',
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: StatsHeatmap(
+                data: stats.heatmapData,
+                baseColor: theme.colorScheme.primary,
+              ),
             ),
-            itemCount: 35,
-            itemBuilder: (context, index) {
-              // 随机生成热力图数据
-              final levels = [0, 1, 2, 3, 4];
-              final level = levels[index % levels.length];
-              
-              Color color;
-              switch (level) {
-                case 0:
-                  color = theme.colorScheme.outline.withValues(alpha: 0.1);
-                  break;
-                case 1:
-                  color = const Color(0xFFDBEAFE);
-                  break;
-                case 2:
-                  color = const Color(0xFF93C5FD);
-                  break;
-                case 3:
-                  color = const Color(0xFF3B82F6);
-                  break;
-                case 4:
-                  color = const Color(0xFF1D4ED8);
-                  break;
-                default:
-                  color = theme.colorScheme.outline.withValues(alpha: 0.1);
-              }
-              
-              return Container(
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(2),
-                  border: Border.all(
-                    color: theme.colorScheme.outline.withValues(alpha: 0.2),
-                    width: 1,
-                  ),
-                ),
-              );
-            },
+          ),
+
+          const SizedBox(height: 20),
+
+          // 成就列表
+          _buildChartCard(
+            theme: theme,
+            title: '成就與里程碑',
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: StatsAchievementsSection(
+                totalPomodoros: stats.monthCompleted + stats.weekCompleted,
+                streakDays: stats.streakDays,
+                todayCompleted: stats.todayCompleted,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // 本月趨勢
+          _buildChartCard(
+            theme: theme,
+            title: '本月趨勢',
+            child: SizedBox(
+              height: 250,
+              child: stats.monthlyData.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: 10, top: 20),
+                      child: LineChart(
+                        LineChartData(
+                          lineTouchData: LineTouchData(
+                            touchTooltipData: LineTouchTooltipData(
+                              getTooltipItems: (touchedSpots) {
+                                return touchedSpots.map((spot) {
+                                  return LineTooltipItem(
+                                    '${spot.y.toInt()} 個',
+                                    const TextStyle(color: Colors.white),
+                                  );
+                                }).toList();
+                              },
+                            ),
+                          ),
+                          gridData: FlGridData(
+                            show: true,
+                            drawVerticalLine: false,
+                          ),
+                          titlesData: FlTitlesData(
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                interval: 5,
+                                getTitlesWidget: (value, meta) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Text(
+                                      value.toInt().toString(),
+                                      style: theme.textTheme.bodySmall,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 40,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    value.toInt().toString(),
+                                    style: theme.textTheme.bodySmall,
+                                  );
+                                },
+                              ),
+                            ),
+                            topTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          borderData: FlBorderData(show: false),
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: stats.monthlyData.entries
+                                  .map(
+                                    (e) => FlSpot(
+                                      e.key.toDouble(),
+                                      e.value.toDouble(),
+                                    ),
+                                  )
+                                  .toList(),
+                              isCurved: true,
+                              color: theme.colorScheme.primary,
+                              barWidth: 3,
+                              dotData: const FlDotData(show: true),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                color: theme.colorScheme.primary.withOpacity(
+                                  0.1,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : _buildEmptyState('本月還沒有統計資料', theme),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAchievementsSection(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+  Widget _buildSummaryCard({
+    required ThemeData theme,
+    required String title,
+    required List<_StatItem> stats,
+  }) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.6,
+              children: stats
+                  .map((stat) => _buildStatItem(stat, theme))
+                  .toList(),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '🏆 成就徽章',
-            style: theme.textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 15),
-          
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 3,
-            childAspectRatio: 0.85, // Slightly increased ratio to prevent overflow
-            crossAxisSpacing: 12, // Reduced spacing
-            mainAxisSpacing: 12, // Reduced spacing
-            children: [
-              _buildAchievementItem('🍅', '初次專注', '完成第一個番茄鐘', true, theme),
-              _buildAchievementItem('🔥', '連續一週', '連續7天使用', true, theme),
-              _buildAchievementItem('⚡', '效率達人', '單日完成10個番茄鐘', true, theme),
-              _buildAchievementItem('🎯', '專注大師', '累積100個番茄鐘', false, theme),
-              _buildAchievementItem('🌟', '月度冠軍', '月度專注時間第一', false, theme),
-              _buildAchievementItem('💎', '完美主義', '連續30天無中斷', false, theme),
-            ],
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildAchievementItem(
-    String icon,
-    String title,
-    String description,
-    bool isUnlocked,
-    ThemeData theme,
-  ) {
+  Widget _buildStatItem(_StatItem stat, ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.all(8), // Reduced padding to prevent overflow
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: isUnlocked 
-            ? const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFFFEF3C7), Color(0xFFFDE68A)],
-              ).colors.first
-            : theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isUnlocked 
-              ? const Color(0xFFF59E0B)
-              : theme.colorScheme.outline.withValues(alpha: 0.2),
-          width: 2,
-        ),
+        color: stat.color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(stat.icon, color: stat.color, size: 22),
+          const SizedBox(height: 6),
           Text(
-            icon,
-            style: TextStyle(
-              fontSize: 24, // Reduced icon size
-              color: isUnlocked ? null : Colors.grey,
+            stat.value,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: stat.color,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 6), // Reduced spacing
+          const SizedBox(height: 2),
           Text(
-            title,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: isUnlocked 
-                  ? theme.colorScheme.onSurface
-                  : theme.colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 2), // Reduced spacing
-          Text(
-            description,
+            stat.label,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 9, // Reduced font size to prevent overflow
+              fontSize: 11,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
   }
+
+  Widget _buildChartCard({
+    required ThemeData theme,
+    required String title,
+    required Widget child,
+  }) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String message, ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.analytics_outlined,
+            size: 64,
+            color: theme.colorScheme.outline,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.outline,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatItem {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  _StatItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 }
