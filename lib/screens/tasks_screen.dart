@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,7 +15,10 @@ class TasksScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final taskNotifier = ref.watch(taskProvider);
-    
+    final timerNotifier = ref.watch(timerProvider);
+    final currentTask = taskNotifier.currentTask;
+    final isTimerRunning = timerNotifier.isRunning;
+
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
@@ -29,55 +33,85 @@ class TasksScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          // 當前計時任務卡片（置頂顯示）
+                          if (currentTask != null && isTimerRunning)
+                            _buildActiveTimerCard(
+                              currentTask,
+                              timerNotifier,
+                              theme,
+                              context,
+                              ref,
+                            ),
+
+                          if (currentTask != null && isTimerRunning)
+                            const SizedBox(height: 20),
+
                           // 进行中任务
                           if (taskNotifier.inProgressTasks.isNotEmpty) ...[
                             _buildSectionHeader('進行中', theme),
                             const SizedBox(height: 15),
-                            ...taskNotifier.inProgressTasks.map((task) =>
-                              Padding(
+                            ...taskNotifier.inProgressTasks.map(
+                              (task) => Padding(
                                 padding: const EdgeInsets.only(bottom: 12),
-                                child: _buildTaskCard(task, theme, context, ref),
+                                child: _buildTaskCard(
+                                  task,
+                                  theme,
+                                  context,
+                                  ref,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 30),
                           ],
-                          
+
                           // 待办事项
                           _buildSectionHeader('待辦事項', theme),
                           const SizedBox(height: 15),
-                          
+
                           // AI 拆解卡片
                           _buildAIBreakdownCard(theme, context),
                           const SizedBox(height: 12),
-                          
+
                           if (taskNotifier.pendingTasks.isEmpty)
                             _buildEmptyState('暫無待辦任務', theme)
                           else
-                            ...taskNotifier.pendingTasks.map((task) =>
-                              Padding(
+                            ...taskNotifier.pendingTasks.map(
+                              (task) => Padding(
                                 padding: const EdgeInsets.only(bottom: 12),
-                                child: _buildTaskCard(task, theme, context, ref),
+                                child: _buildTaskCard(
+                                  task,
+                                  theme,
+                                  context,
+                                  ref,
+                                ),
                               ),
                             ),
-                          
+
                           const SizedBox(height: 30),
-                          
+
                           // 已完成
                           if (taskNotifier.completedTasks.isNotEmpty) ...[
                             _buildSectionHeader('已完成', theme),
                             const SizedBox(height: 15),
-                            ...taskNotifier.completedTasks.map((task) =>
-                              Padding(
+                            ...taskNotifier.completedTasks.map(
+                              (task) => Padding(
                                 padding: const EdgeInsets.only(bottom: 12),
                                 child: Opacity(
                                   opacity: 0.6,
-                                  child: _buildTaskCard(task, theme, context, ref),
+                                  child: _buildTaskCard(
+                                    task,
+                                    theme,
+                                    context,
+                                    ref,
+                                  ),
                                 ),
                               ),
                             ),
                           ],
-                          
-                          const SizedBox(height: 100), // Add bottom padding for FAB
+
+                          const SizedBox(
+                            height: 100,
+                          ), // Add bottom padding for FAB
                         ],
                       ),
                     ),
@@ -85,12 +119,12 @@ class TasksScreen extends ConsumerWidget {
           ],
         ),
       ),
-      
+
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddTaskDialog(context, ref),
-        heroTag: "addTaskButton", 
+        heroTag: "addTaskButton",
         icon: const Icon(Icons.add),
-        label: const Text('新增任務'), 
+        label: const Text('新增任務'),
       ),
     );
   }
@@ -100,15 +134,17 @@ class TasksScreen extends ConsumerWidget {
       context: context,
       builder: (context) => const TaskFormDialog(),
     );
-    
+
     if (result != null) {
-      await ref.read(taskProvider.notifier).addTask(
-        title: result['title'],
-        description: result['description'],
-        pomodoroCount: result['pomodoroCount'],
-        priority: result['priority'],
-      );
-      
+      await ref
+          .read(taskProvider.notifier)
+          .addTask(
+            title: result['title'],
+            description: result['description'],
+            pomodoroCount: result['pomodoroCount'],
+            priority: result['priority'],
+          );
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -119,21 +155,23 @@ class TasksScreen extends ConsumerWidget {
       }
     }
   }
-  
+
   void _openAIChatScreen(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const AIChatScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const AIChatScreen()));
   }
-  
-  void _showEditTaskDialog(BuildContext context, WidgetRef ref, Task task) async {
+
+  void _showEditTaskDialog(
+    BuildContext context,
+    WidgetRef ref,
+    Task task,
+  ) async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => TaskFormDialog(task: task),
     );
-    
+
     if (result != null) {
       final updatedTask = task.copyWith(
         title: result['title'],
@@ -142,12 +180,16 @@ class TasksScreen extends ConsumerWidget {
         priority: result['priority'],
         status: result['status'],
       );
-      
+
       await ref.read(taskProvider.notifier).updateTask(updatedTask);
     }
   }
-  
-  void _showDeleteConfirmDialog(BuildContext context, WidgetRef ref, Task task) {
+
+  void _showDeleteConfirmDialog(
+    BuildContext context,
+    WidgetRef ref,
+    Task task,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -169,18 +211,14 @@ class TasksScreen extends ConsumerWidget {
       ),
     );
   }
-  
+
   Widget _buildEmptyState(String message, ThemeData theme) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           children: [
-            Icon(
-              Icons.task_alt,
-              size: 64,
-              color: theme.colorScheme.outline,
-            ),
+            Icon(Icons.task_alt, size: 64, color: theme.colorScheme.outline),
             const SizedBox(height: 16),
             Text(
               message,
@@ -207,15 +245,151 @@ class TasksScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildActiveTimerCard(
+    Task task,
+    TimerProvider timerNotifier,
+    ThemeData theme,
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.primaryContainer,
+            theme.colorScheme.secondaryContainer,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => context.go('/timer'),
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.timer,
+                        color: theme.colorScheme.onPrimary,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '正在專注',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            timerNotifier.modeDisplayString,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onPrimaryContainer
+                                  .withOpacity(0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      timerNotifier.timeDisplayString,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        fontFeatures: [const FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  task.title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: timerNotifier.progress,
+                          minHeight: 8,
+                          backgroundColor: theme.colorScheme.surface
+                              .withOpacity(0.3),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            theme.colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    FilledButton.icon(
+                      onPressed: () => context.go('/timer'),
+                      icon: const Icon(Icons.visibility, size: 16),
+                      label: const Text('查看'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTaskCard(
     Task task,
     ThemeData theme,
     BuildContext context,
     WidgetRef ref,
   ) {
+    final taskNotifier = ref.watch(taskProvider);
+    final timerNotifier = ref.watch(timerProvider);
+    final isCurrentTask = taskNotifier.currentTaskId == task.id;
+    final isTimerRunning = timerNotifier.isRunning && isCurrentTask;
+
     Color priorityColor;
     Color priorityBackgroundColor;
-    
+
     switch (task.priority) {
       case TaskPriority.high:
         priorityColor = theme.colorScheme.error;
@@ -230,13 +404,16 @@ class TasksScreen extends ConsumerWidget {
         priorityBackgroundColor = theme.colorScheme.primaryContainer;
         break;
     }
-    
+
     return Card(
-      elevation: 2,
+      elevation: isCurrentTask ? 4 : 2,
       margin: EdgeInsets.zero,
       surfaceTintColor: theme.colorScheme.surfaceTint,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
+        side: isCurrentTask
+            ? BorderSide(color: theme.colorScheme.primary, width: 2)
+            : BorderSide.none,
       ),
       child: InkWell(
         onTap: () => _showEditTaskDialog(context, ref, task),
@@ -248,49 +425,61 @@ class TasksScreen extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  // 狀態切換按鈕
-                  IconButton(
-                    onPressed: () {
-                      ref.read(taskProvider.notifier).toggleTaskStatus(task.id);
-                    },
-                    icon: Icon(
-                      task.status == TaskStatus.completed
-                          ? Icons.check_circle
-                          : task.status == TaskStatus.inProgress
-                              ? Icons.play_circle
-                              : Icons.radio_button_unchecked,
-                      color: task.status == TaskStatus.completed
-                          ? theme.colorScheme.secondary
-                          : task.status == TaskStatus.inProgress
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.outline,
-                    ),
-                    tooltip: task.status == TaskStatus.completed
-                        ? '標記為未完成'
-                        : task.status == TaskStatus.inProgress
-                            ? '標記為已完成'
-                            : '開始任務',
-                  ),
                   Expanded(
-                    child: Text(
-                      task.title,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        decoration: task.status == TaskStatus.completed
-                            ? TextDecoration.lineThrough
-                            : null,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          task.title,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            decoration: task.status == TaskStatus.completed
+                                ? TextDecoration.lineThrough
+                                : null,
+                          ),
+                        ),
+                        if (isTimerRunning) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.timer,
+                                size: 14,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '計時中 ${timerNotifier.timeDisplayString}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                   // 開始番茄鐘按鈕
                   if (task.status != TaskStatus.completed)
-                    IconButton(
-                      onPressed: () => _startPomodoroForTask(context, ref, task),
-                      icon: const Icon(Icons.timer),
-                      tooltip: '開始番茄鐘',
-                      style: IconButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primaryContainer,
-                        foregroundColor: theme.colorScheme.onPrimaryContainer,
+                    FilledButton.icon(
+                      onPressed: () =>
+                          _startPomodoroForTask(context, ref, task),
+                      icon: Icon(
+                        isCurrentTask ? Icons.play_arrow : Icons.timer,
+                        size: 18,
+                      ),
+                      label: Text(isCurrentTask ? '繼續' : '開始'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        backgroundColor: isCurrentTask
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.primaryContainer,
+                        foregroundColor: isCurrentTask
+                            ? theme.colorScheme.onPrimary
+                            : theme.colorScheme.onPrimaryContainer,
                       ),
                     ),
                   PopupMenuButton<String>(
@@ -298,6 +487,11 @@ class TasksScreen extends ConsumerWidget {
                       switch (value) {
                         case 'edit':
                           _showEditTaskDialog(context, ref, task);
+                          break;
+                        case 'complete':
+                          ref
+                              .read(taskProvider.notifier)
+                              .toggleTaskStatus(task.id);
                           break;
                         case 'delete':
                           _showDeleteConfirmDialog(context, ref, task);
@@ -318,6 +512,17 @@ class TasksScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
+                      if (task.status != TaskStatus.completed)
+                        const PopupMenuItem(
+                          value: 'complete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle),
+                              SizedBox(width: 8),
+                              Text('標記完成'),
+                            ],
+                          ),
+                        ),
                       const PopupMenuItem(
                         value: 'ai_analysis',
                         child: Row(
@@ -371,7 +576,10 @@ class TasksScreen extends ConsumerWidget {
                   const SizedBox(width: 15),
                   Chip(
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    labelPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: -2),
+                    labelPadding: const EdgeInsets.symmetric(
+                      horizontal: 2,
+                      vertical: -2,
+                    ),
                     padding: EdgeInsets.zero,
                     backgroundColor: priorityBackgroundColor,
                     label: Text(
@@ -392,7 +600,7 @@ class TasksScreen extends ConsumerWidget {
       ),
     );
   }
-  
+
   void _showAIAnalysisDialog(BuildContext context, Task task, ThemeData theme) {
     showDialog(
       context: context,
@@ -410,7 +618,9 @@ class TasksScreen extends ConsumerWidget {
           children: [
             Text('任務名稱: ${task.title}'),
             const SizedBox(height: 10),
-            Text('預估時間: ${task.pomodoroCount} 個番茄鐘（${task.pomodoroCount * 25} 分鐘）'),
+            Text(
+              '預估時間: ${task.pomodoroCount} 個番茄鐘（${task.pomodoroCount * 25} 分鐘）',
+            ),
             const SizedBox(height: 10),
             Text('優先級: ${task.priorityText}'),
             const SizedBox(height: 10),
@@ -423,8 +633,7 @@ class TasksScreen extends ConsumerWidget {
             const Text('• 設定明確的完成標準'),
             if (task.priority == TaskPriority.high)
               const Text('• 高優先級任務建議優先處理'),
-            if (task.pomodoroCount > 4)
-              const Text('• 長時間任務建議分階段執行'),
+            if (task.pomodoroCount > 4) const Text('• 長時間任務建議分階段執行'),
           ],
         ),
         actions: [
@@ -436,28 +645,45 @@ class TasksScreen extends ConsumerWidget {
       ),
     );
   }
-  
+
   void _startPomodoroForTask(BuildContext context, WidgetRef ref, Task task) {
+    final taskNotifier = ref.read(taskProvider.notifier);
+    final timerNotifier = ref.read(timerProvider.notifier);
+    final isCurrentTask = ref.read(taskProvider).currentTaskId == task.id;
+
     // 設置為當前任務
-    ref.read(taskProvider.notifier).setCurrentTask(task.id);
-    
-    // 切換到番茄鐘畫面
-    context.go('/timer');
-    
-    // 顯示提示訊息
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('已選擇任務：${task.title}'),
-        duration: const Duration(seconds: 2),
-        action: SnackBarAction(
-          label: '開始',
-          onPressed: () {
-            // 自動開始番茄鐘
-            ref.read(timerProvider.notifier).startTimer();
-          },
+    taskNotifier.setCurrentTask(task.id);
+
+    // 如果不是當前任務，或計時器已停止，則重置並開始
+    if (!isCurrentTask || ref.read(timerProvider).isStopped) {
+      // 切換到番茄鐘畫面
+      context.go('/timer');
+
+      // 自動開始計時
+      Future.delayed(const Duration(milliseconds: 300), () {
+        timerNotifier.startTimer();
+      });
+
+      // 顯示提示訊息
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('🍅 開始專注：${task.title}'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
         ),
-      ),
-    );
+      );
+    } else {
+      // 已經是當前任務，只切換畫面
+      context.go('/timer');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('繼續任務：${task.title}'),
+          duration: const Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Widget _buildAIBreakdownCard(ThemeData theme, BuildContext context) {
@@ -465,9 +691,7 @@ class TasksScreen extends ConsumerWidget {
       elevation: 2,
       margin: EdgeInsets.zero,
       color: theme.colorScheme.primaryContainer,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () {
           _openAIChatScreen(context);

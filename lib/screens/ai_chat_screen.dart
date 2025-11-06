@@ -7,11 +7,8 @@ import '../models/chat_message.dart';
 
 class AIChatScreen extends ConsumerStatefulWidget {
   final String? initialMessage;
-  
-  const AIChatScreen({
-    super.key,
-    this.initialMessage,
-  });
+
+  const AIChatScreen({super.key, this.initialMessage});
 
   @override
   ConsumerState<AIChatScreen> createState() => _AIChatScreenState();
@@ -47,17 +44,17 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
     if (text.trim().isEmpty) return;
 
     final chatNotifier = ref.read(chatProvider.notifier);
-    
+
     // 添加用戶訊息
     chatNotifier.addUserMessage(text.trim());
     _textController.clear();
-    
+
     // 滾動到底部
     _scrollToBottom();
 
     // 生成 AI 回覆
     await chatNotifier.generateAIResponse(text.trim());
-    
+
     // 滾動到底部以顯示完整的 AI 回覆
     _scrollToBottom();
   }
@@ -118,7 +115,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('創建任務失敗: $e'),
@@ -252,7 +249,9 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
           ),
 
           // 創建任務按鈕（當有 AI 回覆時顯示）
-          if (chatState.messages.any((m) => m.role == MessageRole.assistant && !m.isStreaming))
+          if (chatState.messages.any(
+            (m) => m.role == MessageRole.assistant && !m.isStreaming,
+          ))
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -329,16 +328,14 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                           color: colorScheme.onSurfaceVariant.withOpacity(0.6),
                         ),
                       ),
-                      style: TextStyle(
-                        color: colorScheme.onSurface,
-                      ),
+                      style: TextStyle(color: colorScheme.onSurface),
                       enabled: !chatState.isLoading,
                       onSubmitted: _handleSubmit,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                
+
                 // 發送按鈕
                 Container(
                   decoration: BoxDecoration(
@@ -428,52 +425,9 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 32),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: [
-                _buildSuggestionChip(
-                  context,
-                  '分析任務',
-                  Icons.analytics_outlined,
-                ),
-                _buildSuggestionChip(
-                  context,
-                  '規劃番茄鐘',
-                  Icons.timer_outlined,
-                ),
-                _buildSuggestionChip(
-                  context,
-                  '提升專注力',
-                  Icons.psychology_outlined,
-                ),
-              ],
-            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildSuggestionChip(
-    BuildContext context,
-    String label,
-    IconData icon,
-  ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return ActionChip(
-      avatar: Icon(icon, size: 18),
-      label: Text(label),
-      onPressed: () {
-        _textController.text = label;
-        _handleSubmit(label);
-      },
-      backgroundColor: colorScheme.surfaceContainerHighest,
-      side: BorderSide.none,
     );
   }
 }

@@ -10,7 +10,7 @@ class TaskSelectionDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final taskNotifier = ref.watch(taskProvider);
     final theme = Theme.of(context);
-    
+
     // 可選擇的任務：待辦和進行中的任務
     final availableTasks = [
       ...taskNotifier.inProgressTasks,
@@ -34,10 +34,7 @@ class TaskSelectionDialog extends ConsumerWidget {
                   Icon(Icons.inbox, size: 64, color: Colors.grey),
                   SizedBox(height: 16),
                   Text('暫無可選擇的任務'),
-                  Text(
-                    '請先在任務頁面添加一些任務',
-                    style: TextStyle(color: Colors.grey),
-                  ),
+                  Text('請先在任務頁面添加一些任務', style: TextStyle(color: Colors.grey)),
                 ],
               )
             : ListView.builder(
@@ -46,15 +43,18 @@ class TaskSelectionDialog extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   final task = availableTasks[index];
                   final isCurrentTask = taskNotifier.currentTaskId == task.id;
-                  
+
                   return Card(
                     elevation: isCurrentTask ? 4 : 1,
-                    color: isCurrentTask 
-                        ? theme.colorScheme.primaryContainer 
+                    color: isCurrentTask
+                        ? theme.colorScheme.primaryContainer
                         : null,
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: _getPriorityColor(task.priority, theme),
+                        backgroundColor: _getPriorityColor(
+                          task.priority,
+                          theme,
+                        ),
                         child: Icon(
                           task.status == TaskStatus.inProgress
                               ? Icons.play_circle
@@ -66,15 +66,16 @@ class TaskSelectionDialog extends ConsumerWidget {
                       title: Text(
                         task.title,
                         style: TextStyle(
-                          fontWeight: isCurrentTask 
-                              ? FontWeight.bold 
+                          fontWeight: isCurrentTask
+                              ? FontWeight.bold
                               : FontWeight.normal,
                         ),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (task.description != null && task.description!.isNotEmpty)
+                          if (task.description != null &&
+                              task.description!.isNotEmpty)
                             Text(
                               task.description!,
                               maxLines: 2,
@@ -114,15 +115,20 @@ class TaskSelectionDialog extends ConsumerWidget {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: _getPriorityColor(task.priority, theme)
-                                        .withValues(alpha: 0.2),
+                                    color: _getPriorityColor(
+                                      task.priority,
+                                      theme,
+                                    ).withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     _getPriorityShortText(task.priority),
                                     style: TextStyle(
                                       fontSize: 9,
-                                      color: _getPriorityColor(task.priority, theme),
+                                      color: _getPriorityColor(
+                                        task.priority,
+                                        theme,
+                                      ),
                                       fontWeight: FontWeight.w500,
                                     ),
                                     overflow: TextOverflow.ellipsis,
