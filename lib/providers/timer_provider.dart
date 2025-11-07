@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'task_provider.dart';
+import 'statistics_provider.dart';
 import '../services/database_helper.dart';
 
 // Riverpod provider
@@ -193,6 +194,9 @@ class TimerProvider with ChangeNotifier {
 
       // 通知任務提供者完成了一個番茄鐘
       _ref.read(taskProvider.notifier).completePomodoroForCurrentTask();
+
+      // 更新統計數據
+      _ref.read(statisticsProvider.notifier).loadStatistics();
 
       // 決定下一階段：短休息還是長休息
       if (_completedSessions % 4 == 0) {

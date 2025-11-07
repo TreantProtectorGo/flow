@@ -20,7 +20,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _dataAnalysis = false;
   bool _cloudSync = true;
   String _soundEffect = '鈴鐺';
-  String _themeColor = '藍色 (預設)';
+  int _longBreakFrequency = 4;
 
   @override
   void initState() {
@@ -37,6 +37,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final theme = Theme.of(context);
     final timerSettings = ref.watch(timerProvider);
     final statsProvider = ref.watch(statisticsProvider);
+    final themeMode = ref.watch(themeModeProvider);
+
+    // 將 ThemeMode 轉換為字串
+    String getThemeModeString(ThemeMode mode) {
+      switch (mode) {
+        case ThemeMode.light:
+          return '淺色模式';
+        case ThemeMode.dark:
+          return '深色模式';
+        case ThemeMode.system:
+          return '跟隨系統';
+      }
+    }
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -122,7 +135,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.primary,
               title: '長休息頻率',
               subtitle: '每幾個番茄鐘後進行長休息',
-              trailing: _buildDropdown<int>(4, [2, 3, 4, 5, 6], (value) {}),
+              trailing: DropdownButton<int>(
+                value: _longBreakFrequency,
+                items: [2, 3, 4, 5, 6]
+                    .map(
+                      (value) => DropdownMenuItem<int>(
+                        value: value,
+                        child: Text('$value'),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _longBreakFrequency = value);
+                  }
+                },
+                underline: Container(),
+                borderRadius: BorderRadius.circular(16),
+                dropdownColor: theme.colorScheme.surfaceContainerHighest,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
             ),
 
             // 分組：目標設定
@@ -201,7 +235,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               title: '主題模式',
               subtitle: '選擇應用程式的主題模式',
               trailing: _buildDropdown<String>(
-                ref.read(themeModeProvider.notifier).getThemeModeString(),
+                getThemeModeString(themeMode),
                 ['跟隨系統', '淺色模式', '深色模式'],
                 (value) {
                   switch (value) {
@@ -217,18 +251,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   }
                 },
               ),
-            ),
-            _buildSettingTile(
-              icon: Icons.color_lens,
-              iconColor: theme.colorScheme.primary,
-              title: '主題色彩',
-              subtitle: '選擇您喜歡的主題配色',
-              trailing: _buildDropdown<String>(_themeColor, [
-                '藍色 (預設)',
-                '綠色',
-                '紫色',
-                '橙色',
-              ], (value) => setState(() => _themeColor = value!)),
             ),
 
             // 分組：AI 設定
@@ -397,6 +419,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     List<int> options,
     ValueChanged<int> onChanged,
   ) {
+    final theme = Theme.of(context);
     return DropdownButton<int>(
       value: currentValue,
       items: options
@@ -411,6 +434,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         }
       },
       underline: Container(),
+      borderRadius: BorderRadius.circular(16),
+      dropdownColor: theme.colorScheme.surfaceContainerHighest,
+      style: theme.textTheme.bodyMedium?.copyWith(
+        color: theme.colorScheme.onSurface,
+      ),
     );
   }
 
@@ -419,6 +447,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     List<int> options,
     ValueChanged<int> onChanged,
   ) {
+    final theme = Theme.of(context);
     return DropdownButton<int>(
       value: currentValue,
       items: options
@@ -433,36 +462,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         }
       },
       underline: Container(),
+      borderRadius: BorderRadius.circular(16),
+      dropdownColor: theme.colorScheme.surfaceContainerHighest,
+      style: theme.textTheme.bodyMedium?.copyWith(
+        color: theme.colorScheme.onSurface,
+      ),
     );
   }
 
   Widget _buildDropdown<T>(T value, List<T> items, ValueChanged<T?> onChanged) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: DropdownButton<T>(
-        value: value,
-        items: items
-            .map(
-              (item) => DropdownMenuItem<T>(
-                value: item,
-                child: Text(
-                  item.toString(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
+    final theme = Theme.of(context);
+    return DropdownButton<T>(
+      value: value,
+      items: items
+          .map(
+            (item) => DropdownMenuItem<T>(
+              value: item,
+              child: Text(
+                item.toString(),
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
-            )
-            .toList(),
-        onChanged: onChanged,
-        underline: Container(),
-        borderRadius: BorderRadius.circular(16),
-        dropdownColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            ),
+          )
+          .toList(),
+      onChanged: onChanged,
+      underline: Container(),
+      borderRadius: BorderRadius.circular(16),
+      dropdownColor: theme.colorScheme.surfaceContainerHighest,
+      style: theme.textTheme.bodyMedium?.copyWith(
+        color: theme.colorScheme.onSurface,
       ),
     );
   }

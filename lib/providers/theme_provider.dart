@@ -2,6 +2,84 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Theme color enum
+enum ThemeColorOption {
+  blue,
+  green,
+  purple,
+  orange,
+}
+
+// Theme color notifier
+class ThemeColorNotifier extends StateNotifier<ThemeColorOption> {
+  ThemeColorNotifier() : super(ThemeColorOption.blue) {
+    _loadThemeColor();
+  }
+
+  static const String _colorKey = 'theme_color';
+
+  Future<void> _loadThemeColor() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final colorString = prefs.getString(_colorKey);
+      
+      if (colorString != null) {
+        state = ThemeColorOption.values.firstWhere(
+          (e) => e.name == colorString,
+          orElse: () => ThemeColorOption.blue,
+        );
+      }
+    } catch (e) {
+      state = ThemeColorOption.blue;
+    }
+  }
+
+  Future<void> _saveThemeColor(ThemeColorOption color) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_colorKey, color.name);
+    } catch (e) {
+      // Handle error silently
+    }
+  }
+
+  void setThemeColor(ThemeColorOption color) {
+    state = color;
+    _saveThemeColor(color);
+  }
+
+  String getThemeColorString() {
+    switch (state) {
+      case ThemeColorOption.blue:
+        return '藍色 (預設)';
+      case ThemeColorOption.green:
+        return '綠色';
+      case ThemeColorOption.purple:
+        return '紫色';
+      case ThemeColorOption.orange:
+        return '橙色';
+    }
+  }
+
+  Color getSeedColor() {
+    switch (state) {
+      case ThemeColorOption.blue:
+        return Colors.blue;
+      case ThemeColorOption.green:
+        return Colors.green;
+      case ThemeColorOption.purple:
+        return Colors.purple;
+      case ThemeColorOption.orange:
+        return Colors.orange;
+    }
+  }
+}
+
+// Provider for theme color
+final themeColorProvider = StateNotifierProvider<ThemeColorNotifier, ThemeColorOption>(
+  (ref) => ThemeColorNotifier(),
+);
+
 // Theme mode notifier
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   ThemeModeNotifier() : super(ThemeMode.system) {

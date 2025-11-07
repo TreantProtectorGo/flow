@@ -433,9 +433,6 @@ class TasksScreen extends ConsumerWidget {
                           task.title,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w500,
-                            decoration: task.status == TaskStatus.completed
-                                ? TextDecoration.lineThrough
-                                : null,
                           ),
                         ),
                         if (isTimerRunning) ...[
@@ -708,7 +705,7 @@ class TasksScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  '讓 AI 幫你拆解大任務',
+                  '讓 AI 幫你拆解任務',
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.w500,

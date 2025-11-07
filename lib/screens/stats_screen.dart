@@ -41,27 +41,6 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // 頭部
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('統計數據', style: theme.textTheme.headlineLarge),
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: () {
-                      if (mounted) {
-                        ref.read(statisticsProvider.notifier).loadStatistics();
-                      }
-                    },
-                    tooltip: '重新整理',
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-
             // Tab Bar
             TabBar(
               controller: _tabController,
@@ -162,43 +141,48 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           _buildChartCard(
             theme: theme,
             title: '今日時間分布',
-            child: SizedBox(
-              height: 200,
-              child: stats.todayCompleted > 0
-                  ? PieChart(
-                      PieChartData(
-                        sections: [
-                          PieChartSectionData(
-                            value: stats.todayCompleted.toDouble(),
-                            title: '完成\n${stats.todayCompleted}',
-                            color: theme.colorScheme.primary,
-                            radius: 80,
-                            titleStyle: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          if (stats.todayIncomplete > 0)
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: SizedBox(
+                height: 220,
+                child: stats.todayCompleted > 0
+                    ? PieChart(
+                        PieChartData(
+                          sections: [
                             PieChartSectionData(
-                              value: stats.todayIncomplete.toDouble(),
-                              title: '未完成\n${stats.todayIncomplete}',
-                              color: theme.colorScheme.errorContainer,
-                              radius: 70,
-                              titleStyle: TextStyle(
-                                fontSize: 12,
+                              value: stats.todayCompleted.toDouble(),
+                              title: '完成\n${stats.todayCompleted}',
+                              color: theme.colorScheme.primary,
+                              radius: 80,
+                              titleStyle: const TextStyle(
+                                fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.onErrorContainer,
+                                color: Colors.white,
                               ),
                             ),
-                        ],
-                        sectionsSpace: 2,
-                        centerSpaceRadius: 40,
-                      ),
-                    )
-                  : _buildEmptyState('今天還沒有完成任何番茄鐘', theme),
+                            if (stats.todayIncomplete > 0)
+                              PieChartSectionData(
+                                value: stats.todayIncomplete.toDouble(),
+                                title: '未完成\n${stats.todayIncomplete}',
+                                color: theme.colorScheme.errorContainer,
+                                radius: 70,
+                                titleStyle: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onErrorContainer,
+                                ),
+                              ),
+                          ],
+                          sectionsSpace: 2,
+                          centerSpaceRadius: 40,
+                        ),
+                      )
+                    : _buildEmptyState('今天還沒有完成任何番茄鐘', theme),
+              ),
             ),
           ),
+
+          const SizedBox(height: 20),
         ],
       ),
     );

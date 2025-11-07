@@ -36,7 +36,7 @@ class StatsStreakCard extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -51,7 +51,7 @@ class StatsStreakCard extends StatelessWidget {
                   theme.colorScheme.surfaceContainer,
                 ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: streakDays > 0
               ? Colors.orange.withOpacity(0.3)
@@ -59,74 +59,74 @@ class StatsStreakCard extends StatelessWidget {
           width: 2,
         ),
       ),
-      child: Column(
+      child: Row(
         children: [
-          // 火焰 Emoji
-          Text(getFlameEmoji(), style: const TextStyle(fontSize: 64)),
-          const SizedBox(height: 16),
-          // 連續天數
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '$streakDays',
-                style: theme.textTheme.displayLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: streakDays > 0
-                      ? Colors.orange
-                      : theme.colorScheme.onSurface,
-                  fontSize: 56,
-                  height: 1,
+          // 左側：火焰 Emoji 和連續天數
+          Text(getFlameEmoji(), style: const TextStyle(fontSize: 48)),
+          const SizedBox(width: 16),
+          // 中間：數字和標題
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '$streakDays',
+                      style: theme.textTheme.displayLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: streakDays > 0
+                            ? Colors.orange
+                            : theme.colorScheme.onSurface,
+                        fontSize: 36,
+                        height: 1,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        '天',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: streakDays > 0
+                              ? Colors.orange.withOpacity(0.8)
+                              : theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  '天',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: streakDays > 0
-                        ? Colors.orange.withOpacity(0.8)
-                        : theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(height: 4),
+                Text(
+                  '連續專注',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '連續專注',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+                const SizedBox(height: 8),
+                // 鼓勵訊息
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    getStreakMessage(),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
-          // 鼓勵訊息
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              getStreakMessage(),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-          ),
-          if (streakDays > 0) ...[
-            const SizedBox(height: 16),
-            Text(
-              '不要中斷你的連續記錄！',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
         ],
       ),
     );

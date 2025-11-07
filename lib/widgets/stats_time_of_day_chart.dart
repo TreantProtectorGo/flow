@@ -153,6 +153,7 @@ class StatsTimeOfDayChart extends StatelessWidget {
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
+                    reservedSize: 50,
                     getTitlesWidget: (value, meta) {
                       final timeSlot = timeSlots[value.toInt()];
                       return Padding(
@@ -161,10 +162,9 @@ class StatsTimeOfDayChart extends StatelessWidget {
                           children: [
                             Icon(
                               timeSlot['icon'] as IconData,
-                              size: 20,
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 2),
                             Text(
                               timeSlot['name'] as String,
                               style: theme.textTheme.bodySmall?.copyWith(

@@ -20,12 +20,12 @@ class FocusApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
-    
+
     return DynamicColorBuilder(
       builder: (ColorScheme? lightColorScheme, ColorScheme? darkColorScheme) {
         return MaterialApp.router(
           title: '專注番茄',
-          theme: lightColorScheme != null 
+          theme: lightColorScheme != null
               ? ThemeData(
                   useMaterial3: true,
                   colorScheme: lightColorScheme.harmonized(),
@@ -77,7 +77,7 @@ class FocusApp extends ConsumerWidget {
                       TargetPlatform.windows: ZoomPageTransitionsBuilder(),
                     },
                   ),
-                ), 
+                ),
           themeMode: themeMode,
           routerConfig: _router,
           locale: const Locale('zh', 'TW'),
