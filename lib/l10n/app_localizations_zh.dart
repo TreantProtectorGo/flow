@@ -231,6 +231,51 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aiBreakdownCard => '讓 AI 幫你拆解大任務';
 
   @override
+  String get view => '查看';
+
+  @override
+  String timerRunning(String time) {
+    return '計時中 $time';
+  }
+
+  @override
+  String pomodoroCountText(int count) {
+    return '$count 個番茄鐘';
+  }
+
+  @override
+  String get aiTaskAnalysis => 'AI 任務分析';
+
+  @override
+  String get taskName => '任務名稱';
+
+  @override
+  String get estimatedTime => '預估時間';
+
+  @override
+  String get aiSuggestions => 'AI 建議';
+
+  @override
+  String get breakIntoSteps => '• 將任務分成小步驟以提高完成率';
+
+  @override
+  String get takeBreaks => '• 每個番茄鐘後記得休息 5 分鐘';
+
+  @override
+  String get setClearStandards => '• 設定明確的完成標準';
+
+  @override
+  String get highPrioritySuggestion => '• 高優先級任務建議優先處理';
+
+  @override
+  String get longTaskSuggestion => '• 長時間任務建議分階段執行';
+
+  @override
+  String minutesUnit(int count) {
+    return '$count 分鐘';
+  }
+
+  @override
   String get todayStats => '今日';
 
   @override
@@ -554,9 +599,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get createTasks => '創建任務';
-
-  @override
-  String get view => '查看';
 
   @override
   String get cannotExtractTasks => '無法從對話中提取任務，請嘗試更明確地描述任務';
@@ -979,6 +1021,51 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get aiBreakdownCard => '讓 AI 幫你拆解大任務';
 
   @override
+  String get view => '查看';
+
+  @override
+  String timerRunning(String time) {
+    return '計時中 $time';
+  }
+
+  @override
+  String pomodoroCountText(int count) {
+    return '$count 個番茄鐘';
+  }
+
+  @override
+  String get aiTaskAnalysis => 'AI 任務分析';
+
+  @override
+  String get taskName => '任務名稱';
+
+  @override
+  String get estimatedTime => '預估時間';
+
+  @override
+  String get aiSuggestions => 'AI 建議';
+
+  @override
+  String get breakIntoSteps => '• 將任務分成小步驟以提高完成率';
+
+  @override
+  String get takeBreaks => '• 每個番茄鐘後記得休息 5 分鐘';
+
+  @override
+  String get setClearStandards => '• 設定明確的完成標準';
+
+  @override
+  String get highPrioritySuggestion => '• 高優先級任務建議優先處理';
+
+  @override
+  String get longTaskSuggestion => '• 長時間任務建議分階段執行';
+
+  @override
+  String minutesUnit(int count) {
+    return '$count 分鐘';
+  }
+
+  @override
   String get todayStats => '今日';
 
   @override
@@ -1302,9 +1389,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get createTasks => '創建任務';
-
-  @override
-  String get view => '查看';
 
   @override
   String get cannotExtractTasks => '無法從對話中提取任務，請嘗試更明確地描述任務';

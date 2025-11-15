@@ -231,6 +231,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiBreakdownCard => 'Let AI Help Break Down Large Tasks';
 
   @override
+  String get view => 'View';
+
+  @override
+  String timerRunning(String time) {
+    return 'Timer Running $time';
+  }
+
+  @override
+  String pomodoroCountText(int count) {
+    return '$count Pomodoros';
+  }
+
+  @override
+  String get aiTaskAnalysis => 'AI Task Analysis';
+
+  @override
+  String get taskName => 'Task Name';
+
+  @override
+  String get estimatedTime => 'Estimated Time';
+
+  @override
+  String get aiSuggestions => 'AI Suggestions';
+
+  @override
+  String get breakIntoSteps =>
+      '• Break tasks into smaller steps to improve completion rate';
+
+  @override
+  String get takeBreaks =>
+      '• Remember to take 5-minute breaks after each pomodoro';
+
+  @override
+  String get setClearStandards => '• Set clear completion criteria';
+
+  @override
+  String get highPrioritySuggestion =>
+      '• High priority tasks should be handled first';
+
+  @override
+  String get longTaskSuggestion => '• Long tasks should be executed in stages';
+
+  @override
+  String minutesUnit(int count) {
+    return '$count min';
+  }
+
+  @override
   String get todayStats => 'Today';
 
   @override
@@ -497,10 +545,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearAllDataSubtitle => 'Delete all statistics and settings';
 
   @override
-  String get clearData => 'Clear Data';
+  String get clearData => 'Clear';
 
   @override
-  String get deleteAccount => 'Delete Account';
+  String get deleteAccount => 'Delete';
 
   @override
   String get deleteAccountSubtitle =>
@@ -560,9 +608,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createTasks => 'Create Tasks';
-
-  @override
-  String get view => 'View';
 
   @override
   String get cannotExtractTasks =>

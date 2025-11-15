@@ -519,6 +519,84 @@ abstract class AppLocalizations {
   /// **'讓 AI 幫你拆解大任務'**
   String get aiBreakdownCard;
 
+  /// No description provided for @view.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看'**
+  String get view;
+
+  /// No description provided for @timerRunning.
+  ///
+  /// In zh, this message translates to:
+  /// **'計時中 {time}'**
+  String timerRunning(String time);
+
+  /// No description provided for @pomodoroCountText.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 個番茄鐘'**
+  String pomodoroCountText(int count);
+
+  /// No description provided for @aiTaskAnalysis.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 任務分析'**
+  String get aiTaskAnalysis;
+
+  /// No description provided for @taskName.
+  ///
+  /// In zh, this message translates to:
+  /// **'任務名稱'**
+  String get taskName;
+
+  /// No description provided for @estimatedTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'預估時間'**
+  String get estimatedTime;
+
+  /// No description provided for @aiSuggestions.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 建議'**
+  String get aiSuggestions;
+
+  /// No description provided for @breakIntoSteps.
+  ///
+  /// In zh, this message translates to:
+  /// **'• 將任務分成小步驟以提高完成率'**
+  String get breakIntoSteps;
+
+  /// No description provided for @takeBreaks.
+  ///
+  /// In zh, this message translates to:
+  /// **'• 每個番茄鐘後記得休息 5 分鐘'**
+  String get takeBreaks;
+
+  /// No description provided for @setClearStandards.
+  ///
+  /// In zh, this message translates to:
+  /// **'• 設定明確的完成標準'**
+  String get setClearStandards;
+
+  /// No description provided for @highPrioritySuggestion.
+  ///
+  /// In zh, this message translates to:
+  /// **'• 高優先級任務建議優先處理'**
+  String get highPrioritySuggestion;
+
+  /// No description provided for @longTaskSuggestion.
+  ///
+  /// In zh, this message translates to:
+  /// **'• 長時間任務建議分階段執行'**
+  String get longTaskSuggestion;
+
+  /// No description provided for @minutesUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 分鐘'**
+  String minutesUnit(int count);
+
   /// No description provided for @todayStats.
   ///
   /// In zh, this message translates to:
@@ -1160,12 +1238,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'創建任務'**
   String get createTasks;
-
-  /// No description provided for @view.
-  ///
-  /// In zh, this message translates to:
-  /// **'查看'**
-  String get view;
 
   /// No description provided for @cannotExtractTasks.
   ///

@@ -490,12 +490,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     ValueChanged<int> onChanged,
   ) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return DropdownButton<int>(
       value: currentValue,
       items: options
           .map(
             (value) =>
-                DropdownMenuItem<int>(value: value, child: Text('$value 分鐘')),
+                DropdownMenuItem<int>(value: value, child: Text(l10n.minutesUnit(value))),
           )
           .toList(),
       onChanged: (value) {
@@ -523,7 +524,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       items: options
           .map(
             (value) =>
-                DropdownMenuItem<int>(value: value, child: Text('$value 個')),
+                DropdownMenuItem<int>(value: value, child: Text('$value')),
           )
           .toList(),
       onChanged: (value) {
@@ -569,28 +570,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showConfirmDialog(String action) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('確認$action'),
-        content: Text('確定要執行$action操作嗎？此操作無法復原。'),
+        title: Text(l10n.confirmAction(action)),
+        content: Text(l10n.confirmActionMessage(action)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(SnackBar(content: Text('$action功能將在正式版本中實現')));
+              ).showSnackBar(SnackBar(content: Text(l10n.featureComingSoon(action))));
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFDC2626),
               foregroundColor: Colors.white,
             ),
-            child: const Text('確定'),
+            child: Text(l10n.confirm),
           ),
         ],
       ),

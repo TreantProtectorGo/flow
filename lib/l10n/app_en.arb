@@ -199,6 +199,42 @@
 
   "aiBreakdownCard": "Let AI Help Break Down Large Tasks",
 
+  "view": "View",
+  "timerRunning": "Timer Running {time}",
+  "@timerRunning": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "pomodoroCountText": "{count} Pomodoros",
+  "@pomodoroCountText": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiTaskAnalysis": "AI Task Analysis",
+  "taskName": "Task Name",
+  "estimatedTime": "Estimated Time",
+  "aiSuggestions": "AI Suggestions",
+  "breakIntoSteps": "• Break tasks into smaller steps to improve completion rate",
+  "takeBreaks": "• Remember to take 5-minute breaks after each pomodoro",
+  "setClearStandards": "• Set clear completion criteria",
+  "highPrioritySuggestion": "• High priority tasks should be handled first",
+  "longTaskSuggestion": "• Long tasks should be executed in stages",
+
+  "minutesUnit": "{count} min",
+  "@minutesUnit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
   "todayStats": "Today",
   "weekStats": "This Week",
   "monthStats": "This Month",
@@ -299,8 +335,8 @@
 
   "clearAllData": "Clear All Data",
   "clearAllDataSubtitle": "Delete all statistics and settings",
-  "clearData": "Clear Data",
-  "deleteAccount": "Delete Account",
+  "clearData": "Clear",
+  "deleteAccount": "Delete",
   "deleteAccountSubtitle": "Permanently delete your account and all data",
 
   "version": "FocusAI v1.0.0",

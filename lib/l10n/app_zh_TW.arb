@@ -235,6 +235,42 @@
 
   "aiBreakdownCard": "讓 AI 幫你拆解大任務",
 
+  "view": "查看",
+  "timerRunning": "計時中 {time}",
+  "@timerRunning": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "pomodoroCountText": "{count} 個番茄鐘",
+  "@pomodoroCountText": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiTaskAnalysis": "AI 任務分析",
+  "taskName": "任務名稱",
+  "estimatedTime": "預估時間",
+  "aiSuggestions": "AI 建議",
+  "breakIntoSteps": "• 將任務分成小步驟以提高完成率",
+  "takeBreaks": "• 每個番茄鐘後記得休息 5 分鐘",
+  "setClearStandards": "• 設定明確的完成標準",
+  "highPrioritySuggestion": "• 高優先級任務建議優先處理",
+  "longTaskSuggestion": "• 長時間任務建議分階段執行",
+
+  "minutesUnit": "{count} 分鐘",
+  "@minutesUnit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
   "todayStats": "今日",
   "weekStats": "本週",
   "monthStats": "本月",

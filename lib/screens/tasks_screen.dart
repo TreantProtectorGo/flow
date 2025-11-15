@@ -61,6 +61,7 @@ class TasksScreen extends ConsumerWidget {
                                   theme,
                                   context,
                                   ref,
+                                  l10n,
                                 ),
                               ),
                             ),
@@ -86,6 +87,7 @@ class TasksScreen extends ConsumerWidget {
                                   theme,
                                   context,
                                   ref,
+                                  l10n,
                                 ),
                               ),
                             ),
@@ -106,6 +108,7 @@ class TasksScreen extends ConsumerWidget {
                                     theme,
                                     context,
                                     ref,
+                                    l10n,
                                   ),
                                 ),
                               ),
@@ -364,7 +367,7 @@ class TasksScreen extends ConsumerWidget {
                     FilledButton.icon(
                       onPressed: () => context.go('/timer'),
                       icon: const Icon(Icons.visibility, size: 16),
-                      label: const Text('查看'),
+                      label: Text(l10n.view),
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(0, 36),
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -387,6 +390,7 @@ class TasksScreen extends ConsumerWidget {
     ThemeData theme,
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
   ) {
     final taskNotifier = ref.watch(taskProvider);
     final timerNotifier = ref.watch(timerProvider);
@@ -452,7 +456,9 @@ class TasksScreen extends ConsumerWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '計時中 ${timerNotifier.timeDisplayString}',
+                                l10n.timerRunning(
+                                  timerNotifier.timeDisplayString,
+                                ),
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.primary,
                                   fontWeight: FontWeight.w600,
@@ -468,12 +474,14 @@ class TasksScreen extends ConsumerWidget {
                   if (task.status != TaskStatus.completed)
                     FilledButton.icon(
                       onPressed: () =>
-                          _startPomodoroForTask(context, ref, task),
+                          _startPomodoroForTask(context, ref, task, l10n),
                       icon: Icon(
                         isCurrentTask ? Icons.play_arrow : Icons.timer,
                         size: 18,
                       ),
-                      label: Text(isCurrentTask ? '繼續' : '開始'),
+                      label: Text(
+                        isCurrentTask ? l10n.continueButton : l10n.start,
+                      ),
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(0, 36),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -500,49 +508,52 @@ class TasksScreen extends ConsumerWidget {
                           _showDeleteConfirmDialog(context, ref, task);
                           break;
                         case 'ai_analysis':
-                          _showAIAnalysisDialog(context, task, theme);
+                          _showAIAnalysisDialog(context, task, theme, l10n);
                           break;
                       }
                     },
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit),
-                            SizedBox(width: 8),
-                            Text('編輯'),
+                            const Icon(Icons.edit),
+                            const SizedBox(width: 8),
+                            Text(l10n.edit),
                           ],
                         ),
                       ),
                       if (task.status != TaskStatus.completed)
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'complete',
                           child: Row(
                             children: [
-                              Icon(Icons.check_circle),
-                              SizedBox(width: 8),
-                              Text('標記完成'),
+                              const Icon(Icons.check_circle),
+                              const SizedBox(width: 8),
+                              Text(l10n.markComplete),
                             ],
                           ),
                         ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'ai_analysis',
                         child: Row(
                           children: [
-                            Icon(Icons.psychology),
-                            SizedBox(width: 8),
-                            Text('AI 分析'),
+                            const Icon(Icons.psychology),
+                            const SizedBox(width: 8),
+                            Text(l10n.aiAnalysis),
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text('刪除', style: TextStyle(color: Colors.red)),
+                            const Icon(Icons.delete, color: Colors.red),
+                            const SizedBox(width: 8),
+                            Text(
+                              l10n.delete,
+                              style: const TextStyle(color: Colors.red),
+                            ),
                           ],
                         ),
                       ),
@@ -571,7 +582,7 @@ class TasksScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${task.pomodoroCount} 個番茄鐘',
+                        l10n.pomodoroCountText(task.pomodoroCount),
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
@@ -604,7 +615,12 @@ class TasksScreen extends ConsumerWidget {
     );
   }
 
-  void _showAIAnalysisDialog(BuildContext context, Task task, ThemeData theme) {
+  void _showAIAnalysisDialog(
+    BuildContext context,
+    Task task,
+    ThemeData theme,
+    AppLocalizations l10n,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -612,44 +628,49 @@ class TasksScreen extends ConsumerWidget {
           children: [
             Icon(Icons.psychology, color: theme.colorScheme.primary),
             const SizedBox(width: 8),
-            Text('AI 任務分析', style: theme.textTheme.titleLarge),
+            Text(l10n.aiTaskAnalysis, style: theme.textTheme.titleLarge),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('任務名稱: ${task.title}'),
+            Text('${l10n.taskName}: ${task.title}'),
             const SizedBox(height: 10),
             Text(
-              '預估時間: ${task.pomodoroCount} 個番茄鐘（${task.pomodoroCount * 25} 分鐘）',
+              '${l10n.estimatedTime}: ${task.pomodoroCount} ${l10n.items}（${task.pomodoroCount * 25} ${l10n.minuteShort}）',
             ),
             const SizedBox(height: 10),
-            Text('優先級: ${task.priorityText}'),
+            Text('${l10n.priority}: ${task.priorityText}'),
             const SizedBox(height: 10),
-            Text('狀態: ${task.statusText}'),
+            Text('${l10n.status}: ${task.statusText}'),
             const SizedBox(height: 15),
-            Text('AI 建議:', style: theme.textTheme.titleMedium),
+            Text('${l10n.aiSuggestions}:', style: theme.textTheme.titleMedium),
             const SizedBox(height: 5),
-            const Text('• 將任務分成小步驟以提高完成率'),
-            const Text('• 每個番茄鐘後記得休息 5 分鐘'),
-            const Text('• 設定明確的完成標準'),
+            Text(l10n.breakIntoSteps),
+            Text(l10n.takeBreaks),
+            Text(l10n.setClearStandards),
             if (task.priority == TaskPriority.high)
-              const Text('• 高優先級任務建議優先處理'),
-            if (task.pomodoroCount > 4) const Text('• 長時間任務建議分階段執行'),
+              Text(l10n.highPrioritySuggestion),
+            if (task.pomodoroCount > 4) Text(l10n.longTaskSuggestion),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('關閉'),
+            child: Text(l10n.close),
           ),
         ],
       ),
     );
   }
 
-  void _startPomodoroForTask(BuildContext context, WidgetRef ref, Task task) {
+  void _startPomodoroForTask(
+    BuildContext context,
+    WidgetRef ref,
+    Task task,
+    AppLocalizations l10n,
+  ) {
     final taskNotifier = ref.read(taskProvider.notifier);
     final timerNotifier = ref.read(timerProvider.notifier);
     final isCurrentTask = ref.read(taskProvider).currentTaskId == task.id;
@@ -670,7 +691,7 @@ class TasksScreen extends ConsumerWidget {
       // 顯示提示訊息
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('開始專注：${task.title}'),
+          content: Text(l10n.startFocus(task.title)),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
@@ -681,7 +702,7 @@ class TasksScreen extends ConsumerWidget {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('繼續任務：${task.title}'),
+          content: Text(l10n.continueTask(task.title)),
           duration: const Duration(seconds: 1),
           behavior: SnackBarBehavior.floating,
         ),

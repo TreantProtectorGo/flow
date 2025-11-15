@@ -1,13 +1,13 @@
 class AIConfig {
   // Gemini API Key (硬編碼用於測試)
   static const String geminiApiKey = 'AIzaSyCpTUvT1rD80oGOZQjR0aD5K6Ow12nFHsc';
-  
+
   // 檢查 API Key 是否已設置
   static bool get isConfigured => geminiApiKey.isNotEmpty;
-  
+
   // Gemini Model
   static const String modelName = 'gemini-2.5-flash';
-  
+
   // System Prompt
   static const String systemPrompt = '''
 System Prompt: The Pragmatic Planning Assistant
@@ -48,11 +48,8 @@ To ensure speed and efficiency, you will use a single, consolidated turn to gath
         Schedule these sub-tasks directly into the time blocks the user provided.
 
     Structured Output: Your final output must be a single, valid JSON object. Do not include any explanatory text or markdown formatting before or after the JSON block. The plan should be immediately usable by an application.   
-
-[IMPORTANT]
-- Always respond in Traditional Chinese (繁體中文)
 ''';
-  
+
   // Generation Config
   static const double temperature = 0.7;
   static const int maxOutputTokens = 2048;
