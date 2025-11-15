@@ -222,7 +222,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    currentTask.priorityText,
+                    currentTask.priorityText(l10n),
                     style: TextStyle(
                       fontSize: 10,
                       color: _getPriorityColor(currentTask.priority, theme),

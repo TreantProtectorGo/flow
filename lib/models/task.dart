@@ -1,14 +1,8 @@
-enum TaskPriority {
-  low,
-  medium,
-  high,
-}
+import '../l10n/app_localizations.dart';
 
-enum TaskStatus {
-  pending,
-  inProgress,
-  completed,
-}
+enum TaskPriority { low, medium, high }
+
+enum TaskStatus { pending, inProgress, completed }
 
 class Task {
   final String id;
@@ -75,35 +69,33 @@ class Task {
       priority: TaskPriority.values.firstWhere(
         (e) => e.name == json['priority'],
       ),
-      status: TaskStatus.values.firstWhere(
-        (e) => e.name == json['status'],
-      ),
+      status: TaskStatus.values.firstWhere((e) => e.name == json['status']),
       createdAt: DateTime.parse(json['createdAt']),
-      completedAt: json['completedAt'] != null 
-          ? DateTime.parse(json['completedAt']) 
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'])
           : null,
     );
   }
 
-  String get priorityText {
+  String priorityText(AppLocalizations l10n) {
     switch (priority) {
       case TaskPriority.high:
-        return '高優先級';
+        return l10n.highPriority;
       case TaskPriority.medium:
-        return '中優先級';
+        return l10n.mediumPriority;
       case TaskPriority.low:
-        return '低優先級';
+        return l10n.lowPriority;
     }
   }
 
-  String get statusText {
+  String statusText(AppLocalizations l10n) {
     switch (status) {
       case TaskStatus.pending:
-        return '待辦事項';
+        return l10n.statusPending;
       case TaskStatus.inProgress:
-        return '進行中';
+        return l10n.statusInProgress;
       case TaskStatus.completed:
-        return '已完成';
+        return l10n.statusCompleted;
     }
   }
 }

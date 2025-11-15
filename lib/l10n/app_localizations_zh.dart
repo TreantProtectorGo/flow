@@ -12,6 +12,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appTitle => 'FocusAI';
 
   @override
+  String get taskPlan => '任务计划';
+
+  @override
+  String estimatedCompletionTime(String time) {
+    return '预估完成时间：$time';
+  }
+
+  @override
   String get tasks => '任務';
 
   @override
@@ -604,9 +612,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cannotExtractTasks => '無法從對話中提取任務，請嘗試更明確地描述任務';
 
   @override
+  String get aiResponseFailed => 'AI 回復失敗';
+
+  @override
   String tasksCreatedSuccess(int count) {
     return '成功創建 $count 個任務！';
   }
+
+  @override
+  String get failedToCreateTasks => '創建任務失敗';
 
   @override
   String taskCreationFailed(String error) {
@@ -800,6 +814,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get appTitle => 'FocusAI';
+
+  @override
+  String get taskPlan => '任務計劃';
+
+  @override
+  String estimatedCompletionTime(String time) {
+    return '預估完成時間：$time';
+  }
 
   @override
   String get tasks => '任務';
@@ -1394,9 +1416,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get cannotExtractTasks => '無法從對話中提取任務，請嘗試更明確地描述任務';
 
   @override
+  String get aiResponseFailed => 'AI 回覆失敗';
+
+  @override
   String tasksCreatedSuccess(int count) {
     return '成功創建 $count 個任務！';
   }
+
+  @override
+  String get failedToCreateTasks => '創建任務失敗';
 
   @override
   String taskCreationFailed(String error) {

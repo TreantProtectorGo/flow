@@ -214,14 +214,31 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
           ),
         ),
       ),
+      actionsAlignment: MainAxisAlignment.spaceBetween,
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.cancel),
-        ),
-        FilledButton(
-          onPressed: _submitForm,
-          child: Text(isEditing ? l10n.update : l10n.add),
+        if (isEditing)
+          TextButton(
+            onPressed: () => Navigator.of(context).pop({'action': 'delete'}),
+            style: TextButton.styleFrom(
+              foregroundColor: theme.colorScheme.error,
+            ),
+            child: Text(l10n.delete),
+          )
+        else
+          const SizedBox.shrink(),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.cancel),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: _submitForm,
+              child: Text(isEditing ? l10n.update : l10n.add),
+            ),
+          ],
         ),
       ],
     );

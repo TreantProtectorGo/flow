@@ -72,9 +72,11 @@ class TasksScreen extends ConsumerWidget {
                           _buildSectionHeader(l10n.pending, theme),
                           const SizedBox(height: 15),
 
-                          // AI 拆解卡片
-                          _buildAIBreakdownCard(theme, context, l10n),
-                          const SizedBox(height: 12),
+                          // AI 拆解卡片（只在沒有待辦任務時顯示）
+                          if (taskNotifier.pendingTasks.isEmpty) ...[
+                            _buildAIBreakdownCard(theme, context, l10n),
+                            const SizedBox(height: 12),
+                          ],
 
                           if (taskNotifier.pendingTasks.isEmpty)
                             _buildEmptyState(l10n.emptyPendingTasks, theme)
@@ -129,8 +131,8 @@ class TasksScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddTaskDialog(context, ref),
         heroTag: "addTaskButton",
-        icon: const Icon(Icons.add),
-        label: Text(l10n.addTask),
+        icon: const Icon(Icons.auto_awesome),
+        label: Text(l10n.add),
       ),
     );
   }
@@ -164,9 +166,12 @@ class TasksScreen extends ConsumerWidget {
   }
 
   void _openAIChatScreen(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => const AIChatScreen()));
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (context) => const AIChatScreen(),
+        fullscreenDialog: true,
+      ),
+    );
   }
 
   void _showEditTaskDialog(
@@ -180,6 +185,13 @@ class TasksScreen extends ConsumerWidget {
     );
 
     if (result != null) {
+      // 檢查是否是刪除操作
+      if (result['action'] == 'delete') {
+        _showDeleteConfirmDialog(context, ref, task);
+        return;
+      }
+
+      // 更新任務
       final updatedTask = task.copyWith(
         title: result['title'],
         description: result['description'],
@@ -493,74 +505,27 @@ class TasksScreen extends ConsumerWidget {
                             : theme.colorScheme.onPrimaryContainer,
                       ),
                     ),
-                  PopupMenuButton<String>(
-                    onSelected: (value) {
-                      switch (value) {
-                        case 'edit':
-                          _showEditTaskDialog(context, ref, task);
-                          break;
-                        case 'complete':
-                          ref
-                              .read(taskProvider.notifier)
-                              .toggleTaskStatus(task.id);
-                          break;
-                        case 'delete':
-                          _showDeleteConfirmDialog(context, ref, task);
-                          break;
-                        case 'ai_analysis':
-                          _showAIAnalysisDialog(context, task, theme, l10n);
-                          break;
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.edit),
-                            const SizedBox(width: 8),
-                            Text(l10n.edit),
-                          ],
-                        ),
-                      ),
-                      if (task.status != TaskStatus.completed)
-                        PopupMenuItem(
-                          value: 'complete',
-                          child: Row(
-                            children: [
-                              const Icon(Icons.check_circle),
-                              const SizedBox(width: 8),
-                              Text(l10n.markComplete),
-                            ],
-                          ),
-                        ),
-                      PopupMenuItem(
-                        value: 'ai_analysis',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.psychology),
-                            const SizedBox(width: 8),
-                            Text(l10n.aiAnalysis),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.delete, color: Colors.red),
-                            const SizedBox(width: 8),
-                            Text(
-                              l10n.delete,
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
+              if (task.status != TaskStatus.completed) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      ref.read(taskProvider.notifier).toggleTaskStatus(task.id);
+                    },
+                    icon: const Icon(Icons.check_circle, size: 18),
+                    label: Text(l10n.markComplete),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               if (task.description != null && task.description!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(
@@ -597,7 +562,7 @@ class TasksScreen extends ConsumerWidget {
                     padding: EdgeInsets.zero,
                     backgroundColor: priorityBackgroundColor,
                     label: Text(
-                      task.priorityText,
+                      task.priorityText(l10n),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: priorityColor,
                         fontSize: 10,
@@ -611,56 +576,6 @@ class TasksScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _showAIAnalysisDialog(
-    BuildContext context,
-    Task task,
-    ThemeData theme,
-    AppLocalizations l10n,
-  ) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.psychology, color: theme.colorScheme.primary),
-            const SizedBox(width: 8),
-            Text(l10n.aiTaskAnalysis, style: theme.textTheme.titleLarge),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${l10n.taskName}: ${task.title}'),
-            const SizedBox(height: 10),
-            Text(
-              '${l10n.estimatedTime}: ${task.pomodoroCount} ${l10n.items}（${task.pomodoroCount * 25} ${l10n.minuteShort}）',
-            ),
-            const SizedBox(height: 10),
-            Text('${l10n.priority}: ${task.priorityText}'),
-            const SizedBox(height: 10),
-            Text('${l10n.status}: ${task.statusText}'),
-            const SizedBox(height: 15),
-            Text('${l10n.aiSuggestions}:', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 5),
-            Text(l10n.breakIntoSteps),
-            Text(l10n.takeBreaks),
-            Text(l10n.setClearStandards),
-            if (task.priority == TaskPriority.high)
-              Text(l10n.highPrioritySuggestion),
-            if (task.pomodoroCount > 4) Text(l10n.longTaskSuggestion),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.close),
-          ),
-        ],
       ),
     );
   }

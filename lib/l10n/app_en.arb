@@ -2,6 +2,16 @@
   "@@locale": "en",
   
   "appTitle": "FocusAI",
+
+  "taskPlan": "Task Plan",
+  "estimatedCompletionTime": "Estimated completion time: {time}",
+  "@estimatedCompletionTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   
   "tasks": "Tasks",
   "timer": "Timer",
@@ -361,7 +371,9 @@
   "createTasks": "Create Tasks",
   "view": "View",
   "cannotExtractTasks": "Cannot extract tasks from conversation, please try to describe the tasks more clearly",
+  "aiResponseFailed": "AI response failed",
   "tasksCreatedSuccess": "Successfully created {count} tasks!",
+  "failedToCreateTasks": "Failed to create tasks",
   "taskCreationFailed": "Task creation failed: {error}",
 
   "confirmAction": "Confirm {action}",

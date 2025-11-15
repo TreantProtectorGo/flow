@@ -6,6 +6,16 @@
     "description": "應用程式標題"
   },
 
+  "taskPlan": "任务计划",
+  "estimatedCompletionTime": "预估完成时间：{time}",
+  "@estimatedCompletionTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
   "tasks": "任務",
   "timer": "計時器",
   "statistics": "統計",
@@ -304,6 +314,7 @@
   "createTasks": "創建任務",
   "view": "查看",
   "cannotExtractTasks": "無法從對話中提取任務，請嘗試更明確地描述任務",
+  "aiResponseFailed": "AI 回復失敗",
   "tasksCreatedSuccess": "成功創建 {count} 個任務！",
   "@tasksCreatedSuccess": {
     "placeholders": {
@@ -312,6 +323,7 @@
       }
     }
   },
+  "failedToCreateTasks": "創建任務失敗",
   "taskCreationFailed": "創建任務失敗: {error}",
   "@taskCreationFailed": {
     "placeholders": {

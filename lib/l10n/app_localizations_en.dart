@@ -12,6 +12,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'FocusAI';
 
   @override
+  String get taskPlan => 'Task Plan';
+
+  @override
+  String estimatedCompletionTime(String time) {
+    return 'Estimated completion time: $time';
+  }
+
+  @override
   String get tasks => 'Tasks';
 
   @override
@@ -614,9 +622,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Cannot extract tasks from conversation, please try to describe the tasks more clearly';
 
   @override
+  String get aiResponseFailed => 'AI response failed';
+
+  @override
   String tasksCreatedSuccess(int count) {
     return 'Successfully created $count tasks!';
   }
+
+  @override
+  String get failedToCreateTasks => 'Failed to create tasks';
 
   @override
   String taskCreationFailed(String error) {

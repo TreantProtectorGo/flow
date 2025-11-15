@@ -105,6 +105,18 @@ abstract class AppLocalizations {
   /// **'FocusAI'**
   String get appTitle;
 
+  /// No description provided for @taskPlan.
+  ///
+  /// In zh, this message translates to:
+  /// **'任务计划'**
+  String get taskPlan;
+
+  /// No description provided for @estimatedCompletionTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'预估完成时间：{time}'**
+  String estimatedCompletionTime(String time);
+
   /// No description provided for @tasks.
   ///
   /// In zh, this message translates to:
@@ -1245,11 +1257,23 @@ abstract class AppLocalizations {
   /// **'無法從對話中提取任務，請嘗試更明確地描述任務'**
   String get cannotExtractTasks;
 
+  /// No description provided for @aiResponseFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 回復失敗'**
+  String get aiResponseFailed;
+
   /// No description provided for @tasksCreatedSuccess.
   ///
   /// In zh, this message translates to:
   /// **'成功創建 {count} 個任務！'**
   String tasksCreatedSuccess(int count);
+
+  /// No description provided for @failedToCreateTasks.
+  ///
+  /// In zh, this message translates to:
+  /// **'創建任務失敗'**
+  String get failedToCreateTasks;
 
   /// No description provided for @taskCreationFailed.
   ///

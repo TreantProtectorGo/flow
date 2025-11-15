@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/chat_provider.dart';
-import '../providers/task_provider.dart';
 import '../widgets/chat_message_bubble.dart';
-import '../models/chat_message.dart';
+import '../widgets/task_breakdown_card.dart';
 import '../l10n/app_localizations.dart';
 
 class AIChatScreen extends ConsumerStatefulWidget {
@@ -19,7 +18,6 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
-  bool _isCreatingTasks = false;
 
   @override
   void dispose() {
@@ -60,80 +58,6 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
     _scrollToBottom();
   }
 
-  Future<void> _createTasksFromAI() async {
-    setState(() {
-      _isCreatingTasks = true;
-    });
-
-    try {
-      final chatNotifier = ref.read(chatProvider.notifier);
-      final tasks = await chatNotifier.extractTasksFromLastResponse();
-
-      if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-
-      if (tasks == null || tasks.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.cannotExtractTasks),
-            duration: const Duration(seconds: 3),
-          ),
-        );
-        return;
-      }
-
-      // 添加所有任務
-      final taskNotifier = ref.read(taskProvider.notifier);
-      for (final task in tasks) {
-        await taskNotifier.addTask(
-          title: task.title,
-          description: task.description,
-          pomodoroCount: task.pomodoroCount,
-          priority: task.priority,
-          status: task.status,
-        );
-      }
-
-      if (!mounted) return;
-
-      // 顯示成功訊息
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.tasksCreatedSuccess(tasks.length)),
-          duration: const Duration(seconds: 2),
-          action: SnackBarAction(
-            label: l10n.view,
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ),
-      );
-
-      // 2秒後自動返回任務列表
-      await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.taskCreationFailed(e.toString())),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isCreatingTasks = false;
-        });
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -143,10 +67,10 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
+      extendBody: true,
+      extendBodyBehindAppBar: false,
       appBar: AppBar(
-        elevation: 0,
-        scrolledUnderElevation: 1,
-        backgroundColor: colorScheme.surface,
+        surfaceTintColor: colorScheme.surfaceTint,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
@@ -207,26 +131,29 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      chatState.error!,
+                      chatState.error!.startsWith('[AI_RESPONSE_FAILED]:')
+                          ? '${l10n.aiResponseFailed}: ${chatState.error!.substring(21)}'
+                          : chatState.error!,
                       style: TextStyle(
                         color: colorScheme.onErrorContainer,
                         fontSize: 13,
                       ),
                     ),
                   ),
-                  if (chatState.error!.contains('回覆失敗'))
-                    TextButton(
-                      onPressed: () {
-                        ref.read(chatProvider.notifier).retryLastMessage();
-                      },
-                      child: Text(
-                        l10n.retry,
-                        style: TextStyle(
-                          color: colorScheme.onErrorContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: Icon(
+                      Icons.close,
+                      color: colorScheme.onErrorContainer,
+                      size: 18,
                     ),
+                    onPressed: () {
+                      ref.read(chatProvider.notifier).clearError();
+                    },
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(),
+                    tooltip: l10n.close,
+                  ),
                 ],
               ),
             ),
@@ -244,51 +171,23 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                     itemCount: chatState.messages.length,
                     itemBuilder: (context, index) {
                       final message = chatState.messages[index];
-                      return ChatMessageBubble(
-                        message: message,
-                        key: ValueKey(message.id),
+                      return Column(
+                        children: [
+                          // 只在內容不為空或沒有任務計劃時顯示訊息氣泡
+                          if (message.content.isNotEmpty ||
+                              message.taskPlan == null)
+                            ChatMessageBubble(
+                              message: message,
+                              key: ValueKey(message.id),
+                            ),
+                          // 如果訊息包含任務計劃，顯示任務拆解卡片
+                          if (message.taskPlan != null)
+                            TaskBreakdownCard(taskPlan: message.taskPlan!),
+                        ],
                       );
                     },
                   ),
           ),
-
-          // 創建任務按鈕（當有 AI 回覆時顯示）
-          if (chatState.messages.any(
-            (m) => m.role == MessageRole.assistant && !m.isStreaming,
-          ))
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                border: Border(
-                  top: BorderSide(
-                    color: colorScheme.outlineVariant.withOpacity(0.5),
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: FilledButton.icon(
-                onPressed: _isCreatingTasks ? null : _createTasksFromAI,
-                icon: _isCreatingTasks
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            colorScheme.onPrimary,
-                          ),
-                        ),
-                      )
-                    : const Icon(Icons.add_task),
-                label: Text(
-                  _isCreatingTasks ? l10n.creatingTasks : l10n.createTasks,
-                ),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
-                ),
-              ),
-            ),
 
           // 輸入區域
           Container(
