@@ -495,8 +495,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       value: currentValue,
       items: options
           .map(
-            (value) =>
-                DropdownMenuItem<int>(value: value, child: Text(l10n.minutesUnit(value))),
+            (value) => DropdownMenuItem<int>(
+              value: value,
+              child: Text(l10n.minutesUnit(value)),
+            ),
           )
           .toList(),
       onChanged: (value) {
@@ -584,9 +586,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(l10n.featureComingSoon(action))));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.featureComingSoon(action))),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFDC2626),
