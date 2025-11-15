@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../l10n/app_localizations.dart';
 
 /// 最佳專注時段圖表 Widget
 class StatsTimeOfDayChart extends StatelessWidget {
@@ -10,6 +11,7 @@ class StatsTimeOfDayChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     final morning = data['morning'] ?? 0;
     final afternoon = data['afternoon'] ?? 0;
@@ -31,7 +33,7 @@ class StatsTimeOfDayChart extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                '還沒有足夠的資料',
+                l10n.notEnoughData,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -45,27 +47,27 @@ class StatsTimeOfDayChart extends StatelessWidget {
     // 找出最佳時段
     final timeSlots = [
       {
-        'name': '早上',
+        'name': l10n.morning,
         'value': morning,
-        'time': '6:00-12:00',
+        'time': l10n.morningTime,
         'icon': Icons.wb_sunny,
       },
       {
-        'name': '下午',
+        'name': l10n.afternoon,
         'value': afternoon,
-        'time': '12:00-18:00',
+        'time': l10n.afternoonTime,
         'icon': Icons.wb_twilight,
       },
       {
-        'name': '傍晚',
+        'name': l10n.evening,
         'value': evening,
-        'time': '18:00-22:00',
+        'time': l10n.eveningTime,
         'icon': Icons.nightlight,
       },
       {
-        'name': '深夜',
+        'name': l10n.night,
         'value': night,
-        'time': '22:00-6:00',
+        'time': l10n.nightTime,
         'icon': Icons.bedtime,
       },
     ];
@@ -95,7 +97,7 @@ class StatsTimeOfDayChart extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '您的最佳專注時段',
+                      l10n.yourBestFocusTime,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onPrimaryContainer.withOpacity(
                           0.8,
@@ -112,7 +114,7 @@ class StatsTimeOfDayChart extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '已完成 ${bestTime['value']} 個番茄鐘',
+                      l10n.completedPomodorosCount(bestTime['value'] as int),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onPrimaryContainer.withOpacity(
                           0.8,
@@ -139,7 +141,7 @@ class StatsTimeOfDayChart extends StatelessWidget {
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
                     final timeSlot = timeSlots[group.x.toInt()];
                     return BarTooltipItem(
-                      '${timeSlot['name']}\n${timeSlot['value']} 個番茄鐘',
+                      '${timeSlot['name']}\n${l10n.completedPomodorosCount(timeSlot['value'] as int)}',
                       const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,

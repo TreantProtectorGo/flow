@@ -6,6 +6,7 @@ import '../models/task.dart';
 import '../providers/task_provider.dart';
 import '../providers/timer_provider.dart';
 import '../widgets/task_form_dialog.dart';
+import '../l10n/app_localizations.dart';
 import 'ai_chat_screen.dart';
 
 class TasksScreen extends ConsumerWidget {
@@ -14,6 +15,7 @@ class TasksScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final taskNotifier = ref.watch(taskProvider);
     final timerNotifier = ref.watch(timerProvider);
     final currentTask = taskNotifier.currentTask;
@@ -41,6 +43,7 @@ class TasksScreen extends ConsumerWidget {
                               theme,
                               context,
                               ref,
+                              l10n,
                             ),
 
                           if (currentTask != null && isTimerRunning)
@@ -48,7 +51,7 @@ class TasksScreen extends ConsumerWidget {
 
                           // 进行中任务
                           if (taskNotifier.inProgressTasks.isNotEmpty) ...[
-                            _buildSectionHeader('進行中', theme),
+                            _buildSectionHeader(l10n.inProgress, theme),
                             const SizedBox(height: 15),
                             ...taskNotifier.inProgressTasks.map(
                               (task) => Padding(
@@ -65,15 +68,15 @@ class TasksScreen extends ConsumerWidget {
                           ],
 
                           // 待办事项
-                          _buildSectionHeader('待辦事項', theme),
+                          _buildSectionHeader(l10n.pending, theme),
                           const SizedBox(height: 15),
 
                           // AI 拆解卡片
-                          _buildAIBreakdownCard(theme, context),
+                          _buildAIBreakdownCard(theme, context, l10n),
                           const SizedBox(height: 12),
 
                           if (taskNotifier.pendingTasks.isEmpty)
-                            _buildEmptyState('暫無待辦任務', theme)
+                            _buildEmptyState(l10n.emptyPendingTasks, theme)
                           else
                             ...taskNotifier.pendingTasks.map(
                               (task) => Padding(
@@ -91,7 +94,7 @@ class TasksScreen extends ConsumerWidget {
 
                           // 已完成
                           if (taskNotifier.completedTasks.isNotEmpty) ...[
-                            _buildSectionHeader('已完成', theme),
+                            _buildSectionHeader(l10n.completed, theme),
                             const SizedBox(height: 15),
                             ...taskNotifier.completedTasks.map(
                               (task) => Padding(
@@ -124,12 +127,13 @@ class TasksScreen extends ConsumerWidget {
         onPressed: () => _showAddTaskDialog(context, ref),
         heroTag: "addTaskButton",
         icon: const Icon(Icons.add),
-        label: const Text('新增任務'),
+        label: Text(l10n.addTask),
       ),
     );
   }
 
   void _showAddTaskDialog(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => const TaskFormDialog(),
@@ -148,7 +152,7 @@ class TasksScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('已新增任務：${result['title']}'),
+            content: Text(l10n.taskAdded(result['title'])),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -190,22 +194,23 @@ class TasksScreen extends ConsumerWidget {
     WidgetRef ref,
     Task task,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('刪除任務'),
-        content: Text('確定要刪除「${task.title}」嗎？'),
+        title: Text(l10n.deleteTask),
+        content: Text(l10n.confirmDelete(task.title)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () {
               Navigator.pop(context);
               ref.read(taskProvider.notifier).deleteTask(task.id);
             },
-            child: const Text('刪除'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -251,6 +256,7 @@ class TasksScreen extends ConsumerWidget {
     ThemeData theme,
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
   ) {
     return Container(
       decoration: BoxDecoration(
@@ -301,14 +307,14 @@ class TasksScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '正在專注',
+                            l10n.focusingNow,
                             style: theme.textTheme.labelMedium?.copyWith(
                               color: theme.colorScheme.onPrimaryContainer,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           Text(
-                            timerNotifier.modeDisplayString,
+                            _getModeDisplay(timerNotifier.mode, l10n),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onPrimaryContainer
                                   .withOpacity(0.7),
@@ -664,7 +670,7 @@ class TasksScreen extends ConsumerWidget {
       // 顯示提示訊息
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('🍅 開始專注：${task.title}'),
+          content: Text('開始專注：${task.title}'),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
@@ -683,7 +689,11 @@ class TasksScreen extends ConsumerWidget {
     }
   }
 
-  Widget _buildAIBreakdownCard(ThemeData theme, BuildContext context) {
+  Widget _buildAIBreakdownCard(
+    ThemeData theme,
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
     return Card(
       elevation: 2,
       margin: EdgeInsets.zero,
@@ -705,7 +715,7 @@ class TasksScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  '讓 AI 幫你拆解任務',
+                  l10n.aiBreakdownDescription,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.w500,
@@ -717,5 +727,16 @@ class TasksScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+String _getModeDisplay(TimerMode mode, AppLocalizations l10n) {
+  switch (mode) {
+    case TimerMode.focus:
+      return l10n.focusMode;
+    case TimerMode.shortBreak:
+      return l10n.shortBreakMode;
+    case TimerMode.longBreak:
+      return l10n.longBreakMode;
   }
 }

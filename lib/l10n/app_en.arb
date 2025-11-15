@@ -1,0 +1,341 @@
+{
+  "@@locale": "en",
+  
+  "appTitle": "FocusAI",
+  
+  "tasks": "Tasks",
+  "timer": "Timer",
+  "statistics": "Statistics",
+  "settings": "Settings",
+
+  "addTask": "Add Task",
+  "editTask": "Edit Task",
+  "deleteTask": "Delete Task",
+  "update": "Update",
+  "add": "Add",
+  "taskTitle": "Task Title",
+  "taskDescription": "Task Description",
+  "taskDescriptionOptional": "Task Description (Optional)",
+  "enterTaskTitle": "Please enter task title",
+  "estimatedPomodoros": "Estimated Pomodoros",
+  "estimated": "Estimated",
+  "enterPomodoroCount": "Please enter pomodoro count",
+  "pomodoroCount": "Pomodoro Count",
+  "priority": "Priority",
+  "status": "Status",
+
+  "priorityHigh": "High",
+  "priorityMedium": "Medium",
+  "priorityLow": "Low",
+  "highPriority": "High Priority",
+  "mediumPriority": "Medium Priority",
+  "lowPriority": "Low Priority",
+
+  "statusPending": "Pending",
+  "statusInProgress": "In Progress",
+  "statusCompleted": "Completed",
+
+  "inProgress": "In Progress",
+  "completed": "Completed",
+  "noTasks": "No Pending Tasks",
+  "noTasksMessage": "No pending tasks",
+
+  "start": "Start",
+  "continueButton": "Continue",
+  "pause": "Pause",
+  "resume": "Resume",
+  "stop": "Stop",
+  "reset": "Reset",
+  "skip": "Skip",
+
+  "focusTime": "Focus Time",
+  "shortBreak": "Short Break",
+  "longBreak": "Long Break",
+  "breakTime": "Break Time",
+
+  "pomodoroMode": "Pomodoro",
+  "shortBreakMode": "Short Break",
+  "longBreakMode": "Long Break",
+
+  "selectTask": "Select Task",
+  "clearSelection": "Clear Selection",
+  "noAvailableTasks": "No available tasks",
+  "addTasksFirst": "Please add some tasks in the Tasks page first",
+  "noTaskSelected": "No task selected",
+  "tapToSelect": "Tap to select a task",
+  "currentTask": "Current Task",
+  "switchTask": "Switch",
+    "completedSessions": "Completed {count} focus sessions",
+  "@completedSessions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "focusMode": "Focus Time",
+  "shortBreakMode": "Short Break",
+  "longBreakMode": "Long Break",
+  "thisWeekOverview": "This Week Overview",
+  "thisMonthOverview": "This Month Overview",
+  "focusTime": "Focus Time",
+  "hours": "{count} hrs",
+  "@hours": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "streakDays": "Streak Days",
+  "dailyAverage": "Daily Avg",
+  "thisWeekGoal": "This Week Goal",
+  "workDays": "Active Days",
+  "bestDay": "Best Day",
+  "monthlyHeatmap": "Monthly Focus Heatmap",
+  "thisMonthTrend": "This Month Trend",
+  "todayTimeDistribution": "Today's Time Distribution",
+  "completed": "Completed",
+  "incomplete": "Incomplete",
+  "noPomodoros": "No pomodoros completed today yet",
+  "thisWeekTrend": "This Week Trend",
+  "noWeekStats": "No statistics for this week yet",
+  "bestFocusTime": "Best Focus Time (Last 30 Days)",
+  "pomodoroCount": "{count} pomodoros",
+  "@pomodoroCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noMonthStats": "No statistics for this month yet",
+  "count": "{count}",
+  "@count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "consecutiveFocus": "Consecutive Focus",
+  "days": "days",
+  "notEnoughData": "Not enough data yet",
+  "yourBestFocusTime": "Your Best Focus Time",
+  "morning": "Morning",
+  "afternoon": "Afternoon",
+  "evening": "Evening",
+  "night": "Night",
+  "morningTime": "6:00-12:00",
+  "afternoonTime": "12:00-18:00",
+  "eveningTime": "18:00-22:00",
+  "nightTime": "22:00-6:00",
+  "completedPomodorosCount": "Completed {count} pomodoros",
+  "@completedPomodorosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copiedToClipboard": "Copied to clipboard",
+  "justNow": "Just now",
+  "minutesAgo": "{count} minutes ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{count} hours ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mondayShort": "Mon",
+  "tuesdayShort": "Tue",
+  "wednesdayShort": "Wed",
+  "thursdayShort": "Thu",
+  "fridayShort": "Fri",
+  "saturdayShort": "Sat",
+  "sundayShort": "Sun",
+  "pomodoroCountShort": "{count} pomodoros",
+  "@pomodoroCountShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "less": "Less",
+  "more": "More",
+  "helloAI": "Hello! I'm your AI assistant",
+  "aiDescription": "I'm your focus assistant, ready to help analyze tasks and provide suggestions",
+
+  "selectTask": "Select Task",
+  "noTasksToSelect": "No tasks available",
+  "pleaseAddTasksFirst": "Please add some tasks first",
+  "clearSelection": "Clear Selection",
+  "items": "",
+
+  "startFocus": "Start Focus: {taskTitle}",
+  "continueTask": "Continue Task: {taskTitle}",
+  "taskAdded": "Task Added: {taskTitle}",
+  "confirmDelete": "Are you sure you want to delete \"{taskTitle}\"?",
+
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "save": "Save",
+  "confirm": "Confirm",
+  "close": "Close",
+  "retry": "Retry",
+  "edit": "Edit",
+  "markComplete": "Mark Complete",
+  "aiAnalysis": "AI Analysis",
+
+  "aiBreakdownCard": "Let AI Help Break Down Large Tasks",
+
+  "todayStats": "Today",
+  "weekStats": "This Week",
+  "monthStats": "This Month",
+
+  "streakDays": "Focus Streak",
+  "days": "days",
+  "completedToday": "Completed Today",
+  "completedPomodoros": "Completed Pomodoros",
+  "completedTasks": "Completed Tasks",
+  "completionRate": "Completion Rate",
+  "dailyAverage": "Daily Average",
+  "progress": "Progress",
+  "remaining": "Remaining",
+  "completeOnePomodoroToStartStreak": "Complete a pomodoro to start your streak!",
+  "startNewStreakToday": "Start a new streak today!",
+  "goodStart": "Good start!",
+  "keepGoing": "Keep going!",
+  "awesome": "Awesome!",
+  "focusMaster": "You're a focus master!",
+  "legendaryStreak": "Legendary streak!",
+  "todayGoal": "Today's Goal",
+  "weekGoal": "Weekly Goal",
+  "todayOverview": "Today's Overview",
+  "weekOverview": "Weekly Overview",
+  "monthOverview": "Monthly Overview",
+  "todayTimeDistribution": "Today's Time Distribution",
+  "weeklyTrend": "Weekly Trend",
+  "completed": "Completed",
+  "incomplete": "Incomplete",
+  "noPomodorosToday": "No pomodoros completed today yet",
+  "noPomodorosThisWeek": "No pomodoros completed this week yet",
+  "noPomodorosThisMonth": "No pomodoros completed this month yet",
+  "pomodoros": "pomodoros",
+
+  "dailyGoal": "Daily Goal",
+  "weeklyGoal": "Weekly Goal",
+  "totalPomodoros": "Total Pomodoros",
+  "focusHours": "Focus Hours",
+
+  "pomodoroSettings": "Pomodoro Settings",
+  "goalSettings": "Goal Settings",
+  "notificationSettings": "Notification Settings",
+  "appearanceSettings": "Appearance Settings",
+  "aiSettings": "AI Settings",
+  "dataAndSync": "Data & Sync",
+  "dangerZone": "Danger Zone",
+
+  "focusDuration": "Focus Duration",
+  "focusDurationSubtitle": "Duration of each pomodoro session",
+  "shortBreakDuration": "Short Break",
+  "shortBreakSubtitle": "Break time after completing a pomodoro",
+  "longBreakDuration": "Long Break",
+  "longBreakSubtitle": "Break time after completing 4 pomodoros",
+  "longBreakFrequency": "Long Break Frequency",
+  "longBreakFrequencySubtitle": "Number of pomodoros before a long break",
+
+  "minutes": "{count} min",
+  "items": "{count}",
+
+  "dailyGoalTitle": "Daily Goal",
+  "dailyGoalSubtitle": "Number of pomodoros to complete each day",
+  "weeklyGoalTitle": "Weekly Goal",
+  "weeklyGoalSubtitle": "Number of pomodoros to complete each week",
+
+  "pushNotifications": "Push Notifications",
+  "pushNotificationsSubtitle": "Send notification when timer ends",
+  "soundEffect": "Sound Effect",
+  "soundEffectSubtitle": "Choose sound when timer ends",
+  "vibration": "Vibration",
+  "vibrationSubtitle": "Vibrate when timer ends",
+
+  "soundBell": "Bell",
+  "soundBird": "Bird",
+  "soundWave": "Wave",
+  "soundNone": "None",
+
+  "themeMode": "Theme Mode",
+  "themeModeSubtitle": "Choose app theme mode",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+
+  "language": "Language",
+  "languageSubtitle": "Choose app language",
+
+  "aiTaskBreakdown": "AI Task Breakdown",
+  "aiTaskBreakdownSubtitle": "Allow AI to help break down complex tasks",
+  "smartSuggestions": "Smart Suggestions",
+  "smartSuggestionsSubtitle": "Get personalized suggestions based on habits",
+  "dataAnalysis": "Data Analysis",
+  "dataAnalysisSubtitle": "Allow data analysis to improve service",
+
+  "cloudSync": "Cloud Sync",
+  "cloudSyncSubtitle": "Automatically sync data to cloud",
+  "exportData": "Export Data",
+  "exportDataSubtitle": "Download your statistics data",
+  "exportCSV": "Export CSV",
+
+  "clearAllData": "Clear All Data",
+  "clearAllDataSubtitle": "Delete all statistics and settings",
+  "clearData": "Clear Data",
+  "deleteAccount": "Delete Account",
+  "deleteAccountSubtitle": "Permanently delete your account and all data",
+
+  "version": "FocusAI v1.0.0",
+  "copyright": "© 2024 FocusAI Team",
+
+  "pending": "To Do",
+  "activeTimer": "Active Timer",
+  "focusingNow": "Focusing Now",
+  "tapToViewTimer": "Tap to view timer",
+  "emptyPendingTasks": "No pending tasks",
+
+  "aiBreakdownDescription": "Let AI help you break down big tasks",
+  "aiChatTitle": "AI Assistant",
+  "thinking": "Thinking...",
+  "clearConversation": "Clear Conversation",
+  "confirmClearConversation": "Are you sure you want to clear all conversation history?",
+  "clearConversationButton": "Clear",
+  "sendMessage": "Send message",
+  "typeMessage": "Type a message...",
+  "askAiHelper": "Ask AI Assistant...",
+  "creatingTasks": "Creating...",
+  "createTasks": "Create Tasks",
+  "view": "View",
+  "cannotExtractTasks": "Cannot extract tasks from conversation, please try to describe the tasks more clearly",
+  "tasksCreatedSuccess": "Successfully created {count} tasks!",
+  "taskCreationFailed": "Task creation failed: {error}",
+
+  "confirmAction": "Confirm {action}",
+  "confirmActionMessage": "Are you sure you want to {action}? This action cannot be undone.",
+  "featureComingSoon": "{action} feature will be available in the official release",
+
+  "hourShort": "h",
+  "minuteShort": "m",
+  "secondShort": "s",
+  "hour": "hour",
+  "minute": "minute",
+  "second": "second"
+}

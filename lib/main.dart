@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
+import 'providers/locale_provider.dart';
 import 'screens/main_screen.dart';
 import 'screens/timer_screen.dart';
 import 'screens/tasks_screen.dart';
 import 'screens/stats_screen.dart';
 import 'screens/settings_screen.dart';
+import 'l10n/app_localizations.dart';
 
 void main() {
   runApp(const ProviderScope(child: FocusApp()));
@@ -20,11 +23,23 @@ class FocusApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightColorScheme, ColorScheme? darkColorScheme) {
         return MaterialApp.router(
-          title: '專注番茄',
+          title: 'FocusAI',
+
+          // 本地化設定
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: LocaleNotifier.supportedLocales,
+          locale: locale,
+
           theme: lightColorScheme != null
               ? ThemeData(
                   useMaterial3: true,
@@ -80,7 +95,6 @@ class FocusApp extends ConsumerWidget {
                 ),
           themeMode: themeMode,
           routerConfig: _router,
-          locale: const Locale('zh', 'TW'),
           debugShowCheckedModeBanner: false,
         );
       },

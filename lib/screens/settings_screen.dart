@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/theme_provider.dart';
 import '../providers/timer_provider.dart';
 import '../providers/statistics_provider.dart';
+import '../providers/locale_provider.dart';
+import '../l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -19,7 +21,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _smartSuggestions = true;
   bool _dataAnalysis = false;
   bool _cloudSync = true;
-  String _soundEffect = '鈴鐺';
+  String _soundEffect = 'bell'; // 使用固定鍵值
   int _longBreakFrequency = 4;
 
   @override
@@ -38,16 +40,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final timerSettings = ref.watch(timerProvider);
     final statsProvider = ref.watch(statisticsProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
 
     // 將 ThemeMode 轉換為字串
     String getThemeModeString(ThemeMode mode) {
       switch (mode) {
         case ThemeMode.light:
-          return '淺色模式';
+          return AppLocalizations.of(context)!.themeLight;
         case ThemeMode.dark:
-          return '深色模式';
+          return AppLocalizations.of(context)!.themeDark;
         case ThemeMode.system:
-          return '跟隨系統';
+          return AppLocalizations.of(context)!.themeSystem;
+      }
+    }
+
+    // 將 Locale 轉換為字串
+    String getLocaleString(Locale locale) {
+      return ref.read(localeProvider.notifier).getLocaleName(locale);
+    }
+
+    // 將音效鍵值轉換為顯示文字
+    String getSoundEffectString(String key) {
+      switch (key) {
+        case 'bell':
+          return AppLocalizations.of(context)!.soundBell;
+        case 'bird':
+          return AppLocalizations.of(context)!.soundBird;
+        case 'wave':
+          return AppLocalizations.of(context)!.soundWave;
+        case 'none':
+          return AppLocalizations.of(context)!.soundNone;
+        default:
+          return AppLocalizations.of(context)!.soundBell;
       }
     }
 
@@ -90,12 +114,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
 
             // 分組：番茄鐘設定
-            _buildSectionTitle('番茄鐘設定'),
+            _buildSectionTitle(AppLocalizations.of(context)!.pomodoroSettings),
             _buildSettingTile(
               icon: Icons.timer,
               iconColor: theme.colorScheme.primary,
-              title: '專注時間',
-              subtitle: '每個番茄鐘的專注時長',
+              title: AppLocalizations.of(context)!.focusDuration,
+              subtitle: AppLocalizations.of(context)!.focusDurationSubtitle,
               trailing: _buildTimeSelector(
                 timerSettings.focusTimeInMinutes,
                 [15, 20, 25, 30, 45, 60],
@@ -107,8 +131,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _buildSettingTile(
               icon: Icons.timer_outlined,
               iconColor: theme.colorScheme.primary,
-              title: '短休息',
-              subtitle: '完成一個番茄鐘後的休息時間',
+              title: AppLocalizations.of(context)!.shortBreakDuration,
+              subtitle: AppLocalizations.of(context)!.shortBreakSubtitle,
               trailing: _buildTimeSelector(
                 timerSettings.shortBreakTimeInMinutes,
                 [5, 10, 15],
@@ -120,8 +144,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _buildSettingTile(
               icon: Icons.timer_rounded,
               iconColor: theme.colorScheme.primary,
-              title: '長休息',
-              subtitle: '完成4個番茄鐘後的休息時間',
+              title: AppLocalizations.of(context)!.longBreakDuration,
+              subtitle: AppLocalizations.of(context)!.longBreakSubtitle,
               trailing: _buildTimeSelector(
                 timerSettings.longBreakTimeInMinutes,
                 [15, 20, 25, 30],
@@ -133,8 +157,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _buildSettingTile(
               icon: Icons.repeat,
               iconColor: theme.colorScheme.primary,
-              title: '長休息頻率',
-              subtitle: '每幾個番茄鐘後進行長休息',
+              title: AppLocalizations.of(context)!.longBreakFrequency,
+              subtitle: AppLocalizations.of(
+                context,
+              )!.longBreakFrequencySubtitle,
               trailing: DropdownButton<int>(
                 value: _longBreakFrequency,
                 items: [2, 3, 4, 5, 6]
@@ -160,12 +186,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
 
             // 分組：目標設定
-            _buildSectionTitle('目標設定'),
+            _buildSectionTitle(AppLocalizations.of(context)!.goalSettings),
             _buildSettingTile(
               icon: Icons.flag,
               iconColor: theme.colorScheme.tertiary,
-              title: '每日目標',
-              subtitle: '每天想要完成的番茄鐘數量',
+              title: AppLocalizations.of(context)!.dailyGoalTitle,
+              subtitle: AppLocalizations.of(context)!.dailyGoalSubtitle,
               trailing: _buildGoalSelector(
                 statsProvider.dailyGoal,
                 [4, 6, 8, 10, 12],
@@ -177,8 +203,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _buildSettingTile(
               icon: Icons.flag_outlined,
               iconColor: theme.colorScheme.tertiary,
-              title: '每週目標',
-              subtitle: '每週想要完成的番茄鐘數量',
+              title: AppLocalizations.of(context)!.weeklyGoalTitle,
+              subtitle: AppLocalizations.of(context)!.weeklyGoalSubtitle,
               trailing: _buildGoalSelector(
                 statsProvider.weeklyGoal,
                 [20, 30, 40, 50, 60],
@@ -189,12 +215,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
 
             // 分組：通知設定
-            _buildSectionTitle('通知設定'),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.notificationSettings,
+            ),
             _buildSettingTile(
               icon: Icons.notifications,
               iconColor: theme.colorScheme.secondary,
-              title: '推播通知',
-              subtitle: '時間結束時發送通知',
+              title: AppLocalizations.of(context)!.pushNotifications,
+              subtitle: AppLocalizations.of(context)!.pushNotificationsSubtitle,
               trailing: Switch(
                 value: _notifications,
                 onChanged: (value) {
@@ -205,20 +233,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _buildSettingTile(
               icon: Icons.music_note,
               iconColor: theme.colorScheme.secondary,
-              title: '提示音效',
-              subtitle: '選擇計時器結束時的音效',
-              trailing: _buildDropdown<String>(_soundEffect, [
-                '鈴鐺',
-                '鳥鳴',
-                '海浪',
-                '無音效',
-              ], (value) => setState(() => _soundEffect = value!)),
+              title: AppLocalizations.of(context)!.soundEffect,
+              subtitle: AppLocalizations.of(context)!.soundEffectSubtitle,
+              trailing: _buildDropdown<String>(
+                getSoundEffectString(_soundEffect),
+                [
+                  AppLocalizations.of(context)!.soundBell,
+                  AppLocalizations.of(context)!.soundBird,
+                  AppLocalizations.of(context)!.soundWave,
+                  AppLocalizations.of(context)!.soundNone,
+                ],
+                (value) {
+                  String key = 'bell';
+                  if (value == AppLocalizations.of(context)!.soundBell) {
+                    key = 'bell';
+                  } else if (value == AppLocalizations.of(context)!.soundBird) {
+                    key = 'bird';
+                  } else if (value == AppLocalizations.of(context)!.soundWave) {
+                    key = 'wave';
+                  } else if (value == AppLocalizations.of(context)!.soundNone) {
+                    key = 'none';
+                  }
+                  setState(() => _soundEffect = key);
+                },
+              ),
             ),
             _buildSettingTile(
               icon: Icons.vibration,
               iconColor: theme.colorScheme.secondary,
-              title: '震動提醒',
-              subtitle: '時間結束時震動提醒',
+              title: AppLocalizations.of(context)!.vibration,
+              subtitle: AppLocalizations.of(context)!.vibrationSubtitle,
               trailing: Switch(
                 value: _vibration,
                 onChanged: (value) {
@@ -228,25 +272,48 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
 
             // 分組：外觀設定
-            _buildSectionTitle('外觀設定'),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.appearanceSettings,
+            ),
             _buildSettingTile(
               icon: Icons.palette,
               iconColor: theme.colorScheme.primary,
-              title: '主題模式',
-              subtitle: '選擇應用程式的主題模式',
+              title: AppLocalizations.of(context)!.themeMode,
+              subtitle: AppLocalizations.of(context)!.themeModeSubtitle,
               trailing: _buildDropdown<String>(
                 getThemeModeString(themeMode),
-                ['跟隨系統', '淺色模式', '深色模式'],
+                [
+                  AppLocalizations.of(context)!.themeSystem,
+                  AppLocalizations.of(context)!.themeLight,
+                  AppLocalizations.of(context)!.themeDark,
+                ],
+                (value) {
+                  if (value == AppLocalizations.of(context)!.themeSystem) {
+                    ref.read(themeModeProvider.notifier).setSystemTheme();
+                  } else if (value ==
+                      AppLocalizations.of(context)!.themeLight) {
+                    ref.read(themeModeProvider.notifier).setLightTheme();
+                  } else if (value == AppLocalizations.of(context)!.themeDark) {
+                    ref.read(themeModeProvider.notifier).setDarkTheme();
+                  }
+                },
+              ),
+            ),
+            _buildSettingTile(
+              icon: Icons.language,
+              iconColor: theme.colorScheme.primary,
+              title: AppLocalizations.of(context)!.language,
+              subtitle: AppLocalizations.of(context)!.languageSubtitle,
+              trailing: _buildDropdown<String>(
+                getLocaleString(locale),
+                ['繁體中文', 'English'],
                 (value) {
                   switch (value) {
-                    case '跟隨系統':
-                      ref.read(themeModeProvider.notifier).setSystemTheme();
+                    case '繁體中文':
+                      ref.read(localeProvider.notifier).setTraditionalChinese();
                       break;
-                    case '淺色模式':
-                      ref.read(themeModeProvider.notifier).setLightTheme();
-                      break;
-                    case '深色模式':
-                      ref.read(themeModeProvider.notifier).setDarkTheme();
+                    case 'English':
+                      ref.read(localeProvider.notifier).setEnglish();
                       break;
                   }
                 },
@@ -254,12 +321,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
 
             // 分組：AI 設定
-            _buildSectionTitle('AI 設定'),
+            _buildSectionTitle(AppLocalizations.of(context)!.aiSettings),
             _buildSettingTile(
               icon: Icons.psychology,
               iconColor: theme.colorScheme.secondary,
-              title: 'AI 任務拆解',
-              subtitle: '允許 AI 幫助拆解複雜任務',
+              title: AppLocalizations.of(context)!.aiTaskBreakdown,
+              subtitle: AppLocalizations.of(context)!.aiTaskBreakdownSubtitle,
               trailing: Switch(
                 value: _aiTaskBreakdown,
                 onChanged: (value) {
@@ -270,8 +337,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _buildSettingTile(
               icon: Icons.lightbulb,
               iconColor: theme.colorScheme.secondary,
-              title: '智慧建議',
-              subtitle: '根據使用習慣提供個人化建議',
+              title: AppLocalizations.of(context)!.smartSuggestions,
+              subtitle: AppLocalizations.of(context)!.smartSuggestionsSubtitle,
               trailing: Switch(
                 value: _smartSuggestions,
                 onChanged: (value) {
@@ -282,8 +349,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _buildSettingTile(
               icon: Icons.analytics,
               iconColor: theme.colorScheme.secondary,
-              title: '數據分析',
-              subtitle: '允許分析使用數據以改善服務',
+              title: AppLocalizations.of(context)!.dataAnalysis,
+              subtitle: AppLocalizations.of(context)!.dataAnalysisSubtitle,
               trailing: Switch(
                 value: _dataAnalysis,
                 onChanged: (value) {
@@ -293,12 +360,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
 
             // 分組：數據與同步
-            _buildSectionTitle('數據與同步'),
+            _buildSectionTitle(AppLocalizations.of(context)!.dataAndSync),
             _buildSettingTile(
               icon: Icons.cloud,
               iconColor: theme.colorScheme.primary,
-              title: '雲端同步',
-              subtitle: '自動同步數據到雲端',
+              title: AppLocalizations.of(context)!.cloudSync,
+              subtitle: AppLocalizations.of(context)!.cloudSyncSubtitle,
               trailing: Switch(
                 value: _cloudSync,
                 onChanged: (value) {
@@ -309,42 +376,45 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _buildSettingTile(
               icon: Icons.download,
               iconColor: theme.colorScheme.primary,
-              title: '匯出數據',
-              subtitle: '下載您的統計數據',
+              title: AppLocalizations.of(context)!.exportData,
+              subtitle: AppLocalizations.of(context)!.exportDataSubtitle,
               trailing: ElevatedButton(
                 onPressed: () {},
-                child: const Text('匯出 CSV'),
+                child: Text(AppLocalizations.of(context)!.exportCSV),
               ),
             ),
 
             // 分組：危險區域
-            _buildSectionTitle('危險區域'),
+            _buildSectionTitle(AppLocalizations.of(context)!.dangerZone),
             _buildSettingTile(
               icon: Icons.delete_forever,
               iconColor: theme.colorScheme.error,
-              title: '清除所有數據',
-              subtitle: '刪除所有統計數據和設定',
+              title: AppLocalizations.of(context)!.clearAllData,
+              subtitle: AppLocalizations.of(context)!.clearAllDataSubtitle,
               trailing: ElevatedButton(
-                onPressed: () => _showConfirmDialog('清除數據'),
+                onPressed: () =>
+                    _showConfirmDialog(AppLocalizations.of(context)!.clearData),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.error,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('清除數據'),
+                child: Text(AppLocalizations.of(context)!.clearData),
               ),
             ),
             _buildSettingTile(
               icon: Icons.person_off,
               iconColor: theme.colorScheme.error,
-              title: '刪除帳號',
-              subtitle: '永久刪除您的帳號和所有資料',
+              title: AppLocalizations.of(context)!.deleteAccount,
+              subtitle: AppLocalizations.of(context)!.deleteAccountSubtitle,
               trailing: ElevatedButton(
-                onPressed: () => _showConfirmDialog('刪除帳號'),
+                onPressed: () => _showConfirmDialog(
+                  AppLocalizations.of(context)!.deleteAccount,
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.error,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('刪除帳號'),
+                child: Text(AppLocalizations.of(context)!.deleteAccount),
               ),
             ),
 
@@ -355,14 +425,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 child: Column(
                   children: [
                     Text(
-                      '專注番茄 v1.0.0',
+                      AppLocalizations.of(context)!.version,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '© 2024 Focus Tomato Team',
+                      AppLocalizations.of(context)!.copyright,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

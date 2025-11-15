@@ -77,15 +77,8 @@ class TimerProvider with ChangeNotifier {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  String get modeDisplayString {
-    switch (_mode) {
-      case TimerMode.focus:
-        return '專注時間';
-      case TimerMode.shortBreak:
-        return '短休息';
-      case TimerMode.longBreak:
-        return '長休息';
-    }
+  String getModeDisplayString(String Function(TimerMode) translator) {
+    return translator(_mode);
   }
 
   Future<void> _loadSettings() async {

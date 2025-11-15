@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
 
 /// 熱力圖 Widget（類似 GitHub contributions）
 class StatsHeatmap extends StatelessWidget {
@@ -15,6 +16,7 @@ class StatsHeatmap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     // 計算最大值用於顏色分級
     final maxCount = data.values.isEmpty
@@ -58,13 +60,13 @@ class StatsHeatmap extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _buildDayLabel('一', theme),
-                _buildDayLabel('二', theme),
-                _buildDayLabel('三', theme),
-                _buildDayLabel('四', theme),
-                _buildDayLabel('五', theme),
-                _buildDayLabel('六', theme),
-                _buildDayLabel('日', theme),
+                _buildDayLabel(l10n.mondayShort, theme),
+                _buildDayLabel(l10n.tuesdayShort, theme),
+                _buildDayLabel(l10n.wednesdayShort, theme),
+                _buildDayLabel(l10n.thursdayShort, theme),
+                _buildDayLabel(l10n.fridayShort, theme),
+                _buildDayLabel(l10n.saturdayShort, theme),
+                _buildDayLabel(l10n.sundayShort, theme),
               ],
             ),
             const SizedBox(width: 8),
@@ -87,7 +89,8 @@ class StatsHeatmap extends StatelessWidget {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: Tooltip(
-                              message: '$dateStr\n$count 個番茄鐘',
+                              message:
+                                  '$dateStr\n${l10n.pomodoroCountShort(count)}',
                               child: Container(
                                 width: 16,
                                 height: 16,
@@ -121,7 +124,7 @@ class StatsHeatmap extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              '少',
+              l10n.less,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -146,7 +149,7 @@ class StatsHeatmap extends StatelessWidget {
             }),
             const SizedBox(width: 8),
             Text(
-              '多',
+              l10n.more,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

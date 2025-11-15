@@ -4,6 +4,7 @@ import '../providers/chat_provider.dart';
 import '../providers/task_provider.dart';
 import '../widgets/chat_message_bubble.dart';
 import '../models/chat_message.dart';
+import '../l10n/app_localizations.dart';
 
 class AIChatScreen extends ConsumerStatefulWidget {
   final String? initialMessage;
@@ -69,12 +70,13 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
       final tasks = await chatNotifier.extractTasksFromLastResponse();
 
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
 
       if (tasks == null || tasks.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('無法從對話中提取任務，請嘗試更明確地描述任務'),
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: Text(l10n.cannotExtractTasks),
+            duration: const Duration(seconds: 3),
           ),
         );
         return;
@@ -97,10 +99,10 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
       // 顯示成功訊息
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('✅ 成功創建 ${tasks.length} 個任務！'),
+          content: Text(l10n.tasksCreatedSuccess(tasks.length)),
           duration: const Duration(seconds: 2),
           action: SnackBarAction(
-            label: '查看',
+            label: l10n.view,
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -115,10 +117,11 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('創建任務失敗: $e'),
+          content: Text(l10n.taskCreationFailed(e.toString())),
           duration: const Duration(seconds: 3),
         ),
       );
@@ -134,6 +137,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final chatState = ref.watch(chatProvider);
     final colorScheme = theme.colorScheme;
 
@@ -149,7 +153,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
         ),
         title: chatState.isLoading
             ? Text(
-                '正在思考...',
+                l10n.thinking,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -159,24 +163,24 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
           if (chatState.messages.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              tooltip: '清空對話',
+              tooltip: l10n.clearConversation,
               onPressed: () {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('清空對話'),
-                    content: const Text('確定要清空所有對話記錄嗎？'),
+                    title: Text(l10n.clearConversation),
+                    content: Text(l10n.confirmClearConversation),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('取消'),
+                        child: Text(l10n.cancel),
                       ),
                       FilledButton(
                         onPressed: () {
                           ref.read(chatProvider.notifier).clearChat();
                           Navigator.pop(context);
                         },
-                        child: const Text('清空'),
+                        child: Text(l10n.clearConversationButton),
                       ),
                     ],
                   ),
@@ -216,7 +220,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                         ref.read(chatProvider.notifier).retryLastMessage();
                       },
                       child: Text(
-                        '重試',
+                        l10n.retry,
                         style: TextStyle(
                           color: colorScheme.onErrorContainer,
                           fontWeight: FontWeight.bold,
@@ -277,7 +281,9 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                         ),
                       )
                     : const Icon(Icons.add_task),
-                label: Text(_isCreatingTasks ? '正在創建...' : '創建任務'),
+                label: Text(
+                  _isCreatingTasks ? l10n.creatingTasks : l10n.createTasks,
+                ),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
                 ),
@@ -318,7 +324,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                       maxLines: null,
                       textCapitalization: TextCapitalization.sentences,
                       decoration: InputDecoration(
-                        hintText: '輸入訊息...',
+                        hintText: l10n.typeMessage,
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20,
@@ -384,6 +390,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
 
   Widget _buildEmptyState(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = theme.colorScheme;
 
     return Center(
@@ -412,14 +419,14 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              '你好！我是 AI 助手',
+              l10n.helloAI,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 12),
             Text(
-              '我可以幫你分析任務、規劃番茄鐘，\n讓你的工作更有效率！',
+              l10n.aiDescription,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: colorScheme.onSurfaceVariant,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/task.dart';
 import '../providers/task_provider.dart';
+import '../l10n/app_localizations.dart';
 
 class TaskSelectionDialog extends ConsumerWidget {
   const TaskSelectionDialog({super.key});
@@ -10,6 +11,7 @@ class TaskSelectionDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final taskNotifier = ref.watch(taskProvider);
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     // 可選擇的任務：待辦和進行中的任務
     final availableTasks = [
@@ -22,19 +24,22 @@ class TaskSelectionDialog extends ConsumerWidget {
         children: [
           Icon(Icons.task_alt, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
-          const Text('選擇任務'),
+          Text(l10n.selectTask),
         ],
       ),
       content: SizedBox(
         width: double.maxFinite,
         child: availableTasks.isEmpty
-            ? const Column(
+            ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.inbox, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('暫無可選擇的任務'),
-                  Text('請先在任務頁面添加一些任務', style: TextStyle(color: Colors.grey)),
+                  const Icon(Icons.inbox, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Text(l10n.noTasksToSelect),
+                  Text(
+                    l10n.pleaseAddTasksFirst,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
                 ],
               )
             : ListView.builder(
@@ -50,19 +55,6 @@ class TaskSelectionDialog extends ConsumerWidget {
                         ? theme.colorScheme.primaryContainer
                         : null,
                     child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: _getPriorityColor(
-                          task.priority,
-                          theme,
-                        ),
-                        child: Icon(
-                          task.status == TaskStatus.inProgress
-                              ? Icons.play_circle
-                              : Icons.pending_actions,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
                       title: Text(
                         task.title,
                         style: TextStyle(
@@ -98,7 +90,7 @@ class TaskSelectionDialog extends ConsumerWidget {
                                     const SizedBox(width: 4),
                                     Flexible(
                                       child: Text(
-                                        '${task.pomodoroCount} 個',
+                                        '${task.pomodoroCount}${l10n.items}',
                                         style: theme.textTheme.bodySmall,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -122,7 +114,7 @@ class TaskSelectionDialog extends ConsumerWidget {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    _getPriorityShortText(task.priority),
+                                    _getPriorityShortText(task.priority, l10n),
                                     style: TextStyle(
                                       fontSize: 9,
                                       color: _getPriorityColor(
@@ -156,14 +148,14 @@ class TaskSelectionDialog extends ConsumerWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(l10n.cancel),
         ),
         if (taskNotifier.currentTaskId != null)
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop('clear');
             },
-            child: const Text('清除選擇'),
+            child: Text(l10n.clearSelection),
           ),
       ],
     );
@@ -180,14 +172,14 @@ class TaskSelectionDialog extends ConsumerWidget {
     }
   }
 
-  String _getPriorityShortText(TaskPriority priority) {
+  String _getPriorityShortText(TaskPriority priority, AppLocalizations l10n) {
     switch (priority) {
       case TaskPriority.high:
-        return '高';
+        return l10n.priorityHigh;
       case TaskPriority.medium:
-        return '中';
+        return l10n.priorityMedium;
       case TaskPriority.low:
-        return '低';
+        return l10n.priorityLow;
     }
   }
 }

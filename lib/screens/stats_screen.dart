@@ -6,7 +6,7 @@ import '../widgets/stats_goal_card.dart';
 import '../widgets/stats_streak_card.dart';
 import '../widgets/stats_heatmap.dart';
 import '../widgets/stats_time_of_day_chart.dart';
-import '../widgets/stats_achievement_card.dart';
+import '../l10n/app_localizations.dart';
 
 class StatisticsScreen extends ConsumerStatefulWidget {
   const StatisticsScreen({super.key});
@@ -34,6 +34,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final stats = ref.watch(statisticsProvider);
 
     return Scaffold(
@@ -44,10 +45,10 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
             // Tab Bar
             TabBar(
               controller: _tabController,
-              tabs: const [
-                Tab(text: '今日'),
-                Tab(text: '本週'),
-                Tab(text: '本月'),
+              tabs: [
+                Tab(text: l10n.todayStats),
+                Tab(text: l10n.weekStats),
+                Tab(text: l10n.monthStats),
               ],
             ),
 
@@ -58,9 +59,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                   : TabBarView(
                       controller: _tabController,
                       children: [
-                        _buildTodayView(context, theme, stats.state),
-                        _buildWeekView(context, theme, stats.state),
-                        _buildMonthView(context, theme, stats.state),
+                        _buildTodayView(context, theme, stats.state, l10n),
+                        _buildWeekView(context, theme, stats.state, l10n),
+                        _buildMonthView(context, theme, stats.state, l10n),
                       ],
                     ),
             ),
@@ -74,6 +75,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     BuildContext context,
     ThemeData theme,
     StatisticsState stats,
+    AppLocalizations l10n,
   ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -90,7 +92,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
           // 每日目標進度
           StatsGoalCard(
-            title: '今日目標',
+            title: l10n.todayGoal,
             current: stats.todayCompleted,
             goal: stats.dailyGoal,
             icon: Icons.today,
@@ -102,29 +104,29 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           // 今日概覽卡片
           _buildSummaryCard(
             theme: theme,
-            title: '今日概覽',
+            title: l10n.todayOverview,
             stats: [
               _StatItem(
                 icon: Icons.timer,
-                label: '完成番茄鐘',
+                label: l10n.completedPomodoros,
                 value: '${stats.todayCompleted}',
                 color: theme.colorScheme.primary,
               ),
               _StatItem(
                 icon: Icons.schedule,
-                label: '專注時間',
-                value: '${stats.todayFocusMinutes} 分鐘',
+                label: l10n.focusTime,
+                value: l10n.minutes(stats.todayFocusMinutes),
                 color: theme.colorScheme.secondary,
               ),
               _StatItem(
                 icon: Icons.task_alt,
-                label: '完成任務',
+                label: l10n.completedTasks,
                 value: '${stats.todayCompletedTasks}',
                 color: theme.colorScheme.tertiary,
               ),
               _StatItem(
                 icon: Icons.percent,
-                label: '完成率',
+                label: l10n.completionRate,
                 value: '${stats.todayCompletionRate.toStringAsFixed(0)}%',
                 color: stats.todayCompletionRate >= 70
                     ? Colors.green
@@ -140,7 +142,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           // 今日時間分布
           _buildChartCard(
             theme: theme,
-            title: '今日時間分布',
+            title: l10n.todayTimeDistribution,
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: SizedBox(
@@ -151,7 +153,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                           sections: [
                             PieChartSectionData(
                               value: stats.todayCompleted.toDouble(),
-                              title: '完成\n${stats.todayCompleted}',
+                              title:
+                                  '${l10n.completed}\n${stats.todayCompleted}',
                               color: theme.colorScheme.primary,
                               radius: 80,
                               titleStyle: const TextStyle(
@@ -163,7 +166,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                             if (stats.todayIncomplete > 0)
                               PieChartSectionData(
                                 value: stats.todayIncomplete.toDouble(),
-                                title: '未完成\n${stats.todayIncomplete}',
+                                title:
+                                    '${l10n.incomplete}\n${stats.todayIncomplete}',
                                 color: theme.colorScheme.errorContainer,
                                 radius: 70,
                                 titleStyle: TextStyle(
@@ -177,7 +181,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                           centerSpaceRadius: 40,
                         ),
                       )
-                    : _buildEmptyState('今天還沒有完成任何番茄鐘', theme),
+                    : _buildEmptyState(l10n.noPomodoros, theme),
               ),
             ),
           ),
@@ -192,6 +196,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     BuildContext context,
     ThemeData theme,
     StatisticsState stats,
+    AppLocalizations l10n,
   ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -201,29 +206,31 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           // 本週概覽
           _buildSummaryCard(
             theme: theme,
-            title: '本週概覽',
+            title: l10n.thisWeekOverview,
             stats: [
               _StatItem(
                 icon: Icons.timer,
-                label: '完成番茄鐘',
+                label: l10n.completedPomodoros,
                 value: '${stats.weekCompleted}',
                 color: theme.colorScheme.primary,
               ),
               _StatItem(
                 icon: Icons.schedule,
-                label: '專注時間',
-                value: '${(stats.weekFocusMinutes / 60).toStringAsFixed(1)} 小時',
+                label: l10n.focusTime,
+                value: l10n.hours(
+                  (stats.weekFocusMinutes / 60).toStringAsFixed(1),
+                ),
                 color: theme.colorScheme.secondary,
               ),
               _StatItem(
                 icon: Icons.local_fire_department,
-                label: '連續天數',
+                label: l10n.streakDays,
                 value: '${stats.streakDays}',
                 color: Colors.orange,
               ),
               _StatItem(
                 icon: Icons.trending_up,
-                label: '日均完成',
+                label: l10n.dailyAverage,
                 value: '${(stats.weekCompleted / 7).toStringAsFixed(1)}',
                 color: theme.colorScheme.tertiary,
               ),
@@ -234,7 +241,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
           // 每週目標進度
           StatsGoalCard(
-            title: '本週目標',
+            title: l10n.thisWeekGoal,
             current: stats.weekCompleted,
             goal: stats.weeklyGoal,
             icon: Icons.calendar_today,
@@ -246,7 +253,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           // 最佳專注時段分析
           _buildChartCard(
             theme: theme,
-            title: '最佳專注時段（最近 30 天）',
+            title: l10n.bestFocusTime,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: StatsTimeOfDayChart(data: stats.timeOfDayStats),
@@ -258,7 +265,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           // 本週趨勢圖
           _buildChartCard(
             theme: theme,
-            title: '本週趨勢',
+            title: l10n.thisWeekTrend,
             child: SizedBox(
               height: 250,
               child: stats.weeklyData.isNotEmpty
@@ -276,16 +283,15 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                           barTouchData: BarTouchData(
                             enabled: true,
                             touchTooltipData: BarTouchTooltipData(
-                              getTooltipItem:
-                                  (group, groupIndex, rod, rodIndex) {
-                                    final day = stats.weeklyData.keys.elementAt(
-                                      group.x.toInt(),
-                                    );
-                                    return BarTooltipItem(
-                                      '$day\n${rod.toY.toInt()} 個番茄鐘',
-                                      const TextStyle(color: Colors.white),
-                                    );
-                                  },
+                              getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                final day = stats.weeklyData.keys.elementAt(
+                                  group.x.toInt(),
+                                );
+                                return BarTooltipItem(
+                                  '$day\n${l10n.pomodoroCount(rod.toY.toInt())}',
+                                  const TextStyle(color: Colors.white),
+                                );
+                              },
                             ),
                           ),
                           titlesData: FlTitlesData(
@@ -357,7 +363,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                         ),
                       ),
                     )
-                  : _buildEmptyState('本週還沒有統計資料', theme),
+                  : _buildEmptyState(l10n.noWeekStats, theme),
             ),
           ),
         ],
@@ -369,6 +375,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     BuildContext context,
     ThemeData theme,
     StatisticsState stats,
+    AppLocalizations l10n,
   ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -378,30 +385,31 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           // 本月概覽
           _buildSummaryCard(
             theme: theme,
-            title: '本月概覽',
+            title: l10n.thisMonthOverview,
             stats: [
               _StatItem(
                 icon: Icons.timer,
-                label: '完成番茄鐘',
+                label: l10n.completedPomodoros,
                 value: '${stats.monthCompleted}',
                 color: theme.colorScheme.primary,
               ),
               _StatItem(
                 icon: Icons.schedule,
-                label: '專注時間',
-                value:
-                    '${(stats.monthFocusMinutes / 60).toStringAsFixed(1)} 小時',
+                label: l10n.focusTime,
+                value: l10n.hours(
+                  (stats.monthFocusMinutes / 60).toStringAsFixed(1),
+                ),
                 color: theme.colorScheme.secondary,
               ),
               _StatItem(
                 icon: Icons.calendar_today,
-                label: '工作天數',
+                label: l10n.workDays,
                 value: '${stats.monthActiveDays}',
                 color: theme.colorScheme.tertiary,
               ),
               _StatItem(
                 icon: Icons.star,
-                label: '最佳單日',
+                label: l10n.bestDay,
                 value: '${stats.monthBestDay}',
                 color: Colors.amber,
               ),
@@ -413,7 +421,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           // 月度熱力圖
           _buildChartCard(
             theme: theme,
-            title: '月度專注熱力圖',
+            title: l10n.monthlyHeatmap,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: StatsHeatmap(
@@ -425,26 +433,10 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
           const SizedBox(height: 20),
 
-          // 成就列表
-          _buildChartCard(
-            theme: theme,
-            title: '成就與里程碑',
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: StatsAchievementsSection(
-                totalPomodoros: stats.monthCompleted + stats.weekCompleted,
-                streakDays: stats.streakDays,
-                todayCompleted: stats.todayCompleted,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
           // 本月趨勢
           _buildChartCard(
             theme: theme,
-            title: '本月趨勢',
+            title: l10n.thisMonthTrend,
             child: SizedBox(
               height: 250,
               child: stats.monthlyData.isNotEmpty
@@ -529,7 +521,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                         ),
                       ),
                     )
-                  : _buildEmptyState('本月還沒有統計資料', theme),
+                  : _buildEmptyState(l10n.noMonthStats, theme),
             ),
           ),
         ],

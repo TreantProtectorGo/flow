@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 /// 目標進度卡片 Widget
 class StatsGoalCard extends StatelessWidget {
@@ -20,6 +21,7 @@ class StatsGoalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final progress = goal > 0 ? (current / goal).clamp(0.0, 1.0) : 0.0;
     final percentage = (progress * 100).toInt();
     final isCompleted = current >= goal;
@@ -125,14 +127,14 @@ class StatsGoalCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '進度 $percentage%',
+                '${l10n.progress} $percentage%',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               if (!isCompleted)
                 Text(
-                  '還需 ${goal - current}',
+                  '${l10n.remaining} ${goal - current}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

@@ -1,0 +1,392 @@
+{
+  "@@locale": "zh_TW",
+  
+  "appTitle": "FocusAI",
+  "@appTitle": {
+    "description": "應用程式標題"
+  },
+
+  "tasks": "任務",
+  "timer": "計時器",
+  "statistics": "統計",
+  "settings": "設定",
+
+  "addTask": "新增任務",
+  "editTask": "編輯任務",
+  "deleteTask": "刪除任務",
+  "update": "更新",
+  "add": "新增",
+  "taskTitle": "任務標題",
+  "taskDescription": "任務描述",
+  "taskDescriptionOptional": "任務描述（選填）",
+  "enterTaskTitle": "請輸入任務標題",
+  "estimatedPomodoros": "預估番茄鐘數量",
+  "estimated": "預估",
+  "enterPomodoroCount": "請輸入番茄鐘數量",
+  "pomodoroCount": "番茄鐘數量",
+  "priority": "優先級",
+  "status": "狀態",
+
+  "priorityHigh": "高",
+  "priorityMedium": "中",
+  "priorityLow": "低",
+  "highPriority": "高優先級",
+  "mediumPriority": "中優先級",
+  "lowPriority": "低優先級",
+
+  "statusPending": "待辦",
+  "statusInProgress": "進行中",
+  "statusCompleted": "已完成",
+
+  "inProgress": "進行中",
+  "completed": "已完成",
+  "noTasks": "暫無待辦任務",
+  "noTasksMessage": "暫無待辦任務",
+
+  "start": "開始",
+  "continueButton": "繼續",
+  "pause": "暫停",
+  "resume": "繼續",
+  "stop": "停止",
+  "reset": "重置",
+  "skip": "跳過",
+
+  "focusTime": "專注時間",
+  "shortBreak": "短休息",
+  "longBreak": "長休息",
+  "breakTime": "休息時間",
+
+  "pomodoroMode": "番茄鐘",
+  "shortBreakMode": "短休息",
+  "longBreakMode": "長休息",
+
+  "selectTask": "選擇任務",
+  "clearSelection": "清除選擇",
+  "noAvailableTasks": "暫無可選擇的任務",
+  "addTasksFirst": "請先在任務頁面添加一些任務",
+  "noTaskSelected": "尚未選擇任務",
+  "tapToSelect": "點擊選擇任務",
+  "currentTask": "當前任務",
+  "switchTask": "切換",
+    "completedSessions": "已完成 {count} 個專注時段",
+  "@completedSessions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "focusMode": "專注時間",
+  "shortBreakMode": "短休息",
+  "longBreakMode": "長休息",
+  "thisWeekOverview": "本週概覽",
+  "thisMonthOverview": "本月概覽",
+  "focusTime": "專注時間",
+  "hours": "{count} 小時",
+  "@hours": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "streakDays": "連續天數",
+  "dailyAverage": "日均完成",
+  "thisWeekGoal": "本週目標",
+  "workDays": "工作天數",
+  "bestDay": "最佳單日",
+  "monthlyHeatmap": "月度專注熱力圖",
+  "thisMonthTrend": "本月趨勢",
+  "todayTimeDistribution": "今日時間分布",
+  "completed": "完成",
+  "incomplete": "未完成",
+  "noPomodoros": "今天還沒有完成任何番茄鐘",
+  "thisWeekTrend": "本週趨勢",
+  "noWeekStats": "本週還沒有統計資料",
+  "bestFocusTime": "最佳專注時段（最近 30 天）",
+  "pomodoroCount": "{count} 個番茄鐘",
+  "@pomodoroCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noMonthStats": "本月還沒有統計資料",
+  "count": "{count} 個",
+  "@count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "consecutiveFocus": "連續專注",
+  "days": "天",
+  "notEnoughData": "還沒有足夠的資料",
+  "yourBestFocusTime": "您的最佳專注時段",
+  "morning": "早上",
+  "afternoon": "下午",
+  "evening": "傍晚",
+  "night": "深夜",
+  "morningTime": "6:00-12:00",
+  "afternoonTime": "12:00-18:00",
+  "eveningTime": "18:00-22:00",
+  "nightTime": "22:00-6:00",
+  "completedPomodorosCount": "已完成 {count} 個番茄鐘",
+  "@completedPomodorosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copiedToClipboard": "已複製到剪貼簿",
+  "justNow": "剛剛",
+  "minutesAgo": "{count} 分鐘前",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{count} 小時前",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mondayShort": "週一",
+  "tuesdayShort": "週二",
+  "wednesdayShort": "週三",
+  "thursdayShort": "週四",
+  "fridayShort": "週五",
+  "saturdayShort": "週六",
+  "sundayShort": "週日",
+  "pomodoroCountShort": "{count} 個番茄鐘",
+  "@pomodoroCountShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "less": "少",
+  "more": "多",
+  "helloAI": "你好！我是 AI 助手",
+  "aiDescription": "我是您的專注助手，可以幫您分析任務、提供建議",
+
+  "selectTask": "選擇任務",
+  "noTasksToSelect": "暫無可選擇的任務",
+  "pleaseAddTasksFirst": "請先在任務頁面添加一些任務",
+  "clearSelection": "清除選擇",
+  "items": "個",
+
+  "startFocus": "開始專注：{taskTitle}",
+  "@startFocus": {
+    "description": "開始專注任務的訊息",
+    "placeholders": {
+      "taskTitle": {
+        "type": "String",
+        "example": "寫報告"
+      }
+    }
+  },
+
+  "continueTask": "繼續任務：{taskTitle}",
+  "@continueTask": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+
+  "taskAdded": "已新增任務：{taskTitle}",
+  "@taskAdded": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+
+  "confirmDelete": "確定要刪除「{taskTitle}」嗎？",
+  "@confirmDelete": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+
+  "cancel": "取消",
+  "delete": "刪除",
+  "save": "儲存",
+  "confirm": "確定",
+  "close": "關閉",
+  "retry": "重試",
+  "edit": "編輯",
+  "markComplete": "標記完成",
+  "aiAnalysis": "AI 分析",
+
+  "aiBreakdownCard": "讓 AI 幫你拆解大任務",
+
+  "todayStats": "今日",
+  "weekStats": "本週",
+  "monthStats": "本月",
+
+  "streakDays": "連續專注",
+  "days": "天",
+  "completedToday": "今日完成",
+  "completedPomodoros": "完成番茄鐘",
+  "completedTasks": "完成任務",
+  "completionRate": "完成率",
+  "dailyAverage": "日均完成",
+  "progress": "進度",
+  "remaining": "還需",
+  "completeOnePomodoroToStartStreak": "完成一個番茄鐘開始連續！",
+  "startNewStreakToday": "今天開始新的連續記錄！",
+  "goodStart": "好的開始！",
+  "keepGoing": "繼續保持！",
+  "awesome": "太棒了！",
+  "focusMaster": "你是專注大師！",
+  "legendaryStreak": "傳奇級連續記錄！",
+  "todayGoal": "今日目標",
+  "weekGoal": "本週目標",
+  "todayOverview": "今日概覽",
+  "weekOverview": "本週概覽",
+  "monthOverview": "本月概覽",
+  "todayTimeDistribution": "今日時間分布",
+  "weeklyTrend": "本週趨勢",
+  "completed": "完成",
+  "incomplete": "未完成",
+  "noPomodorosToday": "今天還沒有完成任何番茄鐘",
+  "noPomodorosThisWeek": "本週還沒有完成任何番茄鐘",
+  "noPomodorosThisMonth": "本月還沒有完成任何番茄鐘",
+  "pomodoros": "個番茄鐘",
+
+  "dailyGoal": "每日目標",
+  "weeklyGoal": "每週目標",
+  "totalPomodoros": "總番茄鐘",
+  "focusHours": "專注時數",
+
+  "pomodoroSettings": "番茄鐘設定",
+  "goalSettings": "目標設定",
+  "notificationSettings": "通知設定",
+  "appearanceSettings": "外觀設定",
+  "aiSettings": "AI 設定",
+  "dataAndSync": "數據與同步",
+  "dangerZone": "危險區域",
+
+  "focusDuration": "專注時間",
+  "focusDurationSubtitle": "每個番茄鐘的專注時長",
+  "shortBreakDuration": "短休息",
+  "shortBreakSubtitle": "完成一個番茄鐘後的休息時間",
+  "longBreakDuration": "長休息",
+  "longBreakSubtitle": "完成4個番茄鐘後的休息時間",
+  "longBreakFrequency": "長休息頻率",
+  "longBreakFrequencySubtitle": "每幾個番茄鐘後進行長休息",
+
+  "minutes": "{count} 分鐘",
+  "@minutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "items": "{count}",
+  "@items": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "dailyGoalTitle": "每日目標",
+  "dailyGoalSubtitle": "每天想要完成的番茄鐘數量",
+  "weeklyGoalTitle": "每週目標",
+  "weeklyGoalSubtitle": "每週想要完成的番茄鐘數量",
+
+  "pushNotifications": "推播通知",
+  "pushNotificationsSubtitle": "時間結束時發送通知",
+  "soundEffect": "提示音效",
+  "soundEffectSubtitle": "選擇計時器結束時的音效",
+  "vibration": "震動提醒",
+  "vibrationSubtitle": "時間結束時震動提醒",
+
+  "soundBell": "鈴鐺",
+  "soundBird": "鳥鳴",
+  "soundWave": "海浪",
+  "soundNone": "無音效",
+
+  "themeMode": "主題模式",
+  "themeModeSubtitle": "選擇應用程式的主題模式",
+  "themeSystem": "跟隨系統",
+  "themeLight": "淺色模式",
+  "themeDark": "深色模式",
+
+  "language": "語言",
+  "languageSubtitle": "選擇應用程式語言",
+
+  "aiTaskBreakdown": "AI 任務拆解",
+  "aiTaskBreakdownSubtitle": "允許 AI 幫助拆解複雜任務",
+  "smartSuggestions": "智慧建議",
+  "smartSuggestionsSubtitle": "根據使用習慣提供個人化建議",
+  "dataAnalysis": "數據分析",
+  "dataAnalysisSubtitle": "允許分析使用數據以改善服務",
+
+  "cloudSync": "雲端同步",
+  "cloudSyncSubtitle": "自動同步數據到雲端",
+  "exportData": "匯出數據",
+  "exportDataSubtitle": "下載您的統計數據",
+  "exportCSV": "匯出 CSV",
+
+  "clearAllData": "清除所有數據",
+  "clearAllDataSubtitle": "刪除所有統計數據和設定",
+  "clearData": "清除數據",
+  "deleteAccount": "刪除帳號",
+  "deleteAccountSubtitle": "永久刪除您的帳號和所有資料",
+
+  "version": "FocusAI v1.0.0",
+  "copyright": "© 2024 FocusAI Team",
+
+  "pending": "待辦事項",
+  "activeTimer": "進行中的計時",
+  "focusingNow": "正在專注",
+  "tapToViewTimer": "點擊查看計時器",
+  "emptyPendingTasks": "暫無待辦任務",
+
+  "aiBreakdownDescription": "讓 AI 幫你拆解大任務",
+  "aiChatTitle": "AI 助手",
+  "thinking": "正在思考...",
+  "clearConversation": "清空對話",
+  "confirmClearConversation": "確定要清空所有對話記錄嗎？",
+  "clearConversationButton": "清空",
+  "sendMessage": "發送訊息",
+  "typeMessage": "輸入訊息...",
+  "askAiHelper": "問問 AI 助手...",
+  "creatingTasks": "正在創建...",
+  "createTasks": "創建任務",
+  "view": "查看",
+  "cannotExtractTasks": "無法從對話中提取任務，請嘗試更明確地描述任務",
+  "tasksCreatedSuccess": "成功創建 {count} 個任務！",
+  "taskCreationFailed": "創建任務失敗: {error}",
+
+  "confirmAction": "確認{action}",
+  "confirmActionMessage": "確定要執行{action}操作嗎？此操作無法復原。",
+  "featureComingSoon": "{action}功能將在正式版本中實現",
+
+  "hourShort": "時",
+  "minuteShort": "分",
+  "secondShort": "秒",
+  "hour": "小時",
+  "minute": "分鐘",
+  "second": "秒"
+}

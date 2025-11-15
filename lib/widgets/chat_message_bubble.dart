@@ -2,21 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/chat_message.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import '../l10n/app_localizations.dart';
 
 class ChatMessageBubble extends StatefulWidget {
   final ChatMessage message;
 
-  const ChatMessageBubble({
-    super.key,
-    required this.message,
-  });
+  const ChatMessageBubble({super.key, required this.message});
 
   @override
   State<ChatMessageBubble> createState() => _ChatMessageBubbleState();
 }
 
 class _ChatMessageBubbleState extends State<ChatMessageBubble> {
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -27,8 +24,9 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment:
-            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!isUser) ...[
             _buildAvatar(context, isUser),
@@ -36,8 +34,9 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment:
-                  isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: isUser
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 Container(
                   decoration: BoxDecoration(
@@ -86,13 +85,12 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
                               fontStyle: FontStyle.italic,
                             ),
                             code: TextStyle(
-                              backgroundColor: colorScheme.surfaceContainerHighest,
+                              backgroundColor:
+                                  colorScheme.surfaceContainerHighest,
                               color: colorScheme.primary,
                               fontFamily: 'monospace',
                             ),
-                            listBullet: TextStyle(
-                              color: colorScheme.onSurface,
-                            ),
+                            listBullet: TextStyle(color: colorScheme.onSurface),
                             h1: TextStyle(
                               color: colorScheme.onSurface,
                               fontSize: 20,
@@ -111,7 +109,8 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
                           ),
                         ),
                       // 只有在串流中且內容為空時才顯示載入動畫
-                      if (widget.message.isStreaming && widget.message.content.isEmpty)
+                      if (widget.message.isStreaming &&
+                          widget.message.content.isEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: _TypingIndicator(),
@@ -141,7 +140,11 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
                             );
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Text('已複製到剪貼簿'),
+                                content: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.copiedToClipboard,
+                                ),
                                 behavior: SnackBarBehavior.floating,
                                 width: 200,
                                 duration: const Duration(seconds: 2),
@@ -182,9 +185,7 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: isUser
-            ? colorScheme.primary
-            : colorScheme.secondaryContainer,
+        color: isUser ? colorScheme.primary : colorScheme.secondaryContainer,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Icon(
@@ -198,15 +199,16 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
   }
 
   String _formatTime(DateTime time) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final difference = now.difference(time);
 
     if (difference.inMinutes < 1) {
-      return '剛剛';
+      return l10n.justNow;
     } else if (difference.inHours < 1) {
-      return '${difference.inMinutes} 分鐘前';
+      return l10n.minutesAgo(difference.inMinutes);
     } else if (difference.inDays < 1) {
-      return '${difference.inHours} 小時前';
+      return l10n.hoursAgo(difference.inHours);
     } else {
       return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
     }
@@ -245,11 +247,23 @@ class _TypingIndicatorState extends State<_TypingIndicator>
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _AnimatedDot(controller: _controller, delay: 0.0, colorScheme: colorScheme),
+        _AnimatedDot(
+          controller: _controller,
+          delay: 0.0,
+          colorScheme: colorScheme,
+        ),
         const SizedBox(width: 4),
-        _AnimatedDot(controller: _controller, delay: 0.2, colorScheme: colorScheme),
+        _AnimatedDot(
+          controller: _controller,
+          delay: 0.2,
+          colorScheme: colorScheme,
+        ),
         const SizedBox(width: 4),
-        _AnimatedDot(controller: _controller, delay: 0.4, colorScheme: colorScheme),
+        _AnimatedDot(
+          controller: _controller,
+          delay: 0.4,
+          colorScheme: colorScheme,
+        ),
       ],
     );
   }

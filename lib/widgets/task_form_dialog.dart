@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/task.dart';
+import '../l10n/app_localizations.dart';
 
 class TaskFormDialog extends StatefulWidget {
   final Task? task; // null表示新增，不為null表示編輯
@@ -48,9 +49,10 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+    final l10n = AppLocalizations.of(context)!;
+
     return AlertDialog(
-      title: Text(isEditing ? '編輯任務' : '新增任務'),
+      title: Text(isEditing ? l10n.editTask : l10n.addTask),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -60,47 +62,45 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
               // 任務標題
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: '任務標題',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.taskTitle,
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return '請輸入任務標題';
+                    return l10n.enterTaskTitle;
                   }
                   return null;
                 },
                 maxLength: 100,
               ),
               const SizedBox(height: 16),
-              
+
               // 任務描述（選填）
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: '任務描述（選填）',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.taskDescriptionOptional,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 3,
                 maxLength: 500,
               ),
               const SizedBox(height: 16),
-              
+
               // 預估番茄鐘數量
               TextFormField(
                 controller: _pomodoroCountController,
-                decoration: const InputDecoration(
-                  labelText: '預估番茄鐘數量',
-                  border: OutlineInputBorder(),
-                  suffix: Text('個'),
+                decoration: InputDecoration(
+                  labelText: l10n.estimatedPomodoros,
+                  border: const OutlineInputBorder(),
+                  suffix: const Text('個'),
                 ),
                 keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return '請輸入番茄鐘數量';
+                    return l10n.enterPomodoroCount;
                   }
                   final count = int.tryParse(value);
                   if (count == null || count < 1 || count > 20) {
@@ -110,32 +110,32 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // 優先級選擇
               DropdownButtonFormField<TaskPriority>(
                 initialValue: _selectedPriority,
-                decoration: const InputDecoration(
-                  labelText: '優先級',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.priority,
+                  border: const OutlineInputBorder(),
                 ),
                 items: TaskPriority.values.map((priority) {
                   String label;
                   Color color;
                   switch (priority) {
                     case TaskPriority.high:
-                      label = '高優先級';
+                      label = l10n.highPriority;
                       color = theme.colorScheme.error;
                       break;
                     case TaskPriority.medium:
-                      label = '中優先級';
+                      label = l10n.mediumPriority;
                       color = theme.colorScheme.tertiary;
                       break;
                     case TaskPriority.low:
-                      label = '低優先級';
+                      label = l10n.lowPriority;
                       color = theme.colorScheme.primary;
                       break;
                   }
-                  
+
                   return DropdownMenuItem(
                     value: priority,
                     child: Row(
@@ -162,7 +162,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                   }
                 },
               ),
-              
+
               // 狀態選擇（編輯時顯示）
               if (isEditing) ...[
                 const SizedBox(height: 16),
@@ -189,7 +189,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                         icon = Icons.check_circle;
                         break;
                     }
-                    
+
                     return DropdownMenuItem(
                       value: status,
                       child: Row(
@@ -217,11 +217,11 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: _submitForm,
-          child: Text(isEditing ? '更新' : '新增'),
+          child: Text(isEditing ? l10n.update : l10n.add),
         ),
       ],
     );
@@ -231,14 +231,14 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
     if (_formKey.currentState!.validate()) {
       final result = {
         'title': _titleController.text.trim(),
-        'description': _descriptionController.text.trim().isEmpty 
-            ? null 
+        'description': _descriptionController.text.trim().isEmpty
+            ? null
             : _descriptionController.text.trim(),
         'pomodoroCount': int.parse(_pomodoroCountController.text),
         'priority': _selectedPriority,
         'status': _selectedStatus,
       };
-      
+
       Navigator.of(context).pop(result);
     }
   }

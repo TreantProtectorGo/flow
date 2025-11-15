@@ -316,7 +316,7 @@ class StatisticsNotifier with ChangeNotifier {
 
     // 建立每日數據
     final dailyData = <String, int>{};
-    final weekDays = ['週一', '週二', '週三', '週四', '週五', '週六', '週日'];
+    final weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     for (int i = 0; i < 7; i++) {
       final day = weekStart.add(Duration(days: i));

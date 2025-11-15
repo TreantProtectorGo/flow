@@ -5,6 +5,7 @@ import '../providers/timer_provider.dart';
 import '../providers/task_provider.dart';
 import '../widgets/task_selection_dialog.dart';
 import '../models/task.dart';
+import '../l10n/app_localizations.dart';
 
 class TimerScreen extends ConsumerStatefulWidget {
   const TimerScreen({super.key});
@@ -29,19 +30,15 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
       duration: const Duration(seconds: 1),
       vsync: this,
     );
-    
+
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.1,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -54,6 +51,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final timerNotifier = ref.watch(timerProvider);
     final taskNotifier = ref.watch(taskProvider);
     final currentTask = taskNotifier.currentTask;
@@ -61,7 +59,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     // Update animations based on timer state
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _progressController.animateTo(timerNotifier.progress);
-      
+
       if (timerNotifier.isRunning) {
         if (!_pulseController.isAnimating) {
           _pulseController.repeat(reverse: true);
@@ -95,17 +93,26 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               // 當前任務區域
-                              _buildCurrentTaskSection(theme, currentTask),
-                              
+                              _buildCurrentTaskSection(
+                                theme,
+                                currentTask,
+                                l10n,
+                              ),
+
                               const SizedBox(height: 40),
-                              
+
                               // 計時器區域 - Pass constraints for responsive sizing
-                              _buildTimerSection(theme, timerNotifier, constraints),
-                              
+                              _buildTimerSection(
+                                theme,
+                                timerNotifier,
+                                constraints,
+                                l10n,
+                              ),
+
                               const SizedBox(height: 40),
-                              
+
                               // 控制按鈕區域
-                              _buildControlButtons(theme, timerNotifier),
+                              _buildControlButtons(theme, timerNotifier, l10n),
                             ],
                           ),
                         ),
@@ -121,7 +128,11 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     );
   }
 
-  Widget _buildCurrentTaskSection(ThemeData theme, Task? currentTask) {
+  Widget _buildCurrentTaskSection(
+    ThemeData theme,
+    Task? currentTask,
+    AppLocalizations l10n,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
@@ -143,16 +154,12 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
         children: [
           Row(
             children: [
-              Icon(
-                Icons.task_alt,
-                color: theme.colorScheme.primary,
-                size: 20,
-              ),
+              Icon(Icons.task_alt, color: theme.colorScheme.primary, size: 20),
               const SizedBox(width: 8),
               Text(
-                '當前任務',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.primary,
+                l10n.currentTask,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -160,7 +167,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
               TextButton.icon(
                 onPressed: _showTaskSelectionDialog,
                 icon: const Icon(Icons.change_circle, size: 16),
-                label: const Text('切換'),
+                label: Text(l10n.switchTask),
                 style: TextButton.styleFrom(
                   minimumSize: const Size(0, 32),
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -176,7 +183,8 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                 fontWeight: FontWeight.w500,
               ),
             ),
-            if (currentTask.description != null && currentTask.description!.isNotEmpty) ...[
+            if (currentTask.description != null &&
+                currentTask.description!.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
                 currentTask.description!,
@@ -197,14 +205,20 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '預估 ${currentTask.pomodoroCount} 個番茄鐘',
+                  '${l10n.estimated} ${currentTask.pomodoroCount} ${l10n.pomodoros}',
                   style: theme.textTheme.bodySmall,
                 ),
                 const SizedBox(width: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: _getPriorityColor(currentTask.priority, theme).withValues(alpha: 0.2),
+                    color: _getPriorityColor(
+                      currentTask.priority,
+                      theme,
+                    ).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -220,7 +234,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
             ),
           ] else ...[
             Text(
-              '尚未選擇任務',
+              l10n.noTaskSelected,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -232,16 +246,24 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     );
   }
 
-  Widget _buildTimerSection(ThemeData theme, TimerProvider timerNotifier, BoxConstraints constraints) {
+  Widget _buildTimerSection(
+    ThemeData theme,
+    TimerProvider timerNotifier,
+    BoxConstraints constraints,
+    AppLocalizations l10n,
+  ) {
     // Calculate responsive timer size
     final screenWidth = constraints.maxWidth;
     final availableWidth = screenWidth - 40; // Account for padding
-    final maxSize = math.min(280.0, availableWidth * 0.8); // Max 80% of available width
+    final maxSize = math.min(
+      280.0,
+      availableWidth * 0.8,
+    ); // Max 80% of available width
     final timerSize = math.max(200.0, maxSize); // Minimum size of 200
-    
+
     // Adjust font size based on timer size
     final fontSize = (timerSize / 280) * 48; // Scale font proportionally
-    
+
     return Column(
       children: [
         // 圓形進度和時間顯示
@@ -262,10 +284,11 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                       height: timerSize,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                        color: theme.colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.3),
                       ),
                     ),
-                    
+
                     // Progress circle
                     SizedBox(
                       width: timerSize,
@@ -276,16 +299,17 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                           return CustomPaint(
                             painter: CircularProgressPainter(
                               progress: _progressController.value,
-                              color: timerNotifier.isFocusMode 
+                              color: timerNotifier.isFocusMode
                                   ? theme.colorScheme.primary
                                   : theme.colorScheme.secondary,
-                              strokeWidth: (timerSize / 280) * 8, // Scale stroke width
+                              strokeWidth:
+                                  (timerSize / 280) * 8, // Scale stroke width
                             ),
                           );
                         },
                       ),
                     ),
-                    
+
                     // Time display
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -300,17 +324,20 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                         ),
                         const SizedBox(height: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: timerNotifier.isFocusMode 
+                            color: timerNotifier.isFocusMode
                                 ? theme.colorScheme.primaryContainer
                                 : theme.colorScheme.secondaryContainer,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            timerNotifier.modeDisplayString,
+                            _getModeDisplay(timerNotifier.mode, l10n),
                             style: theme.textTheme.titleSmall?.copyWith(
-                              color: timerNotifier.isFocusMode 
+                              color: timerNotifier.isFocusMode
                                   ? theme.colorScheme.onPrimaryContainer
                                   : theme.colorScheme.onSecondaryContainer,
                               fontWeight: FontWeight.w500,
@@ -325,14 +352,16 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
             },
           ),
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // Session info
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            color: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.5,
+            ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -343,9 +372,9 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                 size: 16,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(height: 20),
               Text(
-                '已完成 ${timerNotifier.completedSessions} 個專注時段',
+                l10n.completedSessions(timerNotifier.completedSessions),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -357,28 +386,32 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     );
   }
 
-  Widget _buildControlButtons(ThemeData theme, TimerProvider timerNotifier) {
+  Widget _buildControlButtons(
+    ThemeData theme,
+    TimerProvider timerNotifier,
+    AppLocalizations l10n,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         // Stop/Reset button
         FilledButton.tonal(
-          onPressed: timerNotifier.isStopped ? null : () {
-            ref.read(timerProvider.notifier).stopTimer();
-          },
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(80, 48),
-          ),
+          onPressed: timerNotifier.isStopped
+              ? null
+              : () {
+                  ref.read(timerProvider.notifier).stopTimer();
+                },
+          style: FilledButton.styleFrom(minimumSize: const Size(80, 48)),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.stop, size: 20),
               const SizedBox(width: 8),
-              Text('重置'),
+              Text(l10n.reset),
             ],
           ),
         ),
-        
+
         // Play/Pause button
         FilledButton(
           onPressed: () {
@@ -388,9 +421,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
               ref.read(timerProvider.notifier).startTimer();
             }
           },
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(120, 56),
-          ),
+          style: FilledButton.styleFrom(minimumSize: const Size(120, 56)),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -400,27 +431,25 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                timerNotifier.isRunning ? '暫停' : '開始',
+                timerNotifier.isRunning ? l10n.pause : l10n.start,
                 style: const TextStyle(fontSize: 16),
               ),
             ],
           ),
         ),
-        
+
         // Skip button
         FilledButton.tonal(
           onPressed: () {
             ref.read(timerProvider.notifier).skipTimer();
           },
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(80, 48),
-          ),
+          style: FilledButton.styleFrom(minimumSize: const Size(80, 48)),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.skip_next, size: 20),
               const SizedBox(width: 8),
-              Text('跳過'),
+              Text(l10n.skip),
             ],
           ),
         ),
@@ -444,7 +473,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
       context: context,
       builder: (context) => const TaskSelectionDialog(),
     );
-    
+
     if (result != null) {
       if (result == 'clear') {
         // 清除當前任務選擇
@@ -494,4 +523,15 @@ class CircularProgressPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
+}
+
+String _getModeDisplay(TimerMode mode, AppLocalizations l10n) {
+  switch (mode) {
+    case TimerMode.focus:
+      return l10n.focusMode;
+    case TimerMode.shortBreak:
+      return l10n.shortBreakMode;
+    case TimerMode.longBreak:
+      return l10n.longBreakMode;
+  }
 }

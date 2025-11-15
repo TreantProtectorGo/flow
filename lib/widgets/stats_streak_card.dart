@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 /// 連續天數顯示 Widget
 class StatsStreakCard extends StatelessWidget {
@@ -14,6 +15,7 @@ class StatsStreakCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     // 根據連續天數顯示不同的火焰
     String getFlameEmoji() {
@@ -26,13 +28,15 @@ class StatsStreakCard extends StatelessWidget {
 
     String getStreakMessage() {
       if (streakDays == 0) {
-        return todayCompleted > 0 ? '今天開始新的連續記錄！' : '完成一個番茄鐘開始連續！';
+        return todayCompleted > 0
+            ? l10n.startNewStreakToday
+            : l10n.completeOnePomodoroToStartStreak;
       }
-      if (streakDays == 1) return '好的開始！';
-      if (streakDays < 7) return '繼續保持！';
-      if (streakDays < 30) return '太棒了！';
-      if (streakDays < 100) return '你是專注大師！';
-      return '傳奇級連續記錄！';
+      if (streakDays == 1) return l10n.goodStart;
+      if (streakDays < 7) return l10n.keepGoing;
+      if (streakDays < 30) return l10n.awesome;
+      if (streakDays < 100) return l10n.focusMaster;
+      return l10n.legendaryStreak;
     }
 
     return Container(
@@ -87,7 +91,7 @@ class StatsStreakCard extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
-                        '天',
+                        l10n.days,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: streakDays > 0
                               ? Colors.orange.withOpacity(0.8)
@@ -100,7 +104,7 @@ class StatsStreakCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '連續專注',
+                  l10n.consecutiveFocus,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
