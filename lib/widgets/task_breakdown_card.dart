@@ -159,7 +159,8 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
     try {
       final taskNotifier = ref.read(taskProvider);
 
-      for (final taskItem in widget.taskPlan.tasks) {
+      // 反轉順序創建，確保第一個任務在最前面
+      for (final taskItem in widget.taskPlan.tasks.reversed) {
         // 將 priority 字串轉換為 TaskPriority 枚舉
         TaskPriority priority;
         switch (taskItem.priority.toLowerCase()) {
@@ -192,6 +193,9 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
           pomodoroCount: taskItem.pomodoroCount,
           priority: priority,
         );
+
+        // 添加微小延遲確保每個任務有唯一的時間戳
+        await Future.delayed(const Duration(milliseconds: 10));
       }
 
       if (mounted) {

@@ -30,6 +30,7 @@ dependencies:
   
   # Network
   dio: ^5.7.0
+  http: ^1.2.2
   
   # AI
   google_generative_ai: ^0.4.6

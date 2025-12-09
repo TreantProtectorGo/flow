@@ -19,11 +19,11 @@ class TaskProvider with ChangeNotifier {
   List<Task> get tasks => _tasks;
   bool get isLoading => _isLoading;
   String? get currentTaskId => _currentTaskId;
-  
+
   // 獲取當前正在進行的任務
   Task? get currentTask {
     if (_currentTaskId == null) return null;
-    
+
     try {
       return _tasks.firstWhere((task) => task.id == _currentTaskId);
     } catch (e) {
@@ -33,13 +33,13 @@ class TaskProvider with ChangeNotifier {
     }
   }
 
-  List<Task> get pendingTasks => 
+  List<Task> get pendingTasks =>
       _tasks.where((task) => task.status == TaskStatus.pending).toList();
 
-  List<Task> get inProgressTasks => 
+  List<Task> get inProgressTasks =>
       _tasks.where((task) => task.status == TaskStatus.inProgress).toList();
 
-  List<Task> get completedTasks => 
+  List<Task> get completedTasks =>
       _tasks.where((task) => task.status == TaskStatus.completed).toList();
 
   TaskProvider() {
@@ -56,7 +56,7 @@ class TaskProvider with ChangeNotifier {
         debugPrint('❌ 資料遷移失敗，將繼續載入: $e');
       }
     }
-    
+
     // 載入任務
     await _loadTasks();
   }
@@ -68,11 +68,11 @@ class TaskProvider with ChangeNotifier {
     try {
       // 從 SQLite 資料庫載入任務
       _tasks = await _db.getAllTasks();
-      
+
       // 從 SharedPreferences 載入當前任務ID
       final prefs = await SharedPreferences.getInstance();
       _currentTaskId = prefs.getString('currentTaskId');
-      
+
       // 按創建時間排序（資料庫查詢已排序，但保留以防萬一）
       _tasks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     } catch (e) {
@@ -88,7 +88,7 @@ class TaskProvider with ChangeNotifier {
     try {
       // SQLite 會自動保存，這裡只需保存當前任務ID
       final prefs = await SharedPreferences.getInstance();
-      
+
       if (_currentTaskId != null) {
         await prefs.setString('currentTaskId', _currentTaskId!);
       } else {
@@ -118,9 +118,13 @@ class TaskProvider with ChangeNotifier {
 
     // 保存到資料庫
     await _db.insertTask(task);
-    
+
     // 更新記憶體中的列表
     _tasks.insert(0, task);
+
+    // 重新排序以確保一致性
+    _tasks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
     notifyListeners();
     await _saveTasks();
   }
@@ -130,7 +134,7 @@ class TaskProvider with ChangeNotifier {
     if (index != -1) {
       // 更新資料庫
       await _db.updateTask(updatedTask);
-      
+
       // 更新記憶體中的列表
       _tasks[index] = updatedTask;
       notifyListeners();
@@ -141,7 +145,7 @@ class TaskProvider with ChangeNotifier {
   Future<void> deleteTask(String taskId) async {
     // 從資料庫刪除
     await _db.deleteTask(taskId);
-    
+
     // 從記憶體中移除
     _tasks.removeWhere((task) => task.id == taskId);
     notifyListeners();
@@ -173,10 +177,10 @@ class TaskProvider with ChangeNotifier {
         status: newStatus,
         completedAt: completedAt,
       );
-      
+
       // 更新資料庫
       await _db.updateTask(updatedTask);
-      
+
       // 更新記憶體
       _tasks[index] = updatedTask;
       notifyListeners();
@@ -188,10 +192,10 @@ class TaskProvider with ChangeNotifier {
     final index = _tasks.indexWhere((task) => task.id == taskId);
     if (index != -1) {
       final updatedTask = _tasks[index].copyWith(status: TaskStatus.inProgress);
-      
+
       // 更新資料庫
       await _db.updateTask(updatedTask);
-      
+
       // 更新記憶體
       _tasks[index] = updatedTask;
       notifyListeners();
@@ -206,18 +210,18 @@ class TaskProvider with ChangeNotifier {
         status: TaskStatus.completed,
         completedAt: DateTime.now(),
       );
-      
+
       // 更新資料庫
       await _db.updateTask(updatedTask);
-      
+
       // 更新記憶體
       _tasks[index] = updatedTask;
-      
+
       // 如果完成的是當前任務，清除當前任務
       if (_currentTaskId == taskId) {
         _currentTaskId = null;
       }
-      
+
       notifyListeners();
       await _saveTasks();
     }
@@ -226,12 +230,12 @@ class TaskProvider with ChangeNotifier {
   // 設置當前正在進行的任務
   Future<void> setCurrentTask(String? taskId) async {
     _currentTaskId = taskId;
-    
+
     // 如果設置了新的當前任務，自動將其狀態設為進行中
     if (taskId != null) {
       await moveTaskToInProgress(taskId);
     }
-    
+
     notifyListeners();
     await _saveTasks();
   }
@@ -244,13 +248,13 @@ class TaskProvider with ChangeNotifier {
     if (index != -1) {
       final task = _tasks[index];
       final updatedTask = task.copyWith(status: TaskStatus.inProgress);
-      
+
       // 更新資料庫
       await _db.updateTask(updatedTask);
-      
+
       // 更新記憶體
       _tasks[index] = updatedTask;
-      
+
       notifyListeners();
       await _saveTasks();
     }

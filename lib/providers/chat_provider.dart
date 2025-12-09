@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
 import '../models/chat_message.dart';
-import '../config/ai_config.dart';
+import '../config/api_config.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ChatState {
   final List<ChatMessage> messages;
@@ -26,34 +26,9 @@ class ChatState {
 }
 
 class ChatNotifier extends StateNotifier<ChatState> {
-  ChatNotifier() : super(ChatState()) {
-    _initializeAI();
-  }
+  ChatNotifier() : super(ChatState());
 
   final _uuid = const Uuid();
-  GenerativeModel? _model;
-  ChatSession? _chatSession;
-
-  void _initializeAI() {
-    if (!AIConfig.isConfigured) {
-      state = state.copyWith(error: '請先在 .env 文件中設置 GEMINI_API_KEY');
-      return;
-    }
-
-    _model = GenerativeModel(
-      model: AIConfig.modelName,
-      apiKey: AIConfig.geminiApiKey,
-      generationConfig: GenerationConfig(
-        temperature: AIConfig.temperature,
-        maxOutputTokens: AIConfig.maxOutputTokens,
-        topK: AIConfig.topK,
-        topP: AIConfig.topP,
-      ),
-      systemInstruction: Content.system(AIConfig.systemPrompt),
-    );
-
-    _chatSession = _model!.startChat();
-  }
 
   // 添加用戶訊息
   void addUserMessage(String content) {
@@ -67,13 +42,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     state = state.copyWith(messages: [...state.messages, message]);
   }
 
-  // 使用 Gemini API 生成 AI 回覆（支援 streaming）
+  // 使用後端 API 生成 AI 回覆（支援 streaming）
   Future<void> generateAIResponse(String userMessage) async {
-    if (_chatSession == null) {
-      state = state.copyWith(error: 'AI 未初始化，請檢查 API Key 設置', isLoading: false);
-      return;
-    }
-
     // 添加一個空的 AI 訊息作為佔位符
     final aiMessageId = _uuid.v4();
     final aiMessage = ChatMessage(
@@ -91,97 +61,123 @@ class ChatNotifier extends StateNotifier<ChatState> {
     );
 
     try {
-      // 使用 Gemini Streaming API
-      final responseStream = _chatSession!.sendMessageStream(
-        Content.text(userMessage),
-      );
+      // 準備歷史記錄
+      final history = state.messages
+          .where((msg) => msg.id != aiMessageId)
+          .map(
+            (msg) => {
+              'role': msg.role == MessageRole.user ? 'user' : 'assistant',
+              'content': msg.content,
+            },
+          )
+          .toList();
+
+      // 發送請求到後端
+      final request = http.Request('POST', Uri.parse(ApiConfig.chatEndpoint));
+      request.headers['Content-Type'] = 'application/json';
+      request.body = jsonEncode({'message': userMessage, 'history': history});
+
+      final response = await request.send();
+
+      if (response.statusCode != 200) {
+        throw Exception('Backend error: ${response.statusCode}');
+      }
 
       String fullContent = '';
       bool detectedTaskPlan = false;
       String displayContent = '';
 
-      // 逐字接收並顯示
-      await for (final chunk in responseStream) {
-        final chunkText = chunk.text ?? '';
-        fullContent += chunkText;
+      // 讀取 SSE 流
+      await for (final chunk in response.stream.transform(utf8.decoder)) {
+        final lines = chunk.split('\n');
 
-        // 檢查是否遇到任務計劃標記
-        if (!detectedTaskPlan && fullContent.contains('[TASK_PLAN_READY]')) {
-          detectedTaskPlan = true;
-          // 停止顯示文字，切換到 loading 狀態
-          displayContent = fullContent
-              .substring(0, fullContent.indexOf('[TASK_PLAN_READY]'))
-              .trim();
+        for (final line in lines) {
+          if (line.startsWith('data: ')) {
+            final data = line.substring(6);
 
-          final updatedMessages = state.messages.map((msg) {
-            if (msg.id == aiMessageId) {
-              return msg.copyWith(
-                content: displayContent,
-                isStreaming: true, // 保持 streaming 狀態顯示 loading
-              );
+            if (data == '[DONE]') {
+              continue;
             }
-            return msg;
-          }).toList();
 
-          state = state.copyWith(messages: updatedMessages);
-          // 不要 break，繼續接收剩餘內容但不顯示
-          continue;
-        }
+            try {
+              final json = jsonDecode(data);
+              final chunkText = json['text'] as String? ?? '';
+              fullContent += chunkText;
 
-        // 如果還沒遇到標記，逐字顯示
-        if (!detectedTaskPlan) {
-          // 逐字顯示效果
-          for (int i = 0; i < chunkText.length; i++) {
-            displayContent += chunkText[i];
+              // 檢查是否遇到任務計劃標記
+              if (!detectedTaskPlan &&
+                  fullContent.contains('[TASK_PLAN_READY]')) {
+                detectedTaskPlan = true;
+                displayContent = fullContent
+                    .substring(0, fullContent.indexOf('[TASK_PLAN_READY]'))
+                    .trim();
 
-            final updatedMessages = state.messages.map((msg) {
-              if (msg.id == aiMessageId) {
-                return msg.copyWith(content: displayContent, isStreaming: true);
+                final updatedMessages = state.messages.map((msg) {
+                  if (msg.id == aiMessageId) {
+                    return msg.copyWith(
+                      content: displayContent,
+                      isStreaming: true,
+                    );
+                  }
+                  return msg;
+                }).toList();
+
+                state = state.copyWith(messages: updatedMessages);
+                continue;
               }
-              return msg;
-            }).toList();
 
-            state = state.copyWith(messages: updatedMessages);
+              // 如果還沒遇到標記，逐字顯示
+              if (!detectedTaskPlan) {
+                for (int i = 0; i < chunkText.length; i++) {
+                  displayContent += chunkText[i];
 
-            // 20ms 延遲，製造打字效果
-            await Future.delayed(const Duration(milliseconds: 20));
+                  final updatedMessages = state.messages.map((msg) {
+                    if (msg.id == aiMessageId) {
+                      return msg.copyWith(
+                        content: displayContent,
+                        isStreaming: true,
+                      );
+                    }
+                    return msg;
+                  }).toList();
+
+                  state = state.copyWith(messages: updatedMessages);
+                  await Future.delayed(const Duration(milliseconds: 20));
+                }
+              }
+            } catch (e) {
+              // 忽略解析錯誤
+            }
           }
         }
       }
 
-      // Stream 已經完全接收，處理最終內容
-
-      // 檢查是否包含任務計劃標記
+      // 處理任務計劃
       TaskPlan? taskPlan;
 
       if (fullContent.contains('[TASK_PLAN_READY]')) {
         try {
-          // 提取任務計劃 JSON
           final startMarker = '[TASK_PLAN_READY]';
           final endMarker = '[/TASK_PLAN_READY]';
           final startIndex = fullContent.indexOf(startMarker);
           final endIndex = fullContent.indexOf(endMarker);
 
           if (startIndex != -1 && endIndex != -1) {
-            // 提取 JSON 字符串
             final jsonStr = fullContent
                 .substring(startIndex + startMarker.length, endIndex)
                 .trim();
 
-            // 解析 JSON
             final jsonData = jsonDecode(jsonStr) as Map<String, dynamic>;
             taskPlan = TaskPlan.fromJson(jsonData);
 
-            // 更新 displayContent 為移除標記後的內容
             displayContent = fullContent.substring(0, startIndex).trim();
           }
         } catch (e) {
-          // JSON 解析失敗，忽略任務計劃
           print('Failed to parse task plan: $e');
         }
       }
 
-      // 標記 streaming 結束，並附加任務計劃
+      // 標記 streaming 結束
       final updatedMessages = state.messages.map((msg) {
         if (msg.id == aiMessageId) {
           return msg.copyWith(
@@ -195,13 +191,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
       state = state.copyWith(messages: updatedMessages, isLoading: false);
     } catch (e) {
-      // 錯誤處理
       state = state.copyWith(
         error: '[AI_RESPONSE_FAILED]: $e',
         isLoading: false,
       );
 
-      // 移除失敗的訊息
       final updatedMessages = state.messages
           .where((msg) => msg.id != aiMessageId)
           .toList();
@@ -213,10 +207,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
   // 清空對話
   void clearChat() {
     state = ChatState();
-    // 重新初始化 chat session，清除 API 端的對話歷史
-    if (_model != null) {
-      _chatSession = _model!.startChat();
-    }
   }
 
   // 清除錯誤訊息
