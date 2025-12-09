@@ -32,9 +32,6 @@ dependencies:
   dio: ^5.7.0
   http: ^1.2.2
   
-  # AI
-  google_generative_ai: ^0.4.6
-  
   # Background Services & Notifications
   flutter_local_notifications: ^18.0.1
   flutter_background_service: ^5.0.10
