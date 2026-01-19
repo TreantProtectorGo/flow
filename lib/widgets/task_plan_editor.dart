@@ -4,6 +4,7 @@ import '../models/chat_message.dart';
 import '../models/task.dart';
 import '../providers/task_provider.dart';
 import '../l10n/app_localizations.dart';
+import 'dialogs/delete_confirmation_dialog.dart';
 
 /// Task Plan Editor - Allows users to adjust AI-generated plans before importing
 /// 
@@ -42,44 +43,6 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         title: Text(l10n.editTaskPlan),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
-            child: FilledButton.tonal(
-              onPressed: _isFormValid() && !_isCreating ? _handleSaveAndCreate : null,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: const StadiumBorder(),
-                disabledBackgroundColor: theme.colorScheme.surfaceContainerHighest,
-                disabledForegroundColor: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
-              ),
-              child: _isCreating
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: theme.colorScheme.onSecondaryContainer,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(l10n.creating),
-                      ],
-                    )
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.check, size: 18),
-                        const SizedBox(width: 4),
-                        Text(l10n.confirm),
-                      ],
-                    ),
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -91,10 +54,19 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
             child: _buildTaskList(theme, l10n),
           ),
 
-          // Bottom action bar
+          // Bottom action bar with confirm button
           _buildBottomBar(theme, l10n),
         ],
       ),
+      // M3 FAB for adding tasks (floats above bottom bar)
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80), // Position above bottom bar
+        child: FloatingActionButton(
+          onPressed: _handleAddTask,
+          child: const Icon(Icons.add),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
@@ -246,11 +218,39 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
                 ],
               ),
             ),
-            // Add task button
-            FilledButton.tonalIcon(
-              onPressed: _handleAddTask,
-              icon: const Icon(Icons.add),
-              label: Text(l10n.addTask),
+            // Confirm button (M3 capsule style)
+            FilledButton(
+              onPressed: _isFormValid() && !_isCreating ? _handleSaveAndCreate : null,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                shape: const StadiumBorder(),
+                disabledBackgroundColor: theme.colorScheme.surfaceContainerHighest,
+                disabledForegroundColor: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
+              ),
+              child: _isCreating
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.onPrimary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(l10n.creating),
+                      ],
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.check, size: 20),
+                        const SizedBox(width: 6),
+                        Text(l10n.confirm),
+                      ],
+                    ),
             ),
           ],
         ),
@@ -472,31 +472,9 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
       key: ValueKey(widget.task.hashCode),
       direction: DismissDirection.endToStart,
       confirmDismiss: (direction) async {
-        // Show confirmation dialog
-        return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            icon: Icon(
-              Icons.delete_outline,
-              color: theme.colorScheme.error,
-              size: 32,
-            ),
-            title: Text(l10n.deleteTask),
-            content: Text(l10n.confirmDelete(widget.task.title)),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.cancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: FilledButton.styleFrom(
-                  backgroundColor: theme.colorScheme.error,
-                ),
-                child: Text(l10n.delete),
-              ),
-            ],
-          ),
+        return await DeleteConfirmationDialog.show(
+          context,
+          title: widget.task.title,
         ) ?? false;
       },
       onDismissed: (direction) {

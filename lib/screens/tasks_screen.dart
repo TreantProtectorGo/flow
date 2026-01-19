@@ -6,6 +6,7 @@ import '../models/task.dart';
 import '../providers/task_provider.dart';
 import '../providers/timer_provider.dart';
 import '../widgets/task_form_dialog.dart';
+import '../widgets/dialogs/delete_confirmation_dialog.dart';
 import '../l10n/app_localizations.dart';
 import 'ai_chat_screen.dart';
 
@@ -204,32 +205,19 @@ class TasksScreen extends ConsumerWidget {
     }
   }
 
-  void _showDeleteConfirmDialog(
-    BuildContext context,
-    WidgetRef ref,
-    Task task,
-  ) {
-    final l10n = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deleteTask),
-        content: Text(l10n.confirmDelete(task.title)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ref.read(taskProvider.notifier).deleteTask(task.id);
-            },
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+  Future<void> _showDeleteConfirmDialog(
+  BuildContext context,
+  WidgetRef ref,
+  Task task,
+) async {
+    final confirmed = await DeleteConfirmationDialog.show(
+      context,
+      title: task.title,
     );
+    
+    if (confirmed == true) {
+      ref.read(taskProvider.notifier).deleteTask(task.id);
+    }
   }
 
   Widget _buildEmptyState(String message, ThemeData theme) {
