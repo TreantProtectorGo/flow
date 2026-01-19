@@ -43,16 +43,41 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
       appBar: AppBar(
         title: Text(l10n.editTaskPlan),
         actions: [
-          TextButton.icon(
-            onPressed: _isCreating ? null : _handleSaveAndCreate,
-            icon: _isCreating
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.check),
-            label: Text(_isCreating ? l10n.creating : l10n.saveAndCreate),
+          Padding(
+            padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
+            child: FilledButton.tonal(
+              onPressed: _isFormValid() && !_isCreating ? _handleSaveAndCreate : null,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                shape: const StadiumBorder(),
+                disabledBackgroundColor: theme.colorScheme.surfaceContainerHighest,
+                disabledForegroundColor: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
+              ),
+              child: _isCreating
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.onSecondaryContainer,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(l10n.creating),
+                      ],
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.check, size: 18),
+                        const SizedBox(width: 4),
+                        Text(l10n.confirm),
+                      ],
+                    ),
+            ),
           ),
         ],
       ),
@@ -231,6 +256,11 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
         ),
       ),
     );
+  }
+
+  bool _isFormValid() {
+    return _editablePlan.mainGoal.trim().isNotEmpty && 
+           _editablePlan.tasks.isNotEmpty;
   }
 
   int _calculateTotalPomodoros() {
@@ -866,7 +896,6 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
                       theme,
                       l10n.priorityHigh,
                       'high',
-                      Icons.flag,
                       theme.colorScheme.errorContainer,
                       theme.colorScheme.onErrorContainer,
                     ),
@@ -875,7 +904,6 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
                       theme,
                       l10n.priorityMedium,
                       'medium',
-                      Icons.outlined_flag,
                       theme.colorScheme.secondaryContainer,
                       theme.colorScheme.onSecondaryContainer,
                     ),
@@ -884,7 +912,6 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
                       theme,
                       l10n.priorityLow,
                       'low',
-                      Icons.flag_outlined,
                       theme.colorScheme.tertiaryContainer,
                       theme.colorScheme.onTertiaryContainer,
                     ),
@@ -903,7 +930,6 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
     ThemeData theme,
     String label,
     String value,
-    IconData icon,
     Color bgColor,
     Color fgColor,
   ) {
@@ -926,12 +952,6 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: isSelected ? fgColor : theme.colorScheme.onSurfaceVariant,
-              size: 24,
-            ),
-            const SizedBox(width: 16),
             Expanded(
               child: Text(
                 label,
