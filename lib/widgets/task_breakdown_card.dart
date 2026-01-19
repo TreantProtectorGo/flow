@@ -6,7 +6,6 @@ import '../providers/task_provider.dart';
 import '../l10n/app_localizations.dart';
 import 'task_plan_editor.dart';
 
-
 class TaskBreakdownCard extends ConsumerStatefulWidget {
   final TaskPlan taskPlan;
 
@@ -26,7 +25,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    // 如果任務已創建，不顯示卡片
+    // Hide card if tasks have already been created
     if (_tasksCreated) {
       return const SizedBox.shrink();
     }
@@ -51,7 +50,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 標題區域
+          // Title section with main goal and plan header
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -86,7 +85,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
             ),
           ),
 
-          // 任務列表
+          // Task list: render all subtasks with expansion capability
           ...widget.taskPlan.tasks.asMap().entries.map((entry) {
             final index = entry.key;
             final task = entry.value;
@@ -95,13 +94,13 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
             return _buildTaskItem(theme, task, index, isExpanded);
           }).toList(),
 
-          // 底部資訊和按鈕
+          // Bottom section: estimated time, edit and create buttons
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 預估時間
+                // Estimated completion time display
                 Row(
                   children: [
                     Icon(
@@ -125,10 +124,10 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
                 ),
                 if (!_tasksCreated) ...[
                   const SizedBox(height: 16),
-                  // 創建任務按鈕組
+                  // Action buttons: edit plan and create tasks
                   Row(
                     children: [
-                      // 編輯計畫按鈕
+                      // Edit plan button: opens task plan editor
                       Expanded(
                         child: FilledButton.tonalIcon(
                           onPressed: _isCreatingTasks ? null : _openEditor,
@@ -137,11 +136,12 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // 直接創建按鈕
+                      // Create directly button: creates all tasks from plan
                       Expanded(
                         child: FilledButton.icon(
-                          onPressed:
-                              _isCreatingTasks ? null : _createTasksFromPlan,
+                          onPressed: _isCreatingTasks
+                              ? null
+                              : _createTasksFromPlan,
                           icon: _isCreatingTasks
                               ? const SizedBox(
                                   width: 16,
@@ -161,7 +161,6 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
                     ],
                   ),
                 ],
-
               ],
             ),
           ),
@@ -173,9 +172,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
   void _openEditor() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => TaskPlanEditor(
-          initialPlan: widget.taskPlan,
-        ),
+        builder: (context) => TaskPlanEditor(initialPlan: widget.taskPlan),
       ),
     );
   }
@@ -307,7 +304,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  // 圖示
+                  // Task icon with colored background
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -322,7 +319,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
                   ),
                   const SizedBox(width: 12),
 
-                  // 標題和資訊
+                  // Task title, pomodoro count, and priority badge
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,7 +360,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
                     ),
                   ),
 
-                  // 展開圖示
+                  // Expand/collapse icon indicator
                   Icon(
                     isExpanded
                         ? Icons.keyboard_arrow_up
@@ -375,7 +372,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
             ),
           ),
 
-          // 展開的步驟詳情
+          // Expanded view: full description and step-by-step instructions
           if (isExpanded)
             Container(
               padding: const EdgeInsets.fromLTRB(52, 0, 16, 12),

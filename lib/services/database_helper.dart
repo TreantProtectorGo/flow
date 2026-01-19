@@ -3,18 +3,30 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/task.dart';
 
+/// DatabaseHelper - SQLite database access layer using singleton pattern
+/// Manages all database operations for tasks, pomodoro sessions, and chat messages
+/// Uses lazy initialization to ensure single database instance across the app
 class DatabaseHelper {
+  /// Singleton instance of DatabaseHelper
   static final DatabaseHelper instance = DatabaseHelper._init();
+
+  /// Cached database instance to avoid multiple connections
   static Database? _database;
 
+  /// Private constructor for singleton pattern
   DatabaseHelper._init();
 
+  /// Lazily initializes and returns the database instance
+  /// Returns cached instance if already initialized, otherwise initializes new connection
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDB('focus.db');
     return _database!;
   }
 
+  /// Opens the SQLite database file and sets initial configuration
+  /// [filePath]: Name of the database file (typically 'focus.db')
+  /// Returns: Initialized Database instance with version 1 schema
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
@@ -22,8 +34,12 @@ class DatabaseHelper {
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
+  /// Creates all database tables and indexes on first run
+  /// Called automatically by openDatabase when version mismatch occurs
+  /// [db]: Database instance to create tables in
+  /// [version]: Schema version (currently 1, used for migrations)
   Future<void> _createDB(Database db, int version) async {
-    // 任務表
+    // Tasks table: Stores all user tasks with priority, status, and timestamps
     await db.execute('''
       CREATE TABLE tasks (
         id TEXT PRIMARY KEY,
@@ -37,7 +53,8 @@ class DatabaseHelper {
       )
     ''');
 
-    // 番茄鐘會話表
+    // Pomodoro sessions table: Tracks focus sessions and break periods
+    // Links sessions to tasks via task_id foreign key
     await db.execute('''
       CREATE TABLE pomodoro_sessions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,7 +68,8 @@ class DatabaseHelper {
       )
     ''');
 
-    // AI 對話歷史表
+    // Chat messages table: Stores AI conversation history
+    // Supports streaming messages with role-based storage
     await db.execute('''
       CREATE TABLE chat_messages (
         id TEXT PRIMARY KEY,
@@ -62,22 +80,30 @@ class DatabaseHelper {
       )
     ''');
 
-    // 建立索引以提升查詢效能
+    // Create indexes to optimize query performance
+    // Speeds up status-based task filtering
     await db.execute('CREATE INDEX idx_tasks_status ON tasks(status)');
+    // Speeds up sorting tasks by creation time
     await db.execute('CREATE INDEX idx_tasks_created_at ON tasks(created_at)');
+    // Speeds up querying sessions by date range
     await db.execute(
       'CREATE INDEX idx_pomodoro_sessions_start_time ON pomodoro_sessions(start_time)',
     );
+    // Speeds up querying sessions for specific tasks
     await db.execute(
       'CREATE INDEX idx_pomodoro_sessions_task_id ON pomodoro_sessions(task_id)',
     );
   }
 
-  // ==================== Tasks CRUD ====================
+  // ==================== Tasks CRUD Operations ====================
 
+  /// Inserts a new task into the database
+  /// [task]: Task object to insert with all required fields
+  /// Returns: Number of rows affected (1 on success)
+  /// Uses ConflictAlgorithm.replace to handle duplicate IDs
   Future<int> insertTask(Task task) async {
     final db = await database;
-    debugPrint('📝 [DB] 插入任務: ${task.title} (ID: ${task.id})');
+    debugPrint('📝 [DB] Inserting task: ${task.title} (ID: ${task.id})');
     final result = await db.insert('tasks', {
       'id': task.id,
       'title': task.title,
@@ -88,16 +114,18 @@ class DatabaseHelper {
       'created_at': task.createdAt.toIso8601String(),
       'completed_at': task.completedAt?.toIso8601String(),
     }, conflictAlgorithm: ConflictAlgorithm.replace);
-    debugPrint('✅ [DB] 任務插入成功');
+    debugPrint('✅ [DB] Task insertion successful');
     return result;
   }
 
+  /// Retrieves all tasks from the database
+  /// Returns: List of all Task objects, ordered by most recently created first
   Future<List<Task>> getAllTasks() async {
     final db = await database;
-    debugPrint('📚 [DB] 載入所有任務...');
+    debugPrint('📚 [DB] Loading all tasks...');
     final result = await db.query('tasks', orderBy: 'created_at DESC');
 
-    debugPrint('✅ [DB] 載入完成，共 ${result.length} 個任務');
+    debugPrint('✅ [DB] Load complete, total ${result.length} tasks');
     return result
         .map(
           (json) => Task.fromJson({
@@ -114,6 +142,9 @@ class DatabaseHelper {
         .toList();
   }
 
+  /// Retrieves a single task by ID
+  /// [id]: Unique task identifier
+  /// Returns: Task object if found, null if not found
   Future<Task?> getTask(String id) async {
     final db = await database;
     final results = await db.query(
@@ -138,10 +169,13 @@ class DatabaseHelper {
     });
   }
 
+  /// Updates an existing task in the database
+  /// [task]: Task object with updated fields
+  /// Returns: Number of rows affected (1 on success, 0 if not found)
   Future<int> updateTask(Task task) async {
     final db = await database;
     debugPrint(
-      '✏️ [DB] 更新任務: ${task.title} (ID: ${task.id}, 狀態: ${task.status.name})',
+      '✏️ [DB] Updating task: ${task.title} (ID: ${task.id}, Status: ${task.status.name})',
     );
     final result = await db.update(
       'tasks',
@@ -157,18 +191,28 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [task.id],
     );
-    debugPrint('✅ [DB] 任務更新成功');
+    debugPrint('✅ [DB] Task update successful');
     return result;
   }
 
+  /// Deletes a task by ID from the database
+  /// [id]: Unique task identifier to delete
+  /// Returns: Number of rows affected (1 on success, 0 if not found)
+  /// Note: Deleting a task will cascade delete related pomodoro sessions
   Future<int> deleteTask(String id) async {
     final db = await database;
-    debugPrint('🗑️ [DB] 刪除任務 ID: $id');
+    debugPrint('🗑️ [DB] Deleting task ID: $id');
     final result = await db.delete('tasks', where: 'id = ?', whereArgs: [id]);
-    debugPrint('✅ [DB] 任務刪除成功');
+    debugPrint('✅ [DB] Task deletion successful');
     return result;
   }
 
+  /// Retrieves tasks filtered by status and optional date range
+  /// [status]: Task status to filter by (e.g., 'pending', 'completed')
+  /// [startDate]: Optional start date for filtering (inclusive)
+  /// [endDate]: Optional end date for filtering (exclusive)
+  /// Returns: List of Task objects matching the filters
+  /// For completed tasks, uses completed_at; for others, uses created_at
   Future<List<Task>> getTasksByStatus(
     String status, {
     DateTime? startDate,
@@ -179,7 +223,7 @@ class DatabaseHelper {
     String whereClause = 'status = ?';
     List<dynamic> whereArgs = [status];
 
-    // 如果指定了日期範圍，添加日期過濾
+    // Add date range filter if specified
     if (startDate != null && endDate != null) {
       if (status == 'completed') {
         whereClause += ' AND completed_at >= ? AND completed_at < ?';
@@ -218,8 +262,16 @@ class DatabaseHelper {
         .toList();
   }
 
-  // ==================== Pomodoro Sessions ====================
+  // ==================== Pomodoro Sessions Operations ====================
 
+  /// Inserts a new pomodoro session record into the database
+  /// [taskId]: Optional ID of the associated task (null for break-only sessions)
+  /// [startTime]: Session start timestamp
+  /// [endTime]: Session end timestamp (null if still in progress)
+  /// [duration]: Session duration in minutes
+  /// [completed]: Whether the session was fully completed (1=yes, 0=no)
+  /// [sessionType]: Type of session - 'focus' for work session or 'break' for break period
+  /// Returns: Inserted session ID (auto-generated by database)
   Future<int> insertPomodoroSession({
     String? taskId,
     required DateTime startTime,
@@ -230,7 +282,7 @@ class DatabaseHelper {
   }) async {
     final db = await database;
     debugPrint(
-      '⏱️ [DB] 插入番茄鐘會話: 任務ID=$taskId, 時長=$duration分鐘, 完成=$completed, 類型=$sessionType',
+      '⏱️ [DB] Inserting pomodoro session: TaskID=$taskId, Duration=$duration min, Completed=$completed, Type=$sessionType',
     );
     final result = await db.insert('pomodoro_sessions', {
       'task_id': taskId,
@@ -240,10 +292,15 @@ class DatabaseHelper {
       'completed': completed ? 1 : 0,
       'session_type': sessionType,
     });
-    debugPrint('✅ [DB] 番茄鐘會話插入成功 (ID: $result)');
+    debugPrint('✅ [DB] Pomodoro session insertion successful (ID: $result)');
     return result;
   }
 
+  /// Retrieves pomodoro sessions with optional date range filtering
+  /// [startDate]: Optional start date for filtering (inclusive)
+  /// [endDate]: Optional end date for filtering (inclusive)
+  /// Returns: List of session records ordered by most recent first
+  /// Each record contains: id, task_id, start_time, end_time, duration, completed, session_type
   Future<List<Map<String, dynamic>>> getPomodoroSessions({
     DateTime? startDate,
     DateTime? endDate,
@@ -265,7 +322,14 @@ class DatabaseHelper {
     );
   }
 
-  // 獲取統計數據
+  /// Retrieves comprehensive statistics based on completed pomodoro sessions
+  /// [startDate]: Optional start date for filtering (inclusive)
+  /// [endDate]: Optional end date for filtering (inclusive)
+  /// Returns: Map containing:
+  ///   - completedPomodoros: Number of completed focus sessions
+  ///   - totalFocusMinutes: Total minutes spent in focus sessions
+  ///   - completedTasks: Total number of completed tasks
+  /// Statistics only include completed sessions and tasks
   Future<Map<String, dynamic>> getStatistics({
     DateTime? startDate,
     DateTime? endDate,
@@ -282,20 +346,20 @@ class DatabaseHelper {
       whereClause = 'completed = 1';
     }
 
-    // 完成的番茄鐘數量
+    // Count completed focus sessions
     final completedSessions = await db.query(
       'pomodoro_sessions',
       where: '$whereClause AND session_type = ?',
       whereArgs: whereArgs != null ? [...whereArgs, 'focus'] : ['focus'],
     );
 
-    // 總專注時間（分鐘）
+    // Sum total duration of all focus sessions
     final totalDuration = completedSessions.fold<int>(
       0,
       (sum, session) => sum + (session['duration'] as int),
     );
 
-    // 完成的任務數量
+    // Count total completed tasks
     final completedTasks = await db.query(
       'tasks',
       where: 'status = ?',
@@ -309,13 +373,19 @@ class DatabaseHelper {
     };
   }
 
-  // ==================== 資料庫管理 ====================
+  // ==================== Database Management ====================
 
+  /// Closes the database connection
+  /// Should be called when the app is closing or when database access is no longer needed
+  /// Ensures proper resource cleanup and data integrity
   Future<void> close() async {
     final db = await database;
     await db.close();
   }
 
+  /// Completely deletes the database file from device storage
+  /// WARNING: This operation is irreversible and will delete all user data
+  /// Use only for debugging, testing, or explicit user-requested data deletion
   Future<void> deleteDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'focus.db');
