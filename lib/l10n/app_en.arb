@@ -281,7 +281,6 @@
 
   "dailyGoal": "Daily Goal",
   "weeklyGoal": "Weekly Goal",
-  "totalPomodoros": "Total Pomodoros",
   "focusHours": "Focus Hours",
 
   "pomodoroSettings": "Pomodoro Settings",
@@ -369,6 +368,35 @@
   "askAiHelper": "Ask AI Assistant...",
   "creatingTasks": "Creating...",
   "createTasks": "Create Tasks",
+  "editPlan": "Edit Plan",
+  "createDirectly": "Create Directly",
+  "editTaskPlan": "Edit Task Plan",
+  "saveAndCreate": "Save & Create",
+  "creating": "Creating...",
+  "mainGoal": "Main Goal",
+  "enterMainGoal": "Enter main goal",
+  "totalTasks": "{count} tasks in total",
+  "@totalTasks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "totalPomodoros": "{count} pomodoros in total",
+  "@totalPomodoros": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noTasksInPlan": "No tasks in plan yet",
+  "newTask": "New Task",
+  "mainGoalRequired": "Main goal is required",
+  "atLeastOneTaskRequired": "At least one task is required",
+  "enterTaskDescription": "Enter task description",
+  "description": "Description",
   "view": "View",
   "cannotExtractTasks": "Cannot extract tasks from conversation, please try to describe the tasks more clearly",
   "aiResponseFailed": "AI response failed",

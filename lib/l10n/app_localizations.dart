@@ -807,12 +807,6 @@ abstract class AppLocalizations {
   /// **'每週目標'**
   String get weeklyGoal;
 
-  /// No description provided for @totalPomodoros.
-  ///
-  /// In zh, this message translates to:
-  /// **'總番茄鐘'**
-  String get totalPomodoros;
-
   /// No description provided for @focusHours.
   ///
   /// In zh, this message translates to:
@@ -1250,6 +1244,96 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'創建任務'**
   String get createTasks;
+
+  /// No description provided for @editPlan.
+  ///
+  /// In zh, this message translates to:
+  /// **'編輯計畫'**
+  String get editPlan;
+
+  /// No description provided for @createDirectly.
+  ///
+  /// In zh, this message translates to:
+  /// **'直接創建'**
+  String get createDirectly;
+
+  /// No description provided for @editTaskPlan.
+  ///
+  /// In zh, this message translates to:
+  /// **'編輯任務計畫'**
+  String get editTaskPlan;
+
+  /// No description provided for @saveAndCreate.
+  ///
+  /// In zh, this message translates to:
+  /// **'儲存並創建'**
+  String get saveAndCreate;
+
+  /// No description provided for @creating.
+  ///
+  /// In zh, this message translates to:
+  /// **'創建中...'**
+  String get creating;
+
+  /// No description provided for @mainGoal.
+  ///
+  /// In zh, this message translates to:
+  /// **'主要目標'**
+  String get mainGoal;
+
+  /// No description provided for @enterMainGoal.
+  ///
+  /// In zh, this message translates to:
+  /// **'輸入主要目標'**
+  String get enterMainGoal;
+
+  /// No description provided for @totalTasks.
+  ///
+  /// In zh, this message translates to:
+  /// **'總共 {count} 個任務'**
+  String totalTasks(int count);
+
+  /// No description provided for @totalPomodoros.
+  ///
+  /// In zh, this message translates to:
+  /// **'總共 {count} 個番茄鐘'**
+  String totalPomodoros(int count);
+
+  /// No description provided for @noTasksInPlan.
+  ///
+  /// In zh, this message translates to:
+  /// **'計畫中還沒有任務'**
+  String get noTasksInPlan;
+
+  /// No description provided for @newTask.
+  ///
+  /// In zh, this message translates to:
+  /// **'新任務'**
+  String get newTask;
+
+  /// No description provided for @mainGoalRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'主要目標不能為空'**
+  String get mainGoalRequired;
+
+  /// No description provided for @atLeastOneTaskRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'至少需要一個任務'**
+  String get atLeastOneTaskRequired;
+
+  /// No description provided for @enterTaskDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'輸入任務描述'**
+  String get enterTaskDescription;
+
+  /// No description provided for @description.
+  ///
+  /// In zh, this message translates to:
+  /// **'描述'**
+  String get description;
 
   /// No description provided for @cannotExtractTasks.
   ///

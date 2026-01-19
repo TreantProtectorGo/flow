@@ -19,11 +19,7 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future<void> _createDB(Database db, int version) async {
@@ -69,8 +65,12 @@ class DatabaseHelper {
     // 建立索引以提升查詢效能
     await db.execute('CREATE INDEX idx_tasks_status ON tasks(status)');
     await db.execute('CREATE INDEX idx_tasks_created_at ON tasks(created_at)');
-    await db.execute('CREATE INDEX idx_pomodoro_sessions_start_time ON pomodoro_sessions(start_time)');
-    await db.execute('CREATE INDEX idx_pomodoro_sessions_task_id ON pomodoro_sessions(task_id)');
+    await db.execute(
+      'CREATE INDEX idx_pomodoro_sessions_start_time ON pomodoro_sessions(start_time)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_pomodoro_sessions_task_id ON pomodoro_sessions(task_id)',
+    );
   }
 
   // ==================== Tasks CRUD ====================
@@ -78,20 +78,16 @@ class DatabaseHelper {
   Future<int> insertTask(Task task) async {
     final db = await database;
     debugPrint('📝 [DB] 插入任務: ${task.title} (ID: ${task.id})');
-    final result = await db.insert(
-      'tasks',
-      {
-        'id': task.id,
-        'title': task.title,
-        'description': task.description,
-        'pomodoro_count': task.pomodoroCount,
-        'priority': task.priority.name,
-        'status': task.status.name,
-        'created_at': task.createdAt.toIso8601String(),
-        'completed_at': task.completedAt?.toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    final result = await db.insert('tasks', {
+      'id': task.id,
+      'title': task.title,
+      'description': task.description,
+      'pomodoro_count': task.pomodoroCount,
+      'priority': task.priority.name,
+      'status': task.status.name,
+      'created_at': task.createdAt.toIso8601String(),
+      'completed_at': task.completedAt?.toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
     debugPrint('✅ [DB] 任務插入成功');
     return result;
   }
@@ -99,22 +95,23 @@ class DatabaseHelper {
   Future<List<Task>> getAllTasks() async {
     final db = await database;
     debugPrint('📚 [DB] 載入所有任務...');
-    final result = await db.query(
-      'tasks',
-      orderBy: 'created_at DESC',
-    );
+    final result = await db.query('tasks', orderBy: 'created_at DESC');
 
     debugPrint('✅ [DB] 載入完成，共 ${result.length} 個任務');
-    return result.map((json) => Task.fromJson({
-      'id': json['id'],
-      'title': json['title'],
-      'description': json['description'],
-      'pomodoroCount': json['pomodoro_count'],
-      'priority': json['priority'],
-      'status': json['status'],
-      'createdAt': json['created_at'],
-      'completedAt': json['completed_at'],
-    })).toList();
+    return result
+        .map(
+          (json) => Task.fromJson({
+            'id': json['id'],
+            'title': json['title'],
+            'description': json['description'],
+            'pomodoroCount': json['pomodoro_count'],
+            'priority': json['priority'],
+            'status': json['status'],
+            'createdAt': json['created_at'],
+            'completedAt': json['completed_at'],
+          }),
+        )
+        .toList();
   }
 
   Future<Task?> getTask(String id) async {
@@ -143,7 +140,9 @@ class DatabaseHelper {
 
   Future<int> updateTask(Task task) async {
     final db = await database;
-    debugPrint('✏️ [DB] 更新任務: ${task.title} (ID: ${task.id}, 狀態: ${task.status.name})');
+    debugPrint(
+      '✏️ [DB] 更新任務: ${task.title} (ID: ${task.id}, 狀態: ${task.status.name})',
+    );
     final result = await db.update(
       'tasks',
       {
@@ -165,21 +164,21 @@ class DatabaseHelper {
   Future<int> deleteTask(String id) async {
     final db = await database;
     debugPrint('🗑️ [DB] 刪除任務 ID: $id');
-    final result = await db.delete(
-      'tasks',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    final result = await db.delete('tasks', where: 'id = ?', whereArgs: [id]);
     debugPrint('✅ [DB] 任務刪除成功');
     return result;
   }
 
-  Future<List<Task>> getTasksByStatus(String status, {DateTime? startDate, DateTime? endDate}) async {
+  Future<List<Task>> getTasksByStatus(
+    String status, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
     final db = await database;
-    
+
     String whereClause = 'status = ?';
     List<dynamic> whereArgs = [status];
-    
+
     // 如果指定了日期範圍，添加日期過濾
     if (startDate != null && endDate != null) {
       if (status == 'completed') {
@@ -196,23 +195,27 @@ class DatabaseHelper {
         ]);
       }
     }
-    
+
     final result = await db.query(
       'tasks',
       where: whereClause,
       whereArgs: whereArgs,
     );
 
-    return result.map((json) => Task.fromJson({
-      'id': json['id'],
-      'title': json['title'],
-      'description': json['description'],
-      'pomodoroCount': json['pomodoro_count'],
-      'priority': json['priority'],
-      'status': json['status'],
-      'createdAt': json['created_at'],
-      'completedAt': json['completed_at'],
-    })).toList();
+    return result
+        .map(
+          (json) => Task.fromJson({
+            'id': json['id'],
+            'title': json['title'],
+            'description': json['description'],
+            'pomodoroCount': json['pomodoro_count'],
+            'priority': json['priority'],
+            'status': json['status'],
+            'createdAt': json['created_at'],
+            'completedAt': json['completed_at'],
+          }),
+        )
+        .toList();
   }
 
   // ==================== Pomodoro Sessions ====================
@@ -226,7 +229,9 @@ class DatabaseHelper {
     required String sessionType, // 'focus' or 'break'
   }) async {
     final db = await database;
-    debugPrint('⏱️ [DB] 插入番茄鐘會話: 任務ID=$taskId, 時長=$duration分鐘, 完成=$completed, 類型=$sessionType');
+    debugPrint(
+      '⏱️ [DB] 插入番茄鐘會話: 任務ID=$taskId, 時長=$duration分鐘, 完成=$completed, 類型=$sessionType',
+    );
     final result = await db.insert('pomodoro_sessions', {
       'task_id': taskId,
       'start_time': startTime.toIso8601String(),
@@ -249,10 +254,7 @@ class DatabaseHelper {
 
     if (startDate != null && endDate != null) {
       whereClause = 'start_time >= ? AND start_time <= ?';
-      whereArgs = [
-        startDate.toIso8601String(),
-        endDate.toIso8601String(),
-      ];
+      whereArgs = [startDate.toIso8601String(), endDate.toIso8601String()];
     }
 
     return await db.query(
@@ -269,16 +271,13 @@ class DatabaseHelper {
     DateTime? endDate,
   }) async {
     final db = await database;
-    
+
     String? whereClause;
     List<dynamic>? whereArgs;
 
     if (startDate != null && endDate != null) {
       whereClause = 'start_time >= ? AND start_time <= ? AND completed = 1';
-      whereArgs = [
-        startDate.toIso8601String(),
-        endDate.toIso8601String(),
-      ];
+      whereArgs = [startDate.toIso8601String(), endDate.toIso8601String()];
     } else {
       whereClause = 'completed = 1';
     }

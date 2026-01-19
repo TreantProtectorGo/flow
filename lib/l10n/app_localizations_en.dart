@@ -387,9 +387,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weeklyGoal => 'Weekly Goal';
 
   @override
-  String get totalPomodoros => 'Total Pomodoros';
-
-  @override
   String get focusHours => 'Focus Hours';
 
   @override
@@ -616,6 +613,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createTasks => 'Create Tasks';
+
+  @override
+  String get editPlan => 'Edit Plan';
+
+  @override
+  String get createDirectly => 'Create Directly';
+
+  @override
+  String get editTaskPlan => 'Edit Task Plan';
+
+  @override
+  String get saveAndCreate => 'Save & Create';
+
+  @override
+  String get creating => 'Creating...';
+
+  @override
+  String get mainGoal => 'Main Goal';
+
+  @override
+  String get enterMainGoal => 'Enter main goal';
+
+  @override
+  String totalTasks(int count) {
+    return '$count tasks in total';
+  }
+
+  @override
+  String totalPomodoros(int count) {
+    return '$count pomodoros in total';
+  }
+
+  @override
+  String get noTasksInPlan => 'No tasks in plan yet';
+
+  @override
+  String get newTask => 'New Task';
+
+  @override
+  String get mainGoalRequired => 'Main goal is required';
+
+  @override
+  String get atLeastOneTaskRequired => 'At least one task is required';
+
+  @override
+  String get enterTaskDescription => 'Enter task description';
+
+  @override
+  String get description => 'Description';
 
   @override
   String get cannotExtractTasks =>

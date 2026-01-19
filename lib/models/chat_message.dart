@@ -28,6 +28,19 @@ class TaskPlan {
       'tasks': tasks.map((task) => task.toJson()).toList(),
     };
   }
+
+  /// Creates a modified copy of this TaskPlan
+  TaskPlan copyWith({
+    String? mainGoal,
+    String? estimatedTime,
+    List<TaskPlanItem>? tasks,
+  }) {
+    return TaskPlan(
+      mainGoal: mainGoal ?? this.mainGoal,
+      estimatedTime: estimatedTime ?? this.estimatedTime,
+      tasks: tasks ?? this.tasks,
+    );
+  }
 }
 
 class TaskPlanItem {
@@ -64,6 +77,23 @@ class TaskPlanItem {
       'priority': priority,
     };
   }
+
+  /// Creates a modified copy of this TaskPlanItem
+  TaskPlanItem copyWith({
+    String? title,
+    String? description,
+    List<String>? steps,
+    int? pomodoroCount,
+    String? priority,
+  }) {
+    return TaskPlanItem(
+      title: title ?? this.title,
+      description: description ?? this.description,
+      steps: steps ?? this.steps,
+      pomodoroCount: pomodoroCount ?? this.pomodoroCount,
+      priority: priority ?? this.priority,
+    );
+  }
 }
 
 class ChatMessage {
@@ -72,7 +102,7 @@ class ChatMessage {
   final MessageRole role;
   final DateTime timestamp;
   final bool isStreaming;
-  final TaskPlan? taskPlan; // 新增：任務計劃數據
+  final TaskPlan? taskPlan; // Task plan data from AI
 
   ChatMessage({
     required this.id,

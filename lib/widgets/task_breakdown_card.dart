@@ -4,6 +4,8 @@ import '../models/chat_message.dart';
 import '../models/task.dart';
 import '../providers/task_provider.dart';
 import '../l10n/app_localizations.dart';
+import 'task_plan_editor.dart';
+
 
 class TaskBreakdownCard extends ConsumerStatefulWidget {
   final TaskPlan taskPlan;
@@ -123,30 +125,57 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
                 ),
                 if (!_tasksCreated) ...[
                   const SizedBox(height: 16),
-                  // 創建任務按鈕
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: _isCreatingTasks ? null : _createTasksFromPlan,
-                      icon: _isCreatingTasks
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.add_task),
-                      label: Text(
-                        _isCreatingTasks
-                            ? l10n.creatingTasks
-                            : l10n.createTasks,
+                  // 創建任務按鈕組
+                  Row(
+                    children: [
+                      // 編輯計畫按鈕
+                      Expanded(
+                        child: FilledButton.tonalIcon(
+                          onPressed: _isCreatingTasks ? null : _openEditor,
+                          icon: const Icon(Icons.edit_outlined),
+                          label: Text(l10n.editPlan),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      // 直接創建按鈕
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed:
+                              _isCreatingTasks ? null : _createTasksFromPlan,
+                          icon: _isCreatingTasks
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.add_task),
+                          label: Text(
+                            _isCreatingTasks
+                                ? l10n.creatingTasks
+                                : l10n.createDirectly,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
+
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _openEditor() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => TaskPlanEditor(
+          initialPlan: widget.taskPlan,
+        ),
       ),
     );
   }

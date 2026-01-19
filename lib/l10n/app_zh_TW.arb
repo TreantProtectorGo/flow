@@ -317,7 +317,6 @@
 
   "dailyGoal": "每日目標",
   "weeklyGoal": "每週目標",
-  "totalPomodoros": "總番茄鐘",
   "focusHours": "專注時數",
 
   "pomodoroSettings": "番茄鐘設定",
@@ -420,6 +419,35 @@
   "askAiHelper": "問問 AI 助手...",
   "creatingTasks": "正在創建...",
   "createTasks": "創建任務",
+  "editPlan": "編輯計畫",
+  "createDirectly": "直接創建",
+  "editTaskPlan": "編輯任務計畫",
+  "saveAndCreate": "儲存並創建",
+  "creating": "創建中...",
+  "mainGoal": "主要目標",
+  "enterMainGoal": "輸入主要目標",
+  "totalTasks": "總共 {count} 個任務",
+  "@totalTasks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "totalPomodoros": "總共 {count} 個番茄鐘",
+  "@totalPomodoros": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noTasksInPlan": "計畫中還沒有任務",
+  "newTask": "新任務",
+  "mainGoalRequired": "主要目標不能為空",
+  "atLeastOneTaskRequired": "至少需要一個任務",
+  "enterTaskDescription": "輸入任務描述",
+  "description": "描述",
   "view": "查看",
   "cannotExtractTasks": "無法從對話中提取任務，請嘗試更明確地描述任務",
   "aiResponseFailed": "AI 回覆失敗",

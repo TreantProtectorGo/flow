@@ -383,9 +383,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get weeklyGoal => '每週目標';
 
   @override
-  String get totalPomodoros => '總番茄鐘';
-
-  @override
   String get focusHours => '專注時數';
 
   @override
@@ -607,6 +604,55 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get createTasks => '創建任務';
+
+  @override
+  String get editPlan => '編輯計畫';
+
+  @override
+  String get createDirectly => '直接創建';
+
+  @override
+  String get editTaskPlan => '編輯任務計畫';
+
+  @override
+  String get saveAndCreate => '儲存並創建';
+
+  @override
+  String get creating => '創建中...';
+
+  @override
+  String get mainGoal => '主要目標';
+
+  @override
+  String get enterMainGoal => '輸入主要目標';
+
+  @override
+  String totalTasks(int count) {
+    return '總共 $count 個任務';
+  }
+
+  @override
+  String totalPomodoros(int count) {
+    return '總共 $count 個番茄鐘';
+  }
+
+  @override
+  String get noTasksInPlan => '計畫中還沒有任務';
+
+  @override
+  String get newTask => '新任務';
+
+  @override
+  String get mainGoalRequired => '主要目標不能為空';
+
+  @override
+  String get atLeastOneTaskRequired => '至少需要一個任務';
+
+  @override
+  String get enterTaskDescription => '輸入任務描述';
+
+  @override
+  String get description => '描述';
 
   @override
   String get cannotExtractTasks => '無法從對話中提取任務，請嘗試更明確地描述任務';
@@ -1187,9 +1233,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get weeklyGoal => '每週目標';
 
   @override
-  String get totalPomodoros => '總番茄鐘';
-
-  @override
   String get focusHours => '專注時數';
 
   @override
@@ -1411,6 +1454,55 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get createTasks => '創建任務';
+
+  @override
+  String get editPlan => '編輯計畫';
+
+  @override
+  String get createDirectly => '直接創建';
+
+  @override
+  String get editTaskPlan => '編輯任務計畫';
+
+  @override
+  String get saveAndCreate => '儲存並創建';
+
+  @override
+  String get creating => '創建中...';
+
+  @override
+  String get mainGoal => '主要目標';
+
+  @override
+  String get enterMainGoal => '輸入主要目標';
+
+  @override
+  String totalTasks(int count) {
+    return '總共 $count 個任務';
+  }
+
+  @override
+  String totalPomodoros(int count) {
+    return '總共 $count 個番茄鐘';
+  }
+
+  @override
+  String get noTasksInPlan => '計畫中還沒有任務';
+
+  @override
+  String get newTask => '新任務';
+
+  @override
+  String get mainGoalRequired => '主要目標不能為空';
+
+  @override
+  String get atLeastOneTaskRequired => '至少需要一個任務';
+
+  @override
+  String get enterTaskDescription => '輸入任務描述';
+
+  @override
+  String get description => '描述';
 
   @override
   String get cannotExtractTasks => '無法從對話中提取任務，請嘗試更明確地描述任務';
