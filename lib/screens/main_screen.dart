@@ -35,6 +35,7 @@ class _MainScreenState extends State<MainScreen> {
         icon: Symbols.bid_landscape,
         selectedIcon: Symbols.bid_landscape,
         label: l10n.statistics,
+        isSymbolIcon: true, // Material Symbols need fill property
       ),
       NavigationItem(
         path: '/settings',
@@ -83,36 +84,39 @@ class _MainScreenState extends State<MainScreen> {
         height: 65,
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
-        destinations: navigationItems.map((item) {
-          if (item.icon == Symbols.bid_landscape) {
-            return NavigationDestination(
-              icon: Icon(Symbols.bid_landscape, fill: 0),
-              selectedIcon: Icon(Symbols.bid_landscape, fill: 1),
-              label: item.label,
-            );
-          } else {
-            return NavigationDestination(
-              icon: Icon(item.icon),
-              selectedIcon: Icon(item.selectedIcon),
-              label: item.label,
-            );
-          }
-        }).toList(),
+        // DRY: Each item knows how to convert itself to a destination
+        destinations: navigationItems.map((item) => item.toDestination()).toList(),
       ),
     );
   }
 }
 
+/// Navigation item model - encapsulates navigation destination logic (OOP)
 class NavigationItem {
   final String path;
   final IconData icon;
   final IconData selectedIcon;
   final String label;
+  final bool isSymbolIcon; // For material_symbols_icons that need fill property
 
   const NavigationItem({
     required this.path,
     required this.icon,
     required this.selectedIcon,
     required this.label,
+    this.isSymbolIcon = false,
   });
+
+  /// Converts this item to a NavigationDestination widget (DRY)
+  NavigationDestination toDestination() {
+    return NavigationDestination(
+      icon: isSymbolIcon 
+          ? Icon(icon, fill: 0) 
+          : Icon(icon),
+      selectedIcon: isSymbolIcon 
+          ? Icon(selectedIcon, fill: 1) 
+          : Icon(selectedIcon),
+      label: label,
+    );
+  }
 }

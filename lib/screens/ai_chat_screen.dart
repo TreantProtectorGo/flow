@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/chat_provider.dart';
 import '../widgets/chat_message_bubble.dart';
 import '../widgets/task_breakdown_card.dart';
+import '../widgets/dialogs/confirmation_dialog.dart';
 import '../l10n/app_localizations.dart';
 
 class AIChatScreen extends ConsumerStatefulWidget {
@@ -88,27 +89,18 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: l10n.clearConversation,
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text(l10n.clearConversation),
-                    content: Text(l10n.confirmClearConversation),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(l10n.cancel),
-                      ),
-                      FilledButton(
-                        onPressed: () {
-                          ref.read(chatProvider.notifier).clearChat();
-                          Navigator.pop(context);
-                        },
-                        child: Text(l10n.clearConversationButton),
-                      ),
-                    ],
-                  ),
+              onPressed: () async {
+                // DRY: Use shared ConfirmationDialog
+                final confirmed = await ConfirmationDialog.show(
+                  context,
+                  title: l10n.clearConversation,
+                  content: l10n.confirmClearConversation,
+                  confirmText: l10n.clearConversationButton,
+                  isDangerous: true,
                 );
+                if (confirmed == true) {
+                  ref.read(chatProvider.notifier).clearChat();
+                }
               },
             ),
         ],

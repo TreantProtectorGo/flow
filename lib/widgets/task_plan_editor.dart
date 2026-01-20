@@ -4,6 +4,7 @@ import '../models/chat_message.dart';
 import '../models/task.dart';
 import '../providers/task_provider.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/priority_utils.dart';
 import 'dialogs/delete_confirmation_dialog.dart';
 
 /// Task Plan Editor - Allows users to adjust AI-generated plans before importing
@@ -772,34 +773,15 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
   Widget _buildPrioritySelector(ThemeData theme, AppLocalizations l10n) {
     final priority = widget.task.priority.toLowerCase();
     
-    // M3 Color mapping
-    Color getChipColor(String priorityLevel) {
-      switch (priorityLevel) {
-        case 'high':
-          return theme.colorScheme.errorContainer;
-        case 'low':
-          return theme.colorScheme.tertiaryContainer;
-        default:
-          return theme.colorScheme.secondaryContainer;
-      }
-    }
-    
-    Color getChipTextColor(String priorityLevel) {
-      switch (priorityLevel) {
-        case 'high':
-          return theme.colorScheme.onErrorContainer;
-        case 'low':
-          return theme.colorScheme.onTertiaryContainer;
-        default:
-          return theme.colorScheme.onSecondaryContainer;
-      }
-    }
+    // Use PriorityUtils for DRY color mapping
+    final bgColor = PriorityUtils.getBackgroundColor(priority, theme.colorScheme);
+    final fgColor = PriorityUtils.getForegroundColor(priority, theme.colorScheme);
     
     return Container(
       height: 24,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: getChipColor(priority),
+        color: bgColor,
         borderRadius: BorderRadius.circular(8),
       ),
       child: InkWell(
@@ -812,7 +794,7 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
               priority == 'high' ? l10n.priorityHigh : 
               priority == 'low' ? l10n.priorityLow : l10n.priorityMedium,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: getChipTextColor(priority),
+                color: fgColor,
                 fontWeight: FontWeight.w600,
                 fontSize: 11,
               ),
@@ -821,7 +803,7 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
             Icon(
               Icons.arrow_drop_down,
               size: 14,
-              color: getChipTextColor(priority),
+              color: fgColor,
             ),
           ],
         ),
@@ -874,24 +856,18 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
                       theme,
                       l10n.priorityHigh,
                       'high',
-                      theme.colorScheme.errorContainer,
-                      theme.colorScheme.onErrorContainer,
                     ),
                     const SizedBox(height: 12),
                     _buildPriorityOption(
                       theme,
                       l10n.priorityMedium,
                       'medium',
-                      theme.colorScheme.secondaryContainer,
-                      theme.colorScheme.onSecondaryContainer,
                     ),
                     const SizedBox(height: 12),
                     _buildPriorityOption(
                       theme,
                       l10n.priorityLow,
                       'low',
-                      theme.colorScheme.tertiaryContainer,
-                      theme.colorScheme.onTertiaryContainer,
                     ),
                   ],
                 ),
@@ -908,9 +884,10 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
     ThemeData theme,
     String label,
     String value,
-    Color bgColor,
-    Color fgColor,
   ) {
+    // Use PriorityUtils for DRY color mapping
+    final bgColor = PriorityUtils.getBackgroundColor(value, theme.colorScheme);
+    final fgColor = PriorityUtils.getForegroundColor(value, theme.colorScheme);
     final isSelected = widget.task.priority.toLowerCase() == value;
     
     return InkWell(
