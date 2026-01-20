@@ -7,6 +7,7 @@ import '../providers/task_provider.dart';
 import '../providers/timer_provider.dart';
 import '../widgets/task_form_dialog.dart';
 import '../widgets/dialogs/delete_confirmation_dialog.dart';
+import '../utils/snackbar_util.dart';
 import '../l10n/app_localizations.dart';
 import 'ai_chat_screen.dart';
 
@@ -27,7 +28,7 @@ class TasksScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // 内容区域
+            // Content area with task list
             Expanded(
               child: taskNotifier.isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -36,7 +37,7 @@ class TasksScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // 當前計時任務卡片（置頂顯示）
+                          // Active timer task card (pinned at top)
                           if (currentTask != null && isTimerRunning)
                             _buildActiveTimerCard(
                               currentTask,
@@ -50,7 +51,7 @@ class TasksScreen extends ConsumerWidget {
                           if (currentTask != null && isTimerRunning)
                             const SizedBox(height: 20),
 
-                          // 进行中任务
+                          // In-progress tasks
                           if (taskNotifier.inProgressTasks.isNotEmpty) ...[
                             _buildSectionHeader(l10n.inProgress, theme),
                             const SizedBox(height: 15),
@@ -69,11 +70,11 @@ class TasksScreen extends ConsumerWidget {
                             const SizedBox(height: 30),
                           ],
 
-                          // 待办事项
+                          // Pending tasks
                           _buildSectionHeader(l10n.pending, theme),
                           const SizedBox(height: 15),
 
-                          // AI 拆解卡片（只在沒有待辦任務時顯示）
+                          // AI breakdown card (only shown when there are no pending tasks)
                           if (taskNotifier.pendingTasks.isEmpty) ...[
                             _buildAIBreakdownCard(theme, context, l10n),
                             const SizedBox(height: 12),
@@ -97,7 +98,7 @@ class TasksScreen extends ConsumerWidget {
 
                           const SizedBox(height: 30),
 
-                          // 已完成
+                          // Completed tasks
                           if (taskNotifier.completedTasks.isNotEmpty) ...[
                             _buildSectionHeader(l10n.completed, theme),
                             const SizedBox(height: 15),
@@ -156,11 +157,9 @@ class TasksScreen extends ConsumerWidget {
           );
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.taskAdded(result['title'])),
-            duration: const Duration(seconds: 2),
-          ),
+        SnackBarUtil.showSuccessSnackBar(
+          context,
+          message: l10n.taskAdded(result['title']),
         );
       }
     }
@@ -186,13 +185,13 @@ class TasksScreen extends ConsumerWidget {
     );
 
     if (result != null) {
-      // 檢查是否是刪除操作
+      // Check if this is a delete action
       if (result['action'] == 'delete') {
         _showDeleteConfirmDialog(context, ref, task);
         return;
       }
 
-      // 更新任務
+      // Update task with new values
       final updatedTask = task.copyWith(
         title: result['title'],
         description: result['description'],
@@ -470,7 +469,7 @@ class TasksScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  // 開始番茄鐘按鈕
+                  // Start pomodoro button
                   if (task.status != TaskStatus.completed)
                     FilledButton.icon(
                       onPressed: () =>
@@ -578,37 +577,31 @@ class TasksScreen extends ConsumerWidget {
     final timerNotifier = ref.read(timerProvider.notifier);
     final isCurrentTask = ref.read(taskProvider).currentTaskId == task.id;
 
-    // 設置為當前任務
+// Set as current task
     taskNotifier.setCurrentTask(task.id);
 
-    // 如果不是當前任務，或計時器已停止，則重置並開始
+    // If not current task or timer is stopped, reset and start
     if (!isCurrentTask || ref.read(timerProvider).isStopped) {
-      // 切換到番茄鐘畫面
+      // Switch to timer screen
       context.go('/timer');
 
-      // 自動開始計時
+      // Auto-start timer
       Future.delayed(const Duration(milliseconds: 300), () {
         timerNotifier.startTimer();
       });
 
-      // 顯示提示訊息
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.startFocus(task.title)),
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-        ),
+      // Show notification message
+      SnackBarUtil.showInfoSnackBar(
+        context,
+        message: l10n.startFocus(task.title),
       );
     } else {
-      // 已經是當前任務，只切換畫面
+      // Already current task, just switch screens
       context.go('/timer');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.continueTask(task.title)),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-        ),
+      SnackBarUtil.showInfoSnackBar(
+        context,
+        message: l10n.continueTask(task.title),
       );
     }
   }

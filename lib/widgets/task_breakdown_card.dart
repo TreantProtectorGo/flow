@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/chat_message.dart';
 import '../models/task.dart';
 import '../providers/task_provider.dart';
+import '../utils/snackbar_util.dart';
 import '../l10n/app_localizations.dart';
 import 'task_plan_editor.dart';
 
@@ -229,13 +230,9 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
         setState(() {
           _tasksCreated = true;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.tasksCreatedSuccess(widget.taskPlan.tasks.length),
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
+        SnackBarUtil.showSuccessSnackBar(
+          context,
+          message: l10n.tasksCreatedSuccess(widget.taskPlan.tasks.length),
         );
 
         // 返回到任務頁面
@@ -244,12 +241,9 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
     } catch (e) {
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.failedToCreateTasks),
-            showCloseIcon: true,
-            behavior: SnackBarBehavior.floating,
-          ),
+        SnackBarUtil.showErrorSnackBar(
+          context,
+          message: l10n.failedToCreateTasks,
         );
       }
     } finally {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/chat_message.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import '../utils/snackbar_util.dart';
 import '../l10n/app_localizations.dart';
 
 class ChatMessageBubble extends StatefulWidget {
@@ -138,17 +139,9 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
                             Clipboard.setData(
                               ClipboardData(text: widget.message.content),
                             );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.copiedToClipboard,
-                                ),
-                                behavior: SnackBarBehavior.floating,
-                                width: 200,
-                                duration: const Duration(seconds: 2),
-                              ),
+                            SnackBarUtil.showInfoSnackBar(
+                              context,
+                              message: AppLocalizations.of(context)!.copiedToClipboard,
                             );
                           },
                           borderRadius: BorderRadius.circular(12),

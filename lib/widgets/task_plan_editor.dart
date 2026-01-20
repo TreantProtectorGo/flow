@@ -5,6 +5,7 @@ import '../models/task.dart';
 import '../providers/task_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/priority_utils.dart';
+import '../utils/snackbar_util.dart';
 import 'dialogs/delete_confirmation_dialog.dart';
 
 /// Task Plan Editor - Allows users to adjust AI-generated plans before importing
@@ -343,21 +344,17 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
 
   Future<void> _handleSaveAndCreate() async {
     if (_editablePlan.mainGoal.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.mainGoalRequired),
-          behavior: SnackBarBehavior.floating,
-        ),
+      SnackBarUtil.showErrorSnackBar(
+        context,
+        message: AppLocalizations.of(context)!.mainGoalRequired,
       );
       return;
     }
 
     if (_editablePlan.tasks.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.atLeastOneTaskRequired),
-          behavior: SnackBarBehavior.floating,
-        ),
+      SnackBarUtil.showErrorSnackBar(
+        context,
+        message: AppLocalizations.of(context)!.atLeastOneTaskRequired,
       );
       return;
     }
@@ -407,11 +404,9 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.tasksCreatedSuccess(_editablePlan.tasks.length)),
-            behavior: SnackBarBehavior.floating,
-          ),
+        SnackBarUtil.showSuccessSnackBar(
+          context,
+          message: l10n.tasksCreatedSuccess(_editablePlan.tasks.length),
         );
 
         // Pop twice (exit editor and chat screen)
@@ -420,11 +415,9 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.failedToCreateTasks),
-            behavior: SnackBarBehavior.floating,
-          ),
+        SnackBarUtil.showErrorSnackBar(
+          context,
+          message: AppLocalizations.of(context)!.failedToCreateTasks,
         );
       }
     } finally {

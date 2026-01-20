@@ -4,6 +4,7 @@ import '../providers/theme_provider.dart';
 import '../providers/timer_provider.dart';
 import '../providers/statistics_provider.dart';
 import '../providers/locale_provider.dart';
+import '../utils/snackbar_util.dart';
 import '../l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -586,8 +587,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.featureComingSoon(action))),
+              SnackBarUtil.showInfoSnackBar(
+                context,
+                message: l10n.featureComingSoon(action),
               );
             },
             style: ElevatedButton.styleFrom(
