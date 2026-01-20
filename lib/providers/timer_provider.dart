@@ -14,9 +14,9 @@ final timerProvider = ChangeNotifierProvider<TimerProvider>((ref) {
 enum TimerState { stopped, running, paused }
 
 enum TimerMode {
-  focus, // 專注時間 25分鐘
-  shortBreak, // 短休息 5分鐘
-  longBreak, // 長休息 15分鐘
+  focus, // Focus time: 25 minutes
+  shortBreak, // Short break: 5 minutes
+  longBreak, // Long break: 15 minutes
 }
 
 class TimerProvider with ChangeNotifier {
@@ -40,7 +40,7 @@ class TimerProvider with ChangeNotifier {
   int _completedSessions = 0;
   int _totalFocusSessions = 0;
 
-  // 記錄當前番茄鐘的開始時間和 ID
+  // Track current pomodoro session start time and ID
   DateTime? _currentSessionStartTime;
   String? _currentSessionId;
 
@@ -92,7 +92,7 @@ class TimerProvider with ChangeNotifier {
       _updateTimeForCurrentMode();
       notifyListeners();
     } catch (e) {
-      debugPrint('載入番茄鐘設定時發生錯誤: $e');
+      debugPrint('Error loading pomodoro settings: $e');
     }
   }
 
@@ -104,7 +104,7 @@ class TimerProvider with ChangeNotifier {
       await prefs.setInt('longBreakTime', _longBreakTimeInMinutes);
       await prefs.setInt('totalFocusSessions', _totalFocusSessions);
     } catch (e) {
-      debugPrint('保存番茄鐘設定時發生錯誤: $e');
+      debugPrint('Error saving pomodoro settings: $e');
     }
   }
 
@@ -130,11 +130,13 @@ class TimerProvider with ChangeNotifier {
 
     _state = TimerState.running;
 
-    // 記錄番茄鐘開始時間（只在首次開始時記錄，暫停後恢復不重新記錄）
+    // Record session start time (only on first start, resume after pause doesn't restart)
     if (_currentSessionStartTime == null && _mode == TimerMode.focus) {
       _currentSessionStartTime = DateTime.now();
       _currentSessionId = DateTime.now().millisecondsSinceEpoch.toString();
-      debugPrint('⏱️ [TIMER] 開始新的番茄鐘會話 (ID: $_currentSessionId)');
+      debugPrint(
+        '⏱️ [TIMER] Starting new pomodoro session (ID: $_currentSessionId)',
+      );
     }
 
     notifyListeners();
@@ -161,7 +163,7 @@ class TimerProvider with ChangeNotifier {
     _timer?.cancel();
     _state = TimerState.stopped;
 
-    // 如果是專注模式且有開始時間，記錄為未完成的會話
+    // If in focus mode and has start time, record as incomplete session
     if (_mode == TimerMode.focus && _currentSessionStartTime != null) {
       _recordPomodoroSession(completed: false);
     }
@@ -182,23 +184,23 @@ class TimerProvider with ChangeNotifier {
       _completedSessions++;
       _totalFocusSessions++;
 
-      // 記錄完成的番茄鐘會話到資料庫
+      // Record completed pomodoro session to database
       _recordPomodoroSession(completed: true);
 
-      // 通知任務提供者完成了一個番茄鐘
+      // Notify task provider that a pomodoro was completed
       _ref.read(taskProvider.notifier).completePomodoroForCurrentTask();
 
-      // 更新統計數據
+      // Update statistics data
       _ref.read(statisticsProvider.notifier).loadStatistics();
 
-      // 決定下一階段：短休息還是長休息
+      // Decide next phase: short break or long break
       if (_completedSessions % 4 == 0) {
         _mode = TimerMode.longBreak;
       } else {
         _mode = TimerMode.shortBreak;
       }
     } else {
-      // 休息結束，回到專注模式
+      // Break ended, return to focus mode
       _mode = TimerMode.focus;
       _currentSession++;
     }
@@ -208,10 +210,10 @@ class TimerProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// 記錄番茄鐘會話到資料庫
+  /// Record pomodoro session to database
   Future<void> _recordPomodoroSession({required bool completed}) async {
     if (_currentSessionStartTime == null) {
-      debugPrint('⚠️ [TIMER] 無法記錄會話：沒有開始時間');
+      debugPrint('⚠️ [TIMER] Cannot record session: no start time');
       return;
     }
 
@@ -229,23 +231,23 @@ class TimerProvider with ChangeNotifier {
         sessionType: _mode.name,
       );
 
-      debugPrint('✅ [TIMER] 番茄鐘會話已記錄到資料庫');
-      debugPrint('   - 任務: ${currentTask?.title ?? "無關聯任務"}');
-      debugPrint('   - 時長: $duration 分鐘');
-      debugPrint('   - 完成: $completed');
+      debugPrint('✅ [TIMER] Pomodoro session recorded to database');
+      debugPrint('   - Task: ${currentTask?.title ?? "No associated task"}');
+      debugPrint('   - Duration: $duration minutes');
+      debugPrint('   - Completed: $completed');
 
-      // 重置會話追蹤
+      // Reset session tracking
       _currentSessionStartTime = null;
       _currentSessionId = null;
     } catch (e) {
-      debugPrint('❌ [TIMER] 記錄番茄鐘會話失敗: $e');
+      debugPrint('❌ [TIMER] Failed to record pomodoro session: $e');
     }
   }
 
   void switchToFocusMode() {
     if (_mode == TimerMode.focus) return;
 
-    // 如果正在運行專注模式的計時器，先記錄未完成的會話
+    // If a focus timer is running, record the incomplete session first
     if (_state == TimerState.running && _currentSessionStartTime != null) {
       _recordPomodoroSession(completed: false);
     }
@@ -265,7 +267,7 @@ class TimerProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // 設置時間（分鐘）
+  // Set timer duration (in minutes)
   void setFocusTime(int minutes) {
     _focusTimeInMinutes = minutes;
     if (_mode == TimerMode.focus) {

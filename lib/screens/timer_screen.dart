@@ -73,24 +73,21 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
-         child: LayoutBuilder(
+        child: LayoutBuilder(
           builder: (context, constraints) {
             // Calculate responsive sizes based on available space
             final availableHeight = constraints.maxHeight;
-            
+
             // Dynamic spacing based on screen height
             final isCompact = availableHeight < 600;
             final topSpacing = isCompact ? 16.0 : 24.0;
             final sectionSpacing = isCompact ? 20.0 : 32.0;
             final bottomPadding = isCompact ? 16.0 : 24.0;
-            
 
             return SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: availableHeight,
-                ),
+                constraints: BoxConstraints(minHeight: availableHeight),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 20,
@@ -99,16 +96,12 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // 當前任務區域（緊湊版）
-                      _buildCurrentTaskSection(
-                        theme,
-                        currentTask,
-                        l10n,
-                      ),
+                      // Current task section (compact version)
+                      _buildCurrentTaskSection(theme, currentTask, l10n),
 
                       SizedBox(height: sectionSpacing),
 
-                      // 計時器區域 - 動態放大
+                      // Timer section - dynamic sizing
                       _buildTimerSection(
                         theme,
                         timerNotifier,
@@ -118,7 +111,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
 
                       SizedBox(height: sectionSpacing),
 
-                      // 控制按鈕區域
+                      // Control buttons section
                       Padding(
                         padding: EdgeInsets.only(bottom: bottomPadding),
                         child: _buildControlButtons(theme, timerNotifier, l10n),
@@ -261,15 +254,15 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     // Calculate responsive timer size based on BOTH width and height
     final availableWidth = constraints.maxWidth - 40; // Account for padding
     final availableHeight = constraints.maxHeight;
-    
+
     // Calculate max size considering both dimensions
     // Timer should be ~50-60% of the smaller dimension for good proportions
     final widthBasedSize = availableWidth * 0.85; // 85% of available width
     final heightBasedSize = availableHeight * 0.42; // 42% of available height
-    
+
     // Use the smaller of the two to prevent overflow
     final calculatedSize = math.min(widthBasedSize, heightBasedSize);
-    
+
     // Clamp between min (180) and max (360) for reasonable bounds
     final timerSize = calculatedSize.clamp(180.0, 360.0);
 
@@ -280,7 +273,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 圓形進度和時間顯示
+        // Circular progress and time display
         SizedBox(
           width: timerSize,
           height: timerSize,
@@ -367,7 +360,6 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
         ),
 
         const SizedBox(height: 16), // Reduced spacing
-
         // Session info
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -489,10 +481,10 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
 
     if (result != null) {
       if (result == 'clear') {
-        // 清除當前任務選擇
+        // Clear current task selection
         ref.read(taskProvider.notifier).setCurrentTask(null);
       } else if (result is Task) {
-        // 設置新的當前任務
+        // Set new current task
         ref.read(taskProvider.notifier).setCurrentTask(result.id);
       }
     }

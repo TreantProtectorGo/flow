@@ -45,17 +45,17 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
 
     final chatNotifier = ref.read(chatProvider.notifier);
 
-    // 添加用戶訊息
+    // Add user message
     chatNotifier.addUserMessage(text.trim());
     _textController.clear();
 
-    // 滾動到底部
+    // Scroll to bottom
     _scrollToBottom();
 
-    // 生成 AI 回覆
+    // Generate AI response
     await chatNotifier.generateAIResponse(text.trim());
 
-    // 滾動到底部以顯示完整的 AI 回覆
+    // Scroll to bottom to show complete AI response
     _scrollToBottom();
   }
 
@@ -107,7 +107,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
       ),
       body: Column(
         children: [
-          // 錯誤訊息顯示
+          // Error message display
           if (chatState.error != null)
             Container(
               width: double.infinity,
@@ -150,7 +150,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
               ),
             ),
 
-          // 訊息列表
+          // Message list
           Expanded(
             child: chatState.messages.isEmpty
                 ? _buildEmptyState(context)
@@ -165,14 +165,14 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                       final message = chatState.messages[index];
                       return Column(
                         children: [
-                          // 只在內容不為空或沒有任務計劃時顯示訊息氣泡
+                          // Only show message bubble when content is not empty or no task plan
                           if (message.content.isNotEmpty ||
                               message.taskPlan == null)
                             ChatMessageBubble(
                               message: message,
                               key: ValueKey(message.id),
                             ),
-                          // 如果訊息包含任務計劃，顯示任務拆解卡片
+                          // If message contains task plan, show task breakdown card
                           if (message.taskPlan != null)
                             TaskBreakdownCard(taskPlan: message.taskPlan!),
                         ],
@@ -181,7 +181,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                   ),
           ),
 
-          // 輸入區域
+          // Input area
           Container(
             decoration: BoxDecoration(
               color: colorScheme.surface,
@@ -202,7 +202,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // 輸入框
+                // Input field
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
@@ -233,7 +233,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                 ),
                 const SizedBox(width: 8),
 
-                // 發送按鈕
+                // Send button
                 Container(
                   decoration: BoxDecoration(
                     gradient: chatState.isLoading

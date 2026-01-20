@@ -52,7 +52,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
               ],
             ),
 
-            // 內容
+            // Content
             Expanded(
               child: stats.isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -82,7 +82,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 連續天數卡片
+          // Streak days card
           StatsStreakCard(
             streakDays: stats.streakDays,
             todayCompleted: stats.todayCompleted,
@@ -90,7 +90,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
           const SizedBox(height: 20),
 
-          // 每日目標進度
+          // Daily goal progress
           StatsGoalCard(
             title: l10n.todayGoal,
             current: stats.todayCompleted,
@@ -101,7 +101,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
           const SizedBox(height: 20),
 
-          // 今日概覽卡片
+          // Today overview card
           _buildSummaryCard(
             theme: theme,
             title: l10n.todayOverview,
@@ -139,7 +139,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
           const SizedBox(height: 20),
 
-          // 今日時間分布
+          // Today time distribution
           _buildChartCard(
             theme: theme,
             title: l10n.todayTimeDistribution,
@@ -203,7 +203,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 本週概覽
+          // This week overview
           _buildSummaryCard(
             theme: theme,
             title: l10n.thisWeekOverview,
@@ -239,7 +239,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
           const SizedBox(height: 20),
 
-          // 每週目標進度
+          // Weekly goal progress
           StatsGoalCard(
             title: l10n.thisWeekGoal,
             current: stats.weekCompleted,
@@ -250,7 +250,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
           const SizedBox(height: 20),
 
-          // 最佳專注時段分析
+          // Best focus time analysis
           _buildChartCard(
             theme: theme,
             title: l10n.bestFocusTime,
@@ -262,7 +262,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
           const SizedBox(height: 20),
 
-          // 本週趨勢圖
+          // This week trend chart
           _buildChartCard(
             theme: theme,
             title: l10n.thisWeekTrend,
@@ -382,7 +382,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 本月概覽
+          // This month overview
           _buildSummaryCard(
             theme: theme,
             title: l10n.thisMonthOverview,
@@ -418,7 +418,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
           const SizedBox(height: 20),
 
-          // 月度熱力圖
+          // Monthly heatmap
           _buildChartCard(
             theme: theme,
             title: l10n.monthlyHeatmap,
@@ -433,7 +433,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
           const SizedBox(height: 20),
 
-          // 本月趨勢
+          // This month trend
           _buildChartCard(
             theme: theme,
             title: l10n.thisMonthTrend,

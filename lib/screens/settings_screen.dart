@@ -15,14 +15,14 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  // 本地狀態（只用於 UI）
+  // Local state (UI only)
   bool _notifications = true;
   bool _vibration = false;
   bool _aiTaskBreakdown = true;
   bool _smartSuggestions = true;
   bool _dataAnalysis = false;
   bool _cloudSync = true;
-  String _soundEffect = 'bell'; // 使用固定鍵值
+  String _soundEffect = 'bell'; // Use fixed key value
   int _longBreakFrequency = 4;
 
   @override
@@ -32,7 +32,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _loadSettings() async {
-    // TODO: 從 SharedPreferences 載入其他設定
+    // TODO: Load other settings from SharedPreferences
   }
 
   @override
@@ -43,7 +43,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
 
-    // 將 ThemeMode 轉換為字串
+    // Convert ThemeMode to string
     String getThemeModeString(ThemeMode mode) {
       switch (mode) {
         case ThemeMode.light:
@@ -55,12 +55,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     }
 
-    // 將 Locale 轉換為字串
+    // Convert Locale to string
     String getLocaleString(Locale locale) {
       return ref.read(localeProvider.notifier).getLocaleName(locale);
     }
 
-    // 將音效鍵值轉換為顯示文字
+    // Convert sound effect key value to display text
     String getSoundEffectString(String key) {
       switch (key) {
         case 'bell':
@@ -82,7 +82,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           children: [
-            // 用戶資訊
+            // User information
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
@@ -114,7 +114,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
 
-            // 分組：番茄鐘設定
+            // Section: Pomodoro settings
             _buildSectionTitle(AppLocalizations.of(context)!.pomodoroSettings),
             _buildSettingTile(
               icon: Icons.timer,
@@ -186,7 +186,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
 
-            // 分組：目標設定
+            // Section: Goal settings
             _buildSectionTitle(AppLocalizations.of(context)!.goalSettings),
             _buildSettingTile(
               icon: Icons.flag,
@@ -215,7 +215,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
 
-            // 分組：通知設定
+            // Section: Notification settings
             _buildSectionTitle(
               AppLocalizations.of(context)!.notificationSettings,
             ),
@@ -272,7 +272,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
 
-            // 分組：外觀設定
+            // Section: Appearance settings
             _buildSectionTitle(
               AppLocalizations.of(context)!.appearanceSettings,
             ),
@@ -321,7 +321,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
 
-            // 分組：AI 設定
+            // Section: AI settings
             _buildSectionTitle(AppLocalizations.of(context)!.aiSettings),
             _buildSettingTile(
               icon: Icons.psychology,
@@ -360,7 +360,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
 
-            // 分組：數據與同步
+            // Section: Data and sync
             _buildSectionTitle(AppLocalizations.of(context)!.dataAndSync),
             _buildSettingTile(
               icon: Icons.cloud,
@@ -385,7 +385,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
 
-            // 分組：危險區域
+            // Section: Danger zone
             _buildSectionTitle(AppLocalizations.of(context)!.dangerZone),
             _buildSettingTile(
               icon: Icons.delete_forever,
@@ -419,7 +419,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
 
-            // 版本信息
+            // Version information
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 32),
               child: Center(
@@ -448,7 +448,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  // 分組標題
+  // Section title
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 24, 0, 8),
@@ -463,7 +463,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  // 設定項目 ListTile
+  // Settings item ListTile
   Widget _buildSettingTile({
     required IconData icon,
     required Color iconColor,
