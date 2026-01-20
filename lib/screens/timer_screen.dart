@@ -73,56 +73,62 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
-        child: Column(
-          children: [
-            // 主要内容區域
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return Center(
-                    child: SingleChildScrollView(
-                      physics: const ClampingScrollPhysics(),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
-                          maxWidth: 400,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // 當前任務區域
-                              _buildCurrentTaskSection(
-                                theme,
-                                currentTask,
-                                l10n,
-                              ),
+         child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Calculate responsive sizes based on available space
+            final availableHeight = constraints.maxHeight;
+            
+            // Dynamic spacing based on screen height
+            final isCompact = availableHeight < 600;
+            final topSpacing = isCompact ? 16.0 : 24.0;
+            final sectionSpacing = isCompact ? 20.0 : 32.0;
+            final bottomPadding = isCompact ? 16.0 : 24.0;
+            
 
-                              const SizedBox(height: 40),
-
-                              // 計時器區域 - Pass constraints for responsive sizing
-                              _buildTimerSection(
-                                theme,
-                                timerNotifier,
-                                constraints,
-                                l10n,
-                              ),
-
-                              const SizedBox(height: 40),
-
-                              // 控制按鈕區域
-                              _buildControlButtons(theme, timerNotifier, l10n),
-                            ],
-                          ),
-                        ),
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: availableHeight,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: topSpacing,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // 當前任務區域（緊湊版）
+                      _buildCurrentTaskSection(
+                        theme,
+                        currentTask,
+                        l10n,
                       ),
-                    ),
-                  );
-                },
+
+                      SizedBox(height: sectionSpacing),
+
+                      // 計時器區域 - 動態放大
+                      _buildTimerSection(
+                        theme,
+                        timerNotifier,
+                        constraints,
+                        l10n,
+                      ),
+
+                      SizedBox(height: sectionSpacing),
+
+                      // 控制按鈕區域
+                      Padding(
+                        padding: EdgeInsets.only(bottom: bottomPadding),
+                        child: _buildControlButtons(theme, timerNotifier, l10n),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -252,19 +258,27 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     BoxConstraints constraints,
     AppLocalizations l10n,
   ) {
-    // Calculate responsive timer size
-    final screenWidth = constraints.maxWidth;
-    final availableWidth = screenWidth - 40; // Account for padding
-    final maxSize = math.min(
-      280.0,
-      availableWidth * 0.8,
-    ); // Max 80% of available width
-    final timerSize = math.max(200.0, maxSize); // Minimum size of 200
+    // Calculate responsive timer size based on BOTH width and height
+    final availableWidth = constraints.maxWidth - 40; // Account for padding
+    final availableHeight = constraints.maxHeight;
+    
+    // Calculate max size considering both dimensions
+    // Timer should be ~50-60% of the smaller dimension for good proportions
+    final widthBasedSize = availableWidth * 0.85; // 85% of available width
+    final heightBasedSize = availableHeight * 0.42; // 42% of available height
+    
+    // Use the smaller of the two to prevent overflow
+    final calculatedSize = math.min(widthBasedSize, heightBasedSize);
+    
+    // Clamp between min (180) and max (360) for reasonable bounds
+    final timerSize = calculatedSize.clamp(180.0, 360.0);
 
-    // Adjust font size based on timer size
-    final fontSize = (timerSize / 280) * 48; // Scale font proportionally
+    // Adjust font size based on timer size (proportionally larger)
+    final fontSize = (timerSize / 280) * 52; // Slightly larger font
+    final strokeWidth = (timerSize / 280) * 10; // Slightly thicker stroke
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         // 圓形進度和時間顯示
         SizedBox(
@@ -302,8 +316,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                               color: timerNotifier.isFocusMode
                                   ? theme.colorScheme.primary
                                   : theme.colorScheme.secondary,
-                              strokeWidth:
-                                  (timerSize / 280) * 8, // Scale stroke width
+                              strokeWidth: strokeWidth,
                             ),
                           );
                         },
@@ -353,11 +366,11 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 16), // Reduced spacing
 
         // Session info
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerHighest.withValues(
               alpha: 0.5,
@@ -372,7 +385,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                 size: 16,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(width: 8),
               Text(
                 l10n.completedSessions(timerNotifier.completedSessions),
                 style: theme.textTheme.bodyMedium?.copyWith(
