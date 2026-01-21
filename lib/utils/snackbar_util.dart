@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// 顯示 Snackbar 的工具類
-/// 確保同一時間只顯示一個 Snackbar
+/// Utility class for showing Snackbar
+/// Ensures only one Snackbar is shown at a time
 class SnackBarUtil {
-  /// 顯示簡單的提示訊息
+  /// Show simple info message
   static void showInfoSnackBar(
     BuildContext context, {
     required String message,
@@ -20,7 +20,7 @@ class SnackBarUtil {
     );
   }
 
-  /// 顯示成功訊息的 Snackbar
+  /// Show success message Snackbar
   static void showSuccessSnackBar(
     BuildContext context, {
     required String message,
@@ -36,7 +36,7 @@ class SnackBarUtil {
     );
   }
 
-  /// 顯示錯誤訊息的 Snackbar
+  /// Show error message Snackbar
   static void showErrorSnackBar(
     BuildContext context, {
     required String message,
@@ -52,7 +52,7 @@ class SnackBarUtil {
     );
   }
 
-  /// 基礎 Snackbar 顯示方法
+  /// Base Snackbar display method
   static void _showSnackBar(
     BuildContext context, {
     required String message,
@@ -60,7 +60,7 @@ class SnackBarUtil {
     Duration duration = const Duration(seconds: 4),
     SnackBarAction? action,
   }) {
-    // 在顯示新 Snackbar 之前，先清除當前顯示的 Snackbar
+    // Hide current Snackbar before showing new one
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     final theme = Theme.of(context);
@@ -70,10 +70,7 @@ class SnackBarUtil {
         content: Row(
           children: [
             if (icon != null) ...[
-              Icon(
-                icon,
-                color: theme.colorScheme.onInverseSurface,
-              ),
+              Icon(icon, color: theme.colorScheme.onInverseSurface),
               const SizedBox(width: 12),
             ],
             Expanded(
@@ -84,7 +81,9 @@ class SnackBarUtil {
             ),
           ],
         ),
-        backgroundColor: theme.colorScheme.inverseSurface.withValues(alpha: 0.9),
+        backgroundColor: theme.colorScheme.inverseSurface.withValues(
+          alpha: 0.9,
+        ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         margin: const EdgeInsets.all(16),
