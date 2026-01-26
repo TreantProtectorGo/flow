@@ -9,7 +9,7 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appTitle => 'FocusAI';
+  String get appTitle => 'Flow';
 
   @override
   String get taskPlan => '任务计划';
@@ -552,10 +552,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deleteAccountSubtitle => '永久刪除您的帳號和所有資料';
 
   @override
-  String get version => 'FocusAI v1.0.0';
+  String get version => 'Flow v1.0.0';
 
   @override
-  String get copyright => '© 2024 FocusAI Team';
+  String get copyright => '© 2024 Flow Team';
 
   @override
   String get pending => '待辦事項';
@@ -859,7 +859,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   AppLocalizationsZhTw() : super('zh_TW');
 
   @override
-  String get appTitle => 'FocusAI';
+  String get appTitle => 'Flow';
 
   @override
   String get taskPlan => '任務計劃';
@@ -1402,10 +1402,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get deleteAccountSubtitle => '永久刪除您的帳號和所有資料';
 
   @override
-  String get version => 'FocusAI v1.0.0';
+  String get version => 'Flow v1.0.0';
 
   @override
-  String get copyright => '© 2024 FocusAI Team';
+  String get copyright => '© 2024 Flow Team';
 
   @override
   String get pending => '待辦事項';

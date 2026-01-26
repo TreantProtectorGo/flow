@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'FocusAI';
+  String get appTitle => 'Flow';
 
   @override
   String get taskPlan => 'Task Plan';
@@ -560,10 +560,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Permanently delete your account and all data';
 
   @override
-  String get version => 'FocusAI v1.0.0';
+  String get version => 'Flow v1.0.0';
 
   @override
-  String get copyright => '© 2024 FocusAI Team';
+  String get copyright => '© 2024 Flow Team';
 
   @override
   String get pending => 'To Do';

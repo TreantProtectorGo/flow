@@ -102,7 +102,7 @@ abstract class AppLocalizations {
   /// 應用程式標題
   ///
   /// In zh, this message translates to:
-  /// **'FocusAI'**
+  /// **'Flow'**
   String get appTitle;
 
   /// No description provided for @taskPlan.
@@ -1140,13 +1140,13 @@ abstract class AppLocalizations {
   /// No description provided for @version.
   ///
   /// In zh, this message translates to:
-  /// **'FocusAI v1.0.0'**
+  /// **'Flow v1.0.0'**
   String get version;
 
   /// No description provided for @copyright.
   ///
   /// In zh, this message translates to:
-  /// **'© 2024 FocusAI Team'**
+  /// **'© 2024 Flow Team'**
   String get copyright;
 
   /// No description provided for @pending.
