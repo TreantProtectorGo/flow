@@ -8,6 +8,7 @@ import '../providers/locale_provider.dart';
 import '../providers/settings_provider.dart';
 import '../utils/snackbar_util.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/dialogs/confirmation_dialog.dart';
 import 'settings_selection_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -105,8 +106,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.primary,
               title: AppLocalizations.of(context)!.focusDuration,
               subtitle: AppLocalizations.of(context)!.focusDurationSubtitle,
-              valueText: AppLocalizations.of(context)!
-                  .minutesUnit(timerSettings.focusTimeInMinutes),
+              valueText: AppLocalizations.of(
+                context,
+              )!.minutesUnit(timerSettings.focusTimeInMinutes),
               onTap: () => _navigateToSelectionScreen<int>(
                 title: AppLocalizations.of(context)!.focusDuration,
                 currentValue: timerSettings.focusTimeInMinutes,
@@ -123,8 +125,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.primary,
               title: AppLocalizations.of(context)!.shortBreakDuration,
               subtitle: AppLocalizations.of(context)!.shortBreakSubtitle,
-              valueText: AppLocalizations.of(context)!
-                  .minutesUnit(timerSettings.shortBreakTimeInMinutes),
+              valueText: AppLocalizations.of(
+                context,
+              )!.minutesUnit(timerSettings.shortBreakTimeInMinutes),
               onTap: () => _navigateToSelectionScreen<int>(
                 title: AppLocalizations.of(context)!.shortBreakDuration,
                 currentValue: timerSettings.shortBreakTimeInMinutes,
@@ -141,8 +144,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.primary,
               title: AppLocalizations.of(context)!.longBreakDuration,
               subtitle: AppLocalizations.of(context)!.longBreakSubtitle,
-              valueText: AppLocalizations.of(context)!
-                  .minutesUnit(timerSettings.longBreakTimeInMinutes),
+              valueText: AppLocalizations.of(
+                context,
+              )!.minutesUnit(timerSettings.longBreakTimeInMinutes),
               onTap: () => _navigateToSelectionScreen<int>(
                 title: AppLocalizations.of(context)!.longBreakDuration,
                 currentValue: timerSettings.longBreakTimeInMinutes,
@@ -158,7 +162,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               icon: Icons.repeat,
               iconColor: theme.colorScheme.primary,
               title: AppLocalizations.of(context)!.longBreakFrequency,
-              subtitle: AppLocalizations.of(context)!.longBreakFrequencySubtitle,
+              subtitle: AppLocalizations.of(
+                context,
+              )!.longBreakFrequencySubtitle,
               valueText: '${appSettings.longBreakFrequency}',
               onTap: () => _navigateToSelectionScreen<int>(
                 title: AppLocalizations.of(context)!.longBreakFrequency,
@@ -296,45 +302,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   } else {
                     ref.read(localeProvider.notifier).setEnglish();
                   }
-                },
-              ),
-            ),
-
-            // Section: AI settings
-            _buildSectionTitle(AppLocalizations.of(context)!.aiSettings),
-            _buildSettingTile(
-              icon: Icons.psychology,
-              iconColor: theme.colorScheme.secondary,
-              title: AppLocalizations.of(context)!.aiTaskBreakdown,
-              subtitle: AppLocalizations.of(context)!.aiTaskBreakdownSubtitle,
-              trailing: Switch(
-                value: appSettings.aiTaskBreakdown,
-                onChanged: (value) {
-                  ref.read(settingsProvider.notifier).setAITaskBreakdown(value);
-                },
-              ),
-            ),
-            _buildSettingTile(
-              icon: Icons.lightbulb,
-              iconColor: theme.colorScheme.secondary,
-              title: AppLocalizations.of(context)!.smartSuggestions,
-              subtitle: AppLocalizations.of(context)!.smartSuggestionsSubtitle,
-              trailing: Switch(
-                value: appSettings.smartSuggestions,
-                onChanged: (value) {
-                  ref.read(settingsProvider.notifier).setSmartSuggestions(value);
-                },
-              ),
-            ),
-            _buildSettingTile(
-              icon: Icons.analytics,
-              iconColor: theme.colorScheme.secondary,
-              title: AppLocalizations.of(context)!.dataAnalysis,
-              subtitle: AppLocalizations.of(context)!.dataAnalysisSubtitle,
-              trailing: Switch(
-                value: appSettings.dataAnalysis,
-                onChanged: (value) {
-                  ref.read(settingsProvider.notifier).setDataAnalysis(value);
+                  Navigator.of(context).pop();
                 },
               ),
             ),
@@ -453,7 +421,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     Widget? trailing,
   }) {
     final theme = Theme.of(context);
-    
+
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: iconColor.withOpacity(0.15),
@@ -461,7 +429,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: trailing ??
+      trailing:
+          trailing ??
           (valueText != null
               ? Row(
                   mainAxisSize: MainAxisSize.min,
@@ -509,36 +478,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-
-
-  void _showConfirmDialog(String action) {
+  Future<void> _showConfirmDialog(String action) async {
     final l10n = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.confirmAction(action)),
-        content: Text(l10n.confirmActionMessage(action)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              SnackBarUtil.showInfoSnackBar(
-                context,
-                message: l10n.featureComingSoon(action),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFDC2626),
-              foregroundColor: Colors.white,
-            ),
-            child: Text(l10n.confirm),
-          ),
-        ],
-      ),
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: l10n.confirmAction(action),
+      content: l10n.confirmActionMessage(action),
+      confirmText: l10n.confirm,
+      cancelText: l10n.cancel,
+      isDangerous: true,
     );
+
+    if (confirmed == true && mounted) {
+      SnackBarUtil.showInfoSnackBar(
+        context,
+        message: l10n.featureComingSoon(action),
+      );
+    }
   }
 }
