@@ -80,13 +80,24 @@ class _MainScreenState extends State<MainScreen> {
     final navigationItems = _getNavigationItems(context);
     return Scaffold(
       body: widget.child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: _onItemTapped,
-        // DRY: Each item knows how to convert itself to a destination
-        destinations: navigationItems
-            .map((item) => item.toDestination())
-            .toList(),
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const TextStyle(fontSize: 13);
+            }
+            return const TextStyle(fontSize: 13);
+          }),
+          iconTheme: WidgetStateProperty.all(const IconThemeData(size: 26)),
+        ),
+        child: NavigationBar(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: _onItemTapped,
+          // DRY: Each item knows how to convert itself to a destination
+          destinations: navigationItems
+              .map((item) => item.toDestination())
+              .toList(),
+        ),
       ),
     );
   }
