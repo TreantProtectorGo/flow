@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/theme_provider.dart';
 import '../providers/timer_provider.dart';
 import '../providers/statistics_provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/settings_provider.dart';
 import '../utils/snackbar_util.dart';
 import '../l10n/app_localizations.dart';
+import 'settings_selection_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -15,26 +18,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  // Local state (UI only)
-  bool _notifications = true;
-  bool _vibration = false;
-  bool _aiTaskBreakdown = true;
-  bool _smartSuggestions = true;
-  bool _dataAnalysis = false;
-  bool _cloudSync = true;
-  String _soundEffect = 'bell'; // Use fixed key value
-  int _longBreakFrequency = 4;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSettings();
-  }
-
-  Future<void> _loadSettings() async {
-    // TODO: Load other settings from SharedPreferences
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -42,6 +25,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final statsProvider = ref.watch(statisticsProvider);
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
+    final appSettings = ref.watch(settingsProvider);
 
     // Convert ThemeMode to string
     String getThemeModeString(ThemeMode mode) {
@@ -121,10 +105,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.primary,
               title: AppLocalizations.of(context)!.focusDuration,
               subtitle: AppLocalizations.of(context)!.focusDurationSubtitle,
-              trailing: _buildTimeSelector(
-                timerSettings.focusTimeInMinutes,
-                [15, 20, 25, 30, 45, 60],
-                (value) {
+              valueText: AppLocalizations.of(context)!
+                  .minutesUnit(timerSettings.focusTimeInMinutes),
+              onTap: () => _navigateToSelectionScreen<int>(
+                title: AppLocalizations.of(context)!.focusDuration,
+                currentValue: timerSettings.focusTimeInMinutes,
+                options: [15, 20, 25, 30, 45, 60],
+                getLabel: (value) =>
+                    AppLocalizations.of(context)!.minutesUnit(value),
+                onSelected: (value) {
                   ref.read(timerProvider.notifier).setFocusTime(value);
                 },
               ),
@@ -134,10 +123,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.primary,
               title: AppLocalizations.of(context)!.shortBreakDuration,
               subtitle: AppLocalizations.of(context)!.shortBreakSubtitle,
-              trailing: _buildTimeSelector(
-                timerSettings.shortBreakTimeInMinutes,
-                [5, 10, 15],
-                (value) {
+              valueText: AppLocalizations.of(context)!
+                  .minutesUnit(timerSettings.shortBreakTimeInMinutes),
+              onTap: () => _navigateToSelectionScreen<int>(
+                title: AppLocalizations.of(context)!.shortBreakDuration,
+                currentValue: timerSettings.shortBreakTimeInMinutes,
+                options: [5, 10, 15],
+                getLabel: (value) =>
+                    AppLocalizations.of(context)!.minutesUnit(value),
+                onSelected: (value) {
                   ref.read(timerProvider.notifier).setShortBreakTime(value);
                 },
               ),
@@ -147,10 +141,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.primary,
               title: AppLocalizations.of(context)!.longBreakDuration,
               subtitle: AppLocalizations.of(context)!.longBreakSubtitle,
-              trailing: _buildTimeSelector(
-                timerSettings.longBreakTimeInMinutes,
-                [15, 20, 25, 30],
-                (value) {
+              valueText: AppLocalizations.of(context)!
+                  .minutesUnit(timerSettings.longBreakTimeInMinutes),
+              onTap: () => _navigateToSelectionScreen<int>(
+                title: AppLocalizations.of(context)!.longBreakDuration,
+                currentValue: timerSettings.longBreakTimeInMinutes,
+                options: [15, 20, 25, 30],
+                getLabel: (value) =>
+                    AppLocalizations.of(context)!.minutesUnit(value),
+                onSelected: (value) {
                   ref.read(timerProvider.notifier).setLongBreakTime(value);
                 },
               ),
@@ -159,30 +158,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               icon: Icons.repeat,
               iconColor: theme.colorScheme.primary,
               title: AppLocalizations.of(context)!.longBreakFrequency,
-              subtitle: AppLocalizations.of(
-                context,
-              )!.longBreakFrequencySubtitle,
-              trailing: DropdownButton<int>(
-                value: _longBreakFrequency,
-                items: [2, 3, 4, 5, 6]
-                    .map(
-                      (value) => DropdownMenuItem<int>(
-                        value: value,
-                        child: Text('$value'),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _longBreakFrequency = value);
-                  }
+              subtitle: AppLocalizations.of(context)!.longBreakFrequencySubtitle,
+              valueText: '${appSettings.longBreakFrequency}',
+              onTap: () => _navigateToSelectionScreen<int>(
+                title: AppLocalizations.of(context)!.longBreakFrequency,
+                currentValue: appSettings.longBreakFrequency,
+                options: [2, 3, 4, 5, 6],
+                getLabel: (value) => '$value',
+                onSelected: (value) {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setLongBreakFrequency(value);
                 },
-                underline: Container(),
-                borderRadius: BorderRadius.circular(16),
-                dropdownColor: theme.colorScheme.surfaceContainerHighest,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
               ),
             ),
 
@@ -193,10 +180,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.tertiary,
               title: AppLocalizations.of(context)!.dailyGoalTitle,
               subtitle: AppLocalizations.of(context)!.dailyGoalSubtitle,
-              trailing: _buildGoalSelector(
-                statsProvider.dailyGoal,
-                [4, 6, 8, 10, 12],
-                (value) {
+              valueText: '${statsProvider.dailyGoal}',
+              onTap: () => _navigateToSelectionScreen<int>(
+                title: AppLocalizations.of(context)!.dailyGoalTitle,
+                currentValue: statsProvider.dailyGoal,
+                options: [4, 6, 8, 10, 12],
+                getLabel: (value) => '$value',
+                onSelected: (value) {
                   ref.read(statisticsProvider.notifier).setDailyGoal(value);
                 },
               ),
@@ -206,10 +196,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.tertiary,
               title: AppLocalizations.of(context)!.weeklyGoalTitle,
               subtitle: AppLocalizations.of(context)!.weeklyGoalSubtitle,
-              trailing: _buildGoalSelector(
-                statsProvider.weeklyGoal,
-                [20, 30, 40, 50, 60],
-                (value) {
+              valueText: '${statsProvider.weeklyGoal}',
+              onTap: () => _navigateToSelectionScreen<int>(
+                title: AppLocalizations.of(context)!.weeklyGoalTitle,
+                currentValue: statsProvider.weeklyGoal,
+                options: [20, 30, 40, 50, 60],
+                getLabel: (value) => '$value',
+                onSelected: (value) {
                   ref.read(statisticsProvider.notifier).setWeeklyGoal(value);
                 },
               ),
@@ -225,9 +218,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               title: AppLocalizations.of(context)!.pushNotifications,
               subtitle: AppLocalizations.of(context)!.pushNotificationsSubtitle,
               trailing: Switch(
-                value: _notifications,
+                value: appSettings.notifications,
                 onChanged: (value) {
-                  setState(() => _notifications = value);
+                  ref.read(settingsProvider.notifier).setNotifications(value);
                 },
               ),
             ),
@@ -236,26 +229,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.secondary,
               title: AppLocalizations.of(context)!.soundEffect,
               subtitle: AppLocalizations.of(context)!.soundEffectSubtitle,
-              trailing: _buildDropdown<String>(
-                getSoundEffectString(_soundEffect),
-                [
-                  AppLocalizations.of(context)!.soundBell,
-                  AppLocalizations.of(context)!.soundBird,
-                  AppLocalizations.of(context)!.soundWave,
-                  AppLocalizations.of(context)!.soundNone,
-                ],
-                (value) {
-                  String key = 'bell';
-                  if (value == AppLocalizations.of(context)!.soundBell) {
-                    key = 'bell';
-                  } else if (value == AppLocalizations.of(context)!.soundBird) {
-                    key = 'bird';
-                  } else if (value == AppLocalizations.of(context)!.soundWave) {
-                    key = 'wave';
-                  } else if (value == AppLocalizations.of(context)!.soundNone) {
-                    key = 'none';
-                  }
-                  setState(() => _soundEffect = key);
+              valueText: getSoundEffectString(appSettings.soundEffect),
+              onTap: () => _navigateToSelectionScreen<String>(
+                title: AppLocalizations.of(context)!.soundEffect,
+                currentValue: appSettings.soundEffect,
+                options: ['bell', 'bird', 'wave', 'none'],
+                getLabel: (value) => getSoundEffectString(value),
+                onSelected: (value) {
+                  ref.read(settingsProvider.notifier).setSoundEffect(value);
                 },
               ),
             ),
@@ -265,9 +246,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               title: AppLocalizations.of(context)!.vibration,
               subtitle: AppLocalizations.of(context)!.vibrationSubtitle,
               trailing: Switch(
-                value: _vibration,
+                value: appSettings.vibration,
                 onChanged: (value) {
-                  setState(() => _vibration = value);
+                  ref.read(settingsProvider.notifier).setVibration(value);
                 },
               ),
             ),
@@ -281,20 +262,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.primary,
               title: AppLocalizations.of(context)!.themeMode,
               subtitle: AppLocalizations.of(context)!.themeModeSubtitle,
-              trailing: _buildDropdown<String>(
-                getThemeModeString(themeMode),
-                [
-                  AppLocalizations.of(context)!.themeSystem,
-                  AppLocalizations.of(context)!.themeLight,
-                  AppLocalizations.of(context)!.themeDark,
-                ],
-                (value) {
-                  if (value == AppLocalizations.of(context)!.themeSystem) {
+              valueText: getThemeModeString(themeMode),
+              onTap: () => _navigateToSelectionScreen<ThemeMode>(
+                title: AppLocalizations.of(context)!.themeMode,
+                currentValue: themeMode,
+                options: [ThemeMode.system, ThemeMode.light, ThemeMode.dark],
+                getLabel: (value) => getThemeModeString(value),
+                onSelected: (value) {
+                  if (value == ThemeMode.system) {
                     ref.read(themeModeProvider.notifier).setSystemTheme();
-                  } else if (value ==
-                      AppLocalizations.of(context)!.themeLight) {
+                  } else if (value == ThemeMode.light) {
                     ref.read(themeModeProvider.notifier).setLightTheme();
-                  } else if (value == AppLocalizations.of(context)!.themeDark) {
+                  } else if (value == ThemeMode.dark) {
                     ref.read(themeModeProvider.notifier).setDarkTheme();
                   }
                 },
@@ -305,17 +284,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.primary,
               title: AppLocalizations.of(context)!.language,
               subtitle: AppLocalizations.of(context)!.languageSubtitle,
-              trailing: _buildDropdown<String>(
-                getLocaleString(locale),
-                ['繁體中文', 'English'],
-                (value) {
-                  switch (value) {
-                    case '繁體中文':
-                      ref.read(localeProvider.notifier).setTraditionalChinese();
-                      break;
-                    case 'English':
-                      ref.read(localeProvider.notifier).setEnglish();
-                      break;
+              valueText: getLocaleString(locale),
+              onTap: () => _navigateToSelectionScreen<String>(
+                title: AppLocalizations.of(context)!.language,
+                currentValue: locale.languageCode == 'zh' ? 'zh' : 'en',
+                options: ['zh', 'en'],
+                getLabel: (value) => value == 'zh' ? '繁體中文' : 'English',
+                onSelected: (value) {
+                  if (value == 'zh') {
+                    ref.read(localeProvider.notifier).setTraditionalChinese();
+                  } else {
+                    ref.read(localeProvider.notifier).setEnglish();
                   }
                 },
               ),
@@ -329,9 +308,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               title: AppLocalizations.of(context)!.aiTaskBreakdown,
               subtitle: AppLocalizations.of(context)!.aiTaskBreakdownSubtitle,
               trailing: Switch(
-                value: _aiTaskBreakdown,
+                value: appSettings.aiTaskBreakdown,
                 onChanged: (value) {
-                  setState(() => _aiTaskBreakdown = value);
+                  ref.read(settingsProvider.notifier).setAITaskBreakdown(value);
                 },
               ),
             ),
@@ -341,9 +320,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               title: AppLocalizations.of(context)!.smartSuggestions,
               subtitle: AppLocalizations.of(context)!.smartSuggestionsSubtitle,
               trailing: Switch(
-                value: _smartSuggestions,
+                value: appSettings.smartSuggestions,
                 onChanged: (value) {
-                  setState(() => _smartSuggestions = value);
+                  ref.read(settingsProvider.notifier).setSmartSuggestions(value);
                 },
               ),
             ),
@@ -353,9 +332,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               title: AppLocalizations.of(context)!.dataAnalysis,
               subtitle: AppLocalizations.of(context)!.dataAnalysisSubtitle,
               trailing: Switch(
-                value: _dataAnalysis,
+                value: appSettings.dataAnalysis,
                 onChanged: (value) {
-                  setState(() => _dataAnalysis = value);
+                  ref.read(settingsProvider.notifier).setDataAnalysis(value);
                 },
               ),
             ),
@@ -368,9 +347,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               title: AppLocalizations.of(context)!.cloudSync,
               subtitle: AppLocalizations.of(context)!.cloudSyncSubtitle,
               trailing: Switch(
-                value: _cloudSync,
+                value: appSettings.cloudSync,
                 onChanged: (value) {
-                  setState(() => _cloudSync = value);
+                  ref.read(settingsProvider.notifier).setCloudSync(value);
                 },
               ),
             ),
@@ -468,109 +447,69 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required IconData icon,
     required Color iconColor,
     required String title,
-    required String subtitle,
-    required Widget trailing,
+    String? subtitle,
+    String? valueText,
+    VoidCallback? onTap,
+    Widget? trailing,
   }) {
+    final theme = Theme.of(context);
+    
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: iconColor.withOpacity(0.15),
         child: Icon(icon, color: iconColor),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle),
-      trailing: trailing,
+      subtitle: subtitle != null ? Text(subtitle) : null,
+      trailing: trailing ??
+          (valueText != null
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      valueText,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 20,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                )
+              : null),
+      onTap: onTap,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
       minLeadingWidth: 36,
     );
   }
 
-  Widget _buildTimeSelector(
-    int currentValue,
-    List<int> options,
-    ValueChanged<int> onChanged,
-  ) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    return DropdownButton<int>(
-      value: currentValue,
-      items: options
-          .map(
-            (value) => DropdownMenuItem<int>(
-              value: value,
-              child: Text(l10n.minutesUnit(value)),
-            ),
-          )
-          .toList(),
-      onChanged: (value) {
-        if (value != null) {
-          onChanged(value);
-        }
-      },
-      underline: Container(),
-      borderRadius: BorderRadius.circular(16),
-      dropdownColor: theme.colorScheme.surfaceContainerHighest,
-      style: theme.textTheme.bodyMedium?.copyWith(
-        color: theme.colorScheme.onSurface,
+  // Navigate to selection screen
+  void _navigateToSelectionScreen<T>({
+    required String title,
+    required T currentValue,
+    required List<T> options,
+    required String Function(T) getLabel,
+    required ValueChanged<T> onSelected,
+  }) {
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (context) => SettingsSelectionScreen<T>(
+          title: title,
+          currentValue: currentValue,
+          options: options,
+          getLabel: getLabel,
+          onSelected: onSelected,
+        ),
       ),
     );
   }
 
-  Widget _buildGoalSelector(
-    int currentValue,
-    List<int> options,
-    ValueChanged<int> onChanged,
-  ) {
-    final theme = Theme.of(context);
-    return DropdownButton<int>(
-      value: currentValue,
-      items: options
-          .map(
-            (value) =>
-                DropdownMenuItem<int>(value: value, child: Text('$value')),
-          )
-          .toList(),
-      onChanged: (value) {
-        if (value != null) {
-          onChanged(value);
-        }
-      },
-      underline: Container(),
-      borderRadius: BorderRadius.circular(16),
-      dropdownColor: theme.colorScheme.surfaceContainerHighest,
-      style: theme.textTheme.bodyMedium?.copyWith(
-        color: theme.colorScheme.onSurface,
-      ),
-    );
-  }
 
-  Widget _buildDropdown<T>(T value, List<T> items, ValueChanged<T?> onChanged) {
-    final theme = Theme.of(context);
-    return DropdownButton<T>(
-      value: value,
-      items: items
-          .map(
-            (item) => DropdownMenuItem<T>(
-              value: item,
-              child: Text(
-                item.toString(),
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-            ),
-          )
-          .toList(),
-      onChanged: onChanged,
-      underline: Container(),
-      borderRadius: BorderRadius.circular(16),
-      dropdownColor: theme.colorScheme.surfaceContainerHighest,
-      style: theme.textTheme.bodyMedium?.copyWith(
-        color: theme.colorScheme.onSurface,
-      ),
-    );
-  }
 
   void _showConfirmDialog(String action) {
     final l10n = AppLocalizations.of(context)!;
