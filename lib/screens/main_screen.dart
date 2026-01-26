@@ -81,11 +81,12 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: widget.child,
       bottomNavigationBar: NavigationBar(
-        height: 65,
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
         // DRY: Each item knows how to convert itself to a destination
-        destinations: navigationItems.map((item) => item.toDestination()).toList(),
+        destinations: navigationItems
+            .map((item) => item.toDestination())
+            .toList(),
       ),
     );
   }
@@ -110,11 +111,9 @@ class NavigationItem {
   /// Converts this item to a NavigationDestination widget (DRY)
   NavigationDestination toDestination() {
     return NavigationDestination(
-      icon: isSymbolIcon 
-          ? Icon(icon, fill: 0) 
-          : Icon(icon),
-      selectedIcon: isSymbolIcon 
-          ? Icon(selectedIcon, fill: 1) 
+      icon: isSymbolIcon ? Icon(icon, fill: 0) : Icon(icon),
+      selectedIcon: isSymbolIcon
+          ? Icon(selectedIcon, fill: 1)
           : Icon(selectedIcon),
       label: label,
     );

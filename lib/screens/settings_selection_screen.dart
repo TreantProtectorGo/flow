@@ -17,10 +17,12 @@ class SettingsSelectionScreen<T> extends StatefulWidget {
   });
 
   @override
-  State<SettingsSelectionScreen<T>> createState() => _SettingsSelectionScreenState<T>();
+  State<SettingsSelectionScreen<T>> createState() =>
+      _SettingsSelectionScreenState<T>();
 }
 
-class _SettingsSelectionScreenState<T> extends State<SettingsSelectionScreen<T>> {
+class _SettingsSelectionScreenState<T>
+    extends State<SettingsSelectionScreen<T>> {
   late T _selectedValue;
 
   @override
@@ -30,36 +32,46 @@ class _SettingsSelectionScreenState<T> extends State<SettingsSelectionScreen<T>>
   }
 
   @override
+  void didUpdateWidget(SettingsSelectionScreen<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentValue != oldWidget.currentValue) {
+      _selectedValue = widget.currentValue;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar.large(
             title: Text(widget.title),
             pinned: true,
+            scrolledUnderElevation: 0,
+            titleTextStyle: theme.textTheme.headlineLarge?.copyWith(),
           ),
           SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final option = widget.options[index];
-                return RadioListTile<T>(
-                  value: option,
-                  groupValue: _selectedValue,
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _selectedValue = value);
-                      widget.onSelected(value);
-                    }
-                  },
-                  title: Text(
-                    widget.getLabel(option),
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  controlAffinity: ListTileControlAffinity.leading,
-                );
-              },
-              childCount: widget.options.length,
-            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final option = widget.options[index];
+              return RadioListTile<T>(
+                value: option,
+                groupValue: _selectedValue,
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _selectedValue = value);
+                    widget.onSelected(value);
+                  }
+                },
+                title: Text(
+                  widget.getLabel(option),
+                  style: theme.textTheme.bodyLarge?.copyWith(),
+                ),
+                controlAffinity: ListTileControlAffinity.leading,
+              );
+            }, childCount: widget.options.length),
           ),
         ],
       ),
