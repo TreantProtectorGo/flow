@@ -1,7 +1,7 @@
 {
   "@@locale": "zh_TW",
   
-  "appTitle": "FocusAI",
+  "appTitle": "Flow",
   "@appTitle": {
     "description": "應用程式標題"
   },
@@ -399,8 +399,8 @@
   "deleteAccount": "刪除帳號",
   "deleteAccountSubtitle": "永久刪除您的帳號和所有資料",
 
-  "version": "FocusAI v1.0.0",
-  "copyright": "© 2024 FocusAI Team",
+  "version": "Flow v1.0.0",
+  "copyright": "© 2024 Flow Team",
 
   "pending": "待辦事項",
   "activeTimer": "進行中的計時",

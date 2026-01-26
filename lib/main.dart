@@ -28,7 +28,7 @@ class FocusApp extends ConsumerWidget {
     return DynamicColorBuilder(
       builder: (ColorScheme? lightColorScheme, ColorScheme? darkColorScheme) {
         return MaterialApp.router(
-          title: 'FocusAI',
+          title: 'Flow',
 
           // 本地化設定
           localizationsDelegates: const [

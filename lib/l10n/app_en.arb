@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
   
-  "appTitle": "FocusAI",
+  "appTitle": "Flow",
 
   "taskPlan": "Task Plan",
   "estimatedCompletionTime": "Estimated completion time: {time}",
@@ -348,8 +348,8 @@
   "deleteAccount": "Delete",
   "deleteAccountSubtitle": "Permanently delete your account and all data",
 
-  "version": "FocusAI v1.0.0",
-  "copyright": "© 2024 FocusAI Team",
+  "version": "Flow v1.0.0",
+  "copyright": "© 2024 Flow Team",
 
   "pending": "To Do",
   "activeTimer": "Active Timer",
