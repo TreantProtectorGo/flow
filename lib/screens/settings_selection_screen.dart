@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class SettingsSelectionScreen<T> extends StatelessWidget {
+class SettingsSelectionScreen<T> extends StatefulWidget {
   final String title;
   final List<T> options;
   final T currentValue;
@@ -17,38 +17,51 @@ class SettingsSelectionScreen<T> extends StatelessWidget {
   });
 
   @override
+  State<SettingsSelectionScreen<T>> createState() => _SettingsSelectionScreenState<T>();
+}
+
+class _SettingsSelectionScreenState<T> extends State<SettingsSelectionScreen<T>> {
+  late T _selectedValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedValue = widget.currentValue;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
-      body: ListView(
-        children: options.map((option) {
-          final isSelected = option == currentValue;
-          return RadioListTile<T>(
-            title: Text(
-              getLabel(option),
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: isSelected ? FontWeight.bold : null,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            title: Text(widget.title),
+            pinned: true,
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final option = widget.options[index];
+                return RadioListTile<T>(
+                  value: option,
+                  groupValue: _selectedValue,
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _selectedValue = value);
+                      widget.onSelected(value);
+                    }
+                  },
+                  title: Text(
+                    widget.getLabel(option),
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                );
+              },
+              childCount: widget.options.length,
             ),
-            value: option,
-            groupValue: currentValue,
-            onChanged: (value) {
-              if (value != null) {
-                onSelected(value);
-                // Do not auto-pop the page
-              }
-            },
-            secondary: isSelected
-                ? Icon(
-                    Icons.check,
-                    color: Theme.of(context).colorScheme.primary,
-                  )
-                : null,
-            controlAffinity: ListTileControlAffinity.trailing,
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
   }
