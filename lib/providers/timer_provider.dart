@@ -27,16 +27,30 @@ class TimerProvider with ChangeNotifier {
   final DatabaseHelper _db = DatabaseHelper.instance;
   final NotificationService _notificationService = NotificationService.instance;
 
-  // Timer settings
-  int _focusTimeInMinutes = 25;
-  int _shortBreakTimeInMinutes = 5;
-  int _longBreakTimeInMinutes = 15;
+  // Debug mode: use short timers for testing (only in debug builds)
+  static const bool _useDebugTimers =
+      kDebugMode && false; // Set to true to enable
+
+  // Timer settings (debug: 10s/5s/8s, release: 25m/5m/15m)
+  int _focusTimeInMinutes = _useDebugTimers
+      ? 1
+      : 25; // 1 min in debug for faster testing
+  int _shortBreakTimeInMinutes = _useDebugTimers ? 1 : 5;
+  int _longBreakTimeInMinutes = _useDebugTimers ? 1 : 15;
+
+  // In debug mode, use seconds instead of minutes for even faster testing
+  int get _focusTimeInSeconds =>
+      _useDebugTimers ? 10 : _focusTimeInMinutes * 60;
+  int get _shortBreakTimeInSeconds =>
+      _useDebugTimers ? 5 : _shortBreakTimeInMinutes * 60;
+  int get _longBreakTimeInSeconds =>
+      _useDebugTimers ? 8 : _longBreakTimeInMinutes * 60;
 
   // Current timer state
   TimerState _state = TimerState.stopped;
   TimerMode _mode = TimerMode.focus;
-  int _timeLeftInSeconds = 25 * 60;
-  int _totalTimeInSeconds = 25 * 60;
+  int _timeLeftInSeconds = _useDebugTimers ? 10 : 25 * 60;
+  int _totalTimeInSeconds = _useDebugTimers ? 10 : 25 * 60;
 
   // Session tracking
   int _currentSession = 1;
@@ -114,16 +128,16 @@ class TimerProvider with ChangeNotifier {
   void _updateTimeForCurrentMode() {
     switch (_mode) {
       case TimerMode.focus:
-        _timeLeftInSeconds = _focusTimeInMinutes * 60;
-        _totalTimeInSeconds = _focusTimeInMinutes * 60;
+        _timeLeftInSeconds = _focusTimeInSeconds;
+        _totalTimeInSeconds = _focusTimeInSeconds;
         break;
       case TimerMode.shortBreak:
-        _timeLeftInSeconds = _shortBreakTimeInMinutes * 60;
-        _totalTimeInSeconds = _shortBreakTimeInMinutes * 60;
+        _timeLeftInSeconds = _shortBreakTimeInSeconds;
+        _totalTimeInSeconds = _shortBreakTimeInSeconds;
         break;
       case TimerMode.longBreak:
-        _timeLeftInSeconds = _longBreakTimeInMinutes * 60;
-        _totalTimeInSeconds = _longBreakTimeInMinutes * 60;
+        _timeLeftInSeconds = _longBreakTimeInSeconds;
+        _totalTimeInSeconds = _longBreakTimeInSeconds;
         break;
     }
   }

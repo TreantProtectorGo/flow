@@ -67,23 +67,26 @@ class NotificationService {
   /// Request notification permissions for iOS and macOS
   Future<void> _requestPermissions() async {
     if (Platform.isIOS) {
-      await _flutterLocalNotificationsPlugin
+      final granted = await _flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin
           >()
           ?.requestPermissions(alert: true, badge: true, sound: true);
+      debugPrint('[NOTIFICATION] iOS permission granted: $granted');
     } else if (Platform.isMacOS) {
-      await _flutterLocalNotificationsPlugin
+      final granted = await _flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
             MacOSFlutterLocalNotificationsPlugin
           >()
           ?.requestPermissions(alert: true, badge: true, sound: true);
+      debugPrint('[NOTIFICATION] macOS permission granted: $granted');
     } else if (Platform.isAndroid) {
       final androidPlugin = _flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
           >();
-      await androidPlugin?.requestNotificationsPermission();
+      final granted = await androidPlugin?.requestNotificationsPermission();
+      debugPrint('[NOTIFICATION] Android permission granted: $granted');
     }
   }
 
