@@ -500,5 +500,33 @@
   "noTasksToSelect": "暫無可選擇的任務",
   "pleaseAddTasksFirst": "請先在任務頁面添加一些任務",
   "clearSelection": "清除選擇",
-  "items": "個"
+  "items": "個",
+  "pomodoroProgress": "{completed}/{total} 🍅",
+  "@pomodoroProgress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "breakdownWithAI": "用 AI 拆解",
+
+  "notificationFocusCompleteTitle": "專注時間結束",
+  "notificationFocusCompleteBody": "專注時段已完成，休息一下吧",
+  "notificationFocusCompleteWithTask": "「{taskTitle}」專注時段已完成，休息一下吧",
+  "@notificationFocusCompleteWithTask": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationBreakCompleteTitle": "休息結束",
+  "notificationLongBreakCompleteTitle": "長休息結束",
+  "notificationBreakCompleteBody": "準備好繼續專注了嗎",
+  "notificationChannelName": "計時器通知",
+  "notificationChannelDescription": "番茄鐘計時器完成通知"
 }

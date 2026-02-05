@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'task_provider.dart';
 import 'statistics_provider.dart';
+import 'notification_strings_provider.dart';
 import '../services/database_helper.dart';
+import '../services/notification_service.dart';
 
 // Riverpod provider
 final timerProvider = ChangeNotifierProvider<TimerProvider>((ref) {
@@ -23,6 +25,7 @@ class TimerProvider with ChangeNotifier {
   final Ref _ref;
   Timer? _timer;
   final DatabaseHelper _db = DatabaseHelper.instance;
+  final NotificationService _notificationService = NotificationService.instance;
 
   // Timer settings
   int _focusTimeInMinutes = 25;
@@ -180,6 +183,10 @@ class TimerProvider with ChangeNotifier {
     _timer?.cancel();
     _state = TimerState.stopped;
 
+    final currentTask = _ref.read(taskProvider.notifier).currentTask;
+    final notificationStrings = _ref.read(notificationStringsProvider);
+    final isLongBreak = _mode == TimerMode.longBreak;
+
     if (_mode == TimerMode.focus) {
       _completedSessions++;
       _totalFocusSessions++;
@@ -193,6 +200,16 @@ class TimerProvider with ChangeNotifier {
       // Update statistics data
       _ref.read(statisticsProvider.notifier).loadStatistics();
 
+      // Show notification for focus session complete
+      await _notificationService.showFocusCompleteNotification(
+        title: notificationStrings.focusCompleteTitle,
+        body: currentTask != null
+            ? notificationStrings.focusCompleteWithTask(currentTask.title)
+            : notificationStrings.focusCompleteBody,
+        channelName: notificationStrings.channelName,
+        channelDescription: notificationStrings.channelDescription,
+      );
+
       // Decide next phase: short break or long break
       if (_completedSessions % 4 == 0) {
         _mode = TimerMode.longBreak;
@@ -200,6 +217,16 @@ class TimerProvider with ChangeNotifier {
         _mode = TimerMode.shortBreak;
       }
     } else {
+      // Show notification for break session complete
+      await _notificationService.showBreakCompleteNotification(
+        title: isLongBreak
+            ? notificationStrings.longBreakCompleteTitle
+            : notificationStrings.breakCompleteTitle,
+        body: notificationStrings.breakCompleteBody,
+        channelName: notificationStrings.channelName,
+        channelDescription: notificationStrings.channelDescription,
+      );
+
       // Break ended, return to focus mode
       _mode = TimerMode.focus;
       _currentSession++;

@@ -1688,6 +1688,66 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'請先在任務頁面添加一些任務'**
   String get pleaseAddTasksFirst;
+
+  /// No description provided for @pomodoroProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'{completed}/{total} 🍅'**
+  String pomodoroProgress(int completed, int total);
+
+  /// No description provided for @breakdownWithAI.
+  ///
+  /// In zh, this message translates to:
+  /// **'用 AI 拆解'**
+  String get breakdownWithAI;
+
+  /// No description provided for @notificationFocusCompleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'專注時間結束'**
+  String get notificationFocusCompleteTitle;
+
+  /// No description provided for @notificationFocusCompleteBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'專注時段已完成，休息一下吧'**
+  String get notificationFocusCompleteBody;
+
+  /// No description provided for @notificationFocusCompleteWithTask.
+  ///
+  /// In zh, this message translates to:
+  /// **'「{taskTitle}」專注時段已完成，休息一下吧'**
+  String notificationFocusCompleteWithTask(String taskTitle);
+
+  /// No description provided for @notificationBreakCompleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'休息結束'**
+  String get notificationBreakCompleteTitle;
+
+  /// No description provided for @notificationLongBreakCompleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'長休息結束'**
+  String get notificationLongBreakCompleteTitle;
+
+  /// No description provided for @notificationBreakCompleteBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'準備好繼續專注了嗎'**
+  String get notificationBreakCompleteBody;
+
+  /// No description provided for @notificationChannelName.
+  ///
+  /// In zh, this message translates to:
+  /// **'計時器通知'**
+  String get notificationChannelName;
+
+  /// No description provided for @notificationChannelDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'番茄鐘計時器完成通知'**
+  String get notificationChannelDescription;
 }
 
 class _AppLocalizationsDelegate

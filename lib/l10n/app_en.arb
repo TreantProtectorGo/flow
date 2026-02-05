@@ -413,5 +413,33 @@
   "secondShort": "s",
   "hour": "hour",
   "minute": "minute",
-  "second": "second"
+  "second": "second",
+  "pomodoroProgress": "{completed}/{total} 🍅",
+  "@pomodoroProgress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "breakdownWithAI": "Break down with AI",
+
+  "notificationFocusCompleteTitle": "Focus Time Complete",
+  "notificationFocusCompleteBody": "Focus session complete. Time for a break!",
+  "notificationFocusCompleteWithTask": "Focus session for \"{taskTitle}\" complete. Time for a break!",
+  "@notificationFocusCompleteWithTask": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationBreakCompleteTitle": "Break Complete",
+  "notificationLongBreakCompleteTitle": "Long Break Complete",
+  "notificationBreakCompleteBody": "Ready to focus again?",
+  "notificationChannelName": "Timer Notifications",
+  "notificationChannelDescription": "Pomodoro timer completion notifications"
 }

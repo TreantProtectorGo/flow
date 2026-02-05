@@ -852,6 +852,40 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get pleaseAddTasksFirst => '請先在任務頁面添加一些任務';
+
+  @override
+  String pomodoroProgress(int completed, int total) {
+    return '$completed/$total 🍅';
+  }
+
+  @override
+  String get breakdownWithAI => '用 AI 拆解';
+
+  @override
+  String get notificationFocusCompleteTitle => '專注時間結束';
+
+  @override
+  String get notificationFocusCompleteBody => '專注時段已完成，休息一下吧';
+
+  @override
+  String notificationFocusCompleteWithTask(String taskTitle) {
+    return '「$taskTitle」專注時段已完成，休息一下吧';
+  }
+
+  @override
+  String get notificationBreakCompleteTitle => '休息結束';
+
+  @override
+  String get notificationLongBreakCompleteTitle => '長休息結束';
+
+  @override
+  String get notificationBreakCompleteBody => '準備好繼續專注了嗎';
+
+  @override
+  String get notificationChannelName => '計時器通知';
+
+  @override
+  String get notificationChannelDescription => '番茄鐘計時器完成通知';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1702,4 +1736,38 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get pleaseAddTasksFirst => '請先在任務頁面添加一些任務';
+
+  @override
+  String pomodoroProgress(int completed, int total) {
+    return '$completed/$total 🍅';
+  }
+
+  @override
+  String get breakdownWithAI => '用 AI 拆解';
+
+  @override
+  String get notificationFocusCompleteTitle => '專注時間結束';
+
+  @override
+  String get notificationFocusCompleteBody => '專注時段已完成，休息一下吧';
+
+  @override
+  String notificationFocusCompleteWithTask(String taskTitle) {
+    return '「$taskTitle」專注時段已完成，休息一下吧';
+  }
+
+  @override
+  String get notificationBreakCompleteTitle => '休息結束';
+
+  @override
+  String get notificationLongBreakCompleteTitle => '長休息結束';
+
+  @override
+  String get notificationBreakCompleteBody => '準備好繼續專注了嗎';
+
+  @override
+  String get notificationChannelName => '計時器通知';
+
+  @override
+  String get notificationChannelDescription => '番茄鐘計時器完成通知';
 }

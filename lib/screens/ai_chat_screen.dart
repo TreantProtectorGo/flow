@@ -19,6 +19,19 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
+  bool _initialMessageSent = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Send initial message after build if provided
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.initialMessage != null && !_initialMessageSent) {
+        _initialMessageSent = true;
+        _handleSubmit(widget.initialMessage!);
+      }
+    });
+  }
 
   @override
   void dispose() {

@@ -93,7 +93,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
             final isExpanded = _expandedTasks.contains(index);
 
             return _buildTaskItem(theme, task, index, isExpanded);
-          }).toList(),
+          }),
 
           // Bottom section: estimated time, edit and create buttons
           Padding(

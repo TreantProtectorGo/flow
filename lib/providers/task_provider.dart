@@ -247,13 +247,20 @@ class TaskProvider with ChangeNotifier {
     final index = _tasks.indexWhere((task) => task.id == _currentTaskId);
     if (index != -1) {
       final task = _tasks[index];
-      final updatedTask = task.copyWith(status: TaskStatus.inProgress);
+      final updatedTask = task.copyWith(
+        status: TaskStatus.inProgress,
+        completedPomodoros: task.completedPomodoros + 1,
+      );
 
       // 更新資料庫
       await _db.updateTask(updatedTask);
 
       // 更新記憶體
       _tasks[index] = updatedTask;
+
+      debugPrint(
+        '🍅 [TASK] Pomodoro completed for "${task.title}" (${updatedTask.completedPomodoros}/${task.pomodoroCount})',
+      );
 
       notifyListeners();
       await _saveTasks();

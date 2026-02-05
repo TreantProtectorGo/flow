@@ -54,3 +54,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# AI Assistant / Development tracking files
+.sisyphus/
+AGENTS.md
+boulder.json
+COMPLETION_SUMMARY.md
+decisions.md
+issues.md
+learnings.md
+problems.md
+fix-timer-async-race-conditi*

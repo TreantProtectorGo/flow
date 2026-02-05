@@ -9,6 +9,7 @@ class Task {
   final String title;
   final String? description;
   final int pomodoroCount;
+  final int completedPomodoros; // Actual completed pomodoros
   final TaskPriority priority;
   final TaskStatus status;
   final DateTime createdAt;
@@ -19,6 +20,7 @@ class Task {
     required this.title,
     this.description,
     required this.pomodoroCount,
+    this.completedPomodoros = 0,
     required this.priority,
     required this.status,
     required this.createdAt,
@@ -30,6 +32,7 @@ class Task {
     String? title,
     String? description,
     int? pomodoroCount,
+    int? completedPomodoros,
     TaskPriority? priority,
     TaskStatus? status,
     DateTime? createdAt,
@@ -40,6 +43,7 @@ class Task {
       title: title ?? this.title,
       description: description ?? this.description,
       pomodoroCount: pomodoroCount ?? this.pomodoroCount,
+      completedPomodoros: completedPomodoros ?? this.completedPomodoros,
       priority: priority ?? this.priority,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
@@ -53,6 +57,7 @@ class Task {
       'title': title,
       'description': description,
       'pomodoroCount': pomodoroCount,
+      'completedPomodoros': completedPomodoros,
       'priority': priority.name,
       'status': status.name,
       'createdAt': createdAt.toIso8601String(),
@@ -66,6 +71,7 @@ class Task {
       title: json['title'],
       description: json['description'],
       pomodoroCount: json['pomodoroCount'],
+      completedPomodoros: json['completedPomodoros'] ?? 0,
       priority: TaskPriority.values.firstWhere(
         (e) => e.name == json['priority'],
       ),

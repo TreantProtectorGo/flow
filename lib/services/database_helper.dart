@@ -26,12 +26,30 @@ class DatabaseHelper {
 
   /// Opens the SQLite database file and sets initial configuration
   /// [filePath]: Name of the database file (typically 'focus.db')
-  /// Returns: Initialized Database instance with version 1 schema
+  /// Returns: Initialized Database instance with version 2 schema
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _createDB,
+      onUpgrade: _onUpgrade,
+    );
+  }
+
+  /// Handles database schema upgrades between versions
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add completed_pomodoros column to tasks table
+      await db.execute(
+        'ALTER TABLE tasks ADD COLUMN completed_pomodoros INTEGER NOT NULL DEFAULT 0',
+      );
+      debugPrint(
+        '📦 [DB] Migrated to version 2: added completed_pomodoros column',
+      );
+    }
   }
 
   /// Creates all database tables and indexes on first run
@@ -46,6 +64,7 @@ class DatabaseHelper {
         title TEXT NOT NULL,
         description TEXT,
         pomodoro_count INTEGER NOT NULL,
+        completed_pomodoros INTEGER NOT NULL DEFAULT 0,
         priority TEXT NOT NULL,
         status TEXT NOT NULL,
         created_at TEXT NOT NULL,
@@ -109,6 +128,7 @@ class DatabaseHelper {
       'title': task.title,
       'description': task.description,
       'pomodoro_count': task.pomodoroCount,
+      'completed_pomodoros': task.completedPomodoros,
       'priority': task.priority.name,
       'status': task.status.name,
       'created_at': task.createdAt.toIso8601String(),
@@ -133,6 +153,7 @@ class DatabaseHelper {
             'title': json['title'],
             'description': json['description'],
             'pomodoroCount': json['pomodoro_count'],
+            'completedPomodoros': json['completed_pomodoros'] ?? 0,
             'priority': json['priority'],
             'status': json['status'],
             'createdAt': json['created_at'],
@@ -162,6 +183,7 @@ class DatabaseHelper {
       'title': json['title'],
       'description': json['description'],
       'pomodoroCount': json['pomodoro_count'],
+      'completedPomodoros': json['completed_pomodoros'] ?? 0,
       'priority': json['priority'],
       'status': json['status'],
       'createdAt': json['created_at'],
@@ -183,6 +205,7 @@ class DatabaseHelper {
         'title': task.title,
         'description': task.description,
         'pomodoro_count': task.pomodoroCount,
+        'completed_pomodoros': task.completedPomodoros,
         'priority': task.priority.name,
         'status': task.status.name,
         'created_at': task.createdAt.toIso8601String(),
@@ -253,6 +276,7 @@ class DatabaseHelper {
             'title': json['title'],
             'description': json['description'],
             'pomodoroCount': json['pomodoro_count'],
+            'completedPomodoros': json['completed_pomodoros'] ?? 0,
             'priority': json['priority'],
             'status': json['status'],
             'createdAt': json['created_at'],

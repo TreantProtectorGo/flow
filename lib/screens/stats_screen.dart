@@ -231,7 +231,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
               _StatItem(
                 icon: Icons.trending_up,
                 label: l10n.dailyAverage,
-                value: '${(stats.weekCompleted / 7).toStringAsFixed(1)}',
+                value: (stats.weekCompleted / 7).toStringAsFixed(1),
                 color: theme.colorScheme.tertiary,
               ),
             ],

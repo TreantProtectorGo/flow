@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/chat_message.dart';
 import '../config/api_config.dart';
@@ -173,7 +174,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
             displayContent = fullContent.substring(0, startIndex).trim();
           }
         } catch (e) {
-          print('Failed to parse task plan: $e');
+          debugPrint('Failed to parse task plan: $e');
         }
       }
 

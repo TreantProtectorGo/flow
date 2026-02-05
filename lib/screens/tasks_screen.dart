@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -74,12 +73,6 @@ class TasksScreen extends ConsumerWidget {
                           _buildSectionHeader(l10n.pending, theme),
                           const SizedBox(height: 15),
 
-                          // AI breakdown card (only shown when there are no pending tasks)
-                          if (taskNotifier.pendingTasks.isEmpty) ...[
-                            _buildAIBreakdownCard(theme, context, l10n),
-                            const SizedBox(height: 12),
-                          ],
-
                           if (taskNotifier.pendingTasks.isEmpty)
                             _buildEmptyState(l10n.emptyPendingTasks, theme)
                           else
@@ -130,11 +123,26 @@ class TasksScreen extends ConsumerWidget {
         ),
       ),
 
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddTaskDialog(context, ref),
-        heroTag: "addTaskButton",
-        icon: const Icon(Icons.auto_awesome),
-        label: Text(l10n.add),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // AI Chat FAB - always visible
+          FloatingActionButton(
+            onPressed: () => _openAIChatScreen(context),
+            heroTag: "aiChatButton",
+            backgroundColor: theme.colorScheme.secondaryContainer,
+            foregroundColor: theme.colorScheme.onSecondaryContainer,
+            child: const Icon(Icons.auto_awesome),
+          ),
+          const SizedBox(height: 12),
+          // Add Task FAB
+          FloatingActionButton.extended(
+            onPressed: () => _showAddTaskDialog(context, ref),
+            heroTag: "addTaskButton",
+            icon: const Icon(Icons.add),
+            label: Text(l10n.add),
+          ),
+        ],
       ),
     );
   }
@@ -184,7 +192,7 @@ class TasksScreen extends ConsumerWidget {
       builder: (context) => TaskFormDialog(task: task),
     );
 
-    if (result != null) {
+    if (result != null && context.mounted) {
       // Check if this is a delete action
       if (result['action'] == 'delete') {
         _showDeleteConfirmDialog(context, ref, task);
@@ -415,155 +423,229 @@ class TasksScreen extends ConsumerWidget {
         break;
     }
 
-    return Card(
-      elevation: isCurrentTask ? 4 : 2,
-      margin: EdgeInsets.zero,
-      surfaceTintColor: theme.colorScheme.surfaceTint,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: isCurrentTask
-            ? BorderSide(color: theme.colorScheme.primary, width: 2)
-            : BorderSide.none,
+    // Calculate pomodoro progress
+    final pomodoroProgress = task.completedPomodoros / task.pomodoroCount;
+    final progressColor = pomodoroProgress >= 1.0
+        ? Colors.green
+        : theme.colorScheme.primary;
+
+    return Dismissible(
+      key: Key(task.id),
+      direction: task.status != TaskStatus.completed
+          ? DismissDirection.endToStart
+          : DismissDirection.none,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: Colors.green,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(Icons.check, color: Colors.white, size: 32),
       ),
-      child: InkWell(
-        onTap: () => _showEditTaskDialog(context, ref, task),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          task.title,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w500,
+      confirmDismiss: (direction) async {
+        // Mark as completed directly
+        await ref.read(taskProvider.notifier).markTaskAsCompleted(task.id);
+        return false; // Don't actually dismiss, just update state
+      },
+      child: Card(
+        elevation: isCurrentTask ? 4 : 2,
+        margin: EdgeInsets.zero,
+        surfaceTintColor: theme.colorScheme.surfaceTint,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: isCurrentTask
+              ? BorderSide(color: theme.colorScheme.primary, width: 2)
+              : BorderSide.none,
+        ),
+        child: InkWell(
+          onTap: () => _showEditTaskDialog(context, ref, task),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            task.title,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              decoration: task.status == TaskStatus.completed
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
                           ),
-                        ),
-                        if (isTimerRunning) ...[
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.timer,
-                                size: 14,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                l10n.timerRunning(
-                                  timerNotifier.timeDisplayString,
-                                ),
-                                style: theme.textTheme.bodySmall?.copyWith(
+                          if (isTimerRunning) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.timer,
+                                  size: 14,
                                   color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
                                 ),
-                              ),
-                            ],
-                          ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  l10n.timerRunning(
+                                    timerNotifier.timeDisplayString,
+                                  ),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
-                      ],
-                    ),
-                  ),
-                  // Start pomodoro button
-                  if (task.status != TaskStatus.completed)
-                    FilledButton.icon(
-                      onPressed: () =>
-                          _startPomodoroForTask(context, ref, task, l10n),
-                      icon: Icon(
-                        isCurrentTask ? Icons.play_arrow : Icons.timer,
-                        size: 18,
-                      ),
-                      label: Text(
-                        isCurrentTask ? l10n.continueButton : l10n.start,
-                      ),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(0, 36),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        backgroundColor: isCurrentTask
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.primaryContainer,
-                        foregroundColor: isCurrentTask
-                            ? theme.colorScheme.onPrimary
-                            : theme.colorScheme.onPrimaryContainer,
                       ),
                     ),
-                ],
-              ),
-              if (task.status != TaskStatus.completed) ...[
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      ref.read(taskProvider.notifier).toggleTaskStatus(task.id);
-                    },
-                    icon: const Icon(Icons.check_circle, size: 18),
-                    label: Text(l10n.markComplete),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-              if (task.description != null && task.description!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  task.description!,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.schedule,
-                        size: 16,
-                        color: theme.colorScheme.onSurfaceVariant,
+                    // Action buttons row
+                    if (task.status != TaskStatus.completed) ...[
+                      // AI Breakdown button
+                      IconButton(
+                        onPressed: () => _openAIChatWithTask(context, task),
+                        icon: Icon(
+                          Icons.auto_awesome,
+                          size: 20,
+                          color: theme.colorScheme.secondary,
+                        ),
+                        tooltip: l10n.breakdownWithAI,
+                        style: IconButton.styleFrom(
+                          minimumSize: const Size(36, 36),
+                          padding: EdgeInsets.zero,
+                        ),
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        l10n.pomodoroCountText(task.pomodoroCount),
-                        style: theme.textTheme.bodySmall,
+                      // Start pomodoro button
+                      FilledButton.icon(
+                        onPressed: () =>
+                            _startPomodoroForTask(context, ref, task, l10n),
+                        icon: Icon(
+                          isCurrentTask ? Icons.play_arrow : Icons.timer,
+                          size: 18,
+                        ),
+                        label: Text(
+                          isCurrentTask ? l10n.continueButton : l10n.start,
+                        ),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 36),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          backgroundColor: isCurrentTask
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.primaryContainer,
+                          foregroundColor: isCurrentTask
+                              ? theme.colorScheme.onPrimary
+                              : theme.colorScheme.onPrimaryContainer,
+                        ),
                       ),
                     ],
-                  ),
-                  const SizedBox(width: 15),
-                  Chip(
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    labelPadding: const EdgeInsets.symmetric(
-                      horizontal: 2,
-                      vertical: -2,
+                  ],
+                ),
+                if (task.description != null &&
+                    task.description!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    task.description!,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    padding: EdgeInsets.zero,
-                    backgroundColor: priorityBackgroundColor,
-                    label: Text(
-                      task.priorityText(l10n),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: priorityColor,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    visualDensity: VisualDensity.compact,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
-              ),
-            ],
+                const SizedBox(height: 12),
+                // Pomodoro progress bar and stats
+                Row(
+                  children: [
+                    // Progress indicator with emoji
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                l10n.pomodoroProgress(
+                                  task.completedPomodoros,
+                                  task.pomodoroCount,
+                                ),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: progressColor,
+                                ),
+                              ),
+                              if (task.completedPomodoros >= task.pomodoroCount)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 4),
+                                  child: Icon(
+                                    Icons.check_circle,
+                                    size: 14,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: pomodoroProgress.clamp(0.0, 1.0),
+                              minHeight: 4,
+                              backgroundColor:
+                                  theme.colorScheme.surfaceContainerHighest,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                progressColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Priority chip
+                    Chip(
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      labelPadding: const EdgeInsets.symmetric(
+                        horizontal: 2,
+                        vertical: -2,
+                      ),
+                      padding: EdgeInsets.zero,
+                      backgroundColor: priorityBackgroundColor,
+                      label: Text(
+                        task.priorityText(l10n),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: priorityColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _openAIChatWithTask(BuildContext context, Task task) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (context) => AIChatScreen(
+          initialMessage:
+              '請幫我拆解這個任務：${task.title}${task.description != null ? '\n描述：${task.description}' : ''}',
+        ),
+        fullscreenDialog: true,
       ),
     );
   }
@@ -605,46 +687,6 @@ class TasksScreen extends ConsumerWidget {
         message: l10n.continueTask(task.title),
       );
     }
-  }
-
-  Widget _buildAIBreakdownCard(
-    ThemeData theme,
-    BuildContext context,
-    AppLocalizations l10n,
-  ) {
-    return Card(
-      elevation: 2,
-      margin: EdgeInsets.zero,
-      color: theme.colorScheme.primaryContainer,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: () {
-          _openAIChatScreen(context);
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(
-                Icons.auto_awesome,
-                color: theme.colorScheme.onPrimaryContainer,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  l10n.aiBreakdownDescription,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 

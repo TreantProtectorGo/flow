@@ -12,8 +12,14 @@ import 'screens/tasks_screen.dart';
 import 'screens/stats_screen.dart';
 import 'screens/settings_screen.dart';
 import 'l10n/app_localizations.dart';
+import 'services/notification_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize notification service
+  await NotificationService.instance.initialize();
+
   runApp(const ProviderScope(child: FocusApp()));
 }
 

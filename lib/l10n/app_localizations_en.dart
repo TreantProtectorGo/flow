@@ -863,4 +863,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pleaseAddTasksFirst => 'Please add some tasks first';
+
+  @override
+  String pomodoroProgress(int completed, int total) {
+    return '$completed/$total 🍅';
+  }
+
+  @override
+  String get breakdownWithAI => 'Break down with AI';
+
+  @override
+  String get notificationFocusCompleteTitle => 'Focus Time Complete';
+
+  @override
+  String get notificationFocusCompleteBody =>
+      'Focus session complete. Time for a break!';
+
+  @override
+  String notificationFocusCompleteWithTask(String taskTitle) {
+    return 'Focus session for \"$taskTitle\" complete. Time for a break!';
+  }
+
+  @override
+  String get notificationBreakCompleteTitle => 'Break Complete';
+
+  @override
+  String get notificationLongBreakCompleteTitle => 'Long Break Complete';
+
+  @override
+  String get notificationBreakCompleteBody => 'Ready to focus again?';
+
+  @override
+  String get notificationChannelName => 'Timer Notifications';
+
+  @override
+  String get notificationChannelDescription =>
+      'Pomodoro timer completion notifications';
 }
