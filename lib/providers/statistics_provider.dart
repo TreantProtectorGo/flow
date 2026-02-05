@@ -325,7 +325,7 @@ class StatisticsNotifier with ChangeNotifier {
 
       final daySessions = completedSessions.where((s) {
         final startTime = DateTime.parse(s['start_time'] as String);
-        return startTime.isAfter(dayStart) && startTime.isBefore(dayEnd);
+        return !startTime.isBefore(dayStart) && startTime.isBefore(dayEnd);
       }).length;
 
       dailyData[weekDays[i]] = daySessions;
@@ -371,7 +371,7 @@ class StatisticsNotifier with ChangeNotifier {
 
       final daySessions = completedSessions.where((s) {
         final startTime = DateTime.parse(s['start_time'] as String);
-        return startTime.isAfter(dayStart) && startTime.isBefore(dayEnd);
+        return !startTime.isBefore(dayStart) && startTime.isBefore(dayEnd);
       }).length;
 
       dailyData[day] = daySessions;
