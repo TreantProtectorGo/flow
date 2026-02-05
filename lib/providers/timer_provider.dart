@@ -159,13 +159,13 @@ class TimerProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void stopTimer() {
+  Future<void> stopTimer() async {
     _timer?.cancel();
     _state = TimerState.stopped;
 
     // If in focus mode and has start time, record as incomplete session
     if (_mode == TimerMode.focus && _currentSessionStartTime != null) {
-      _recordPomodoroSession(completed: false);
+      await _recordPomodoroSession(completed: false);
     }
 
     _updateTimeForCurrentMode();
@@ -176,7 +176,7 @@ class TimerProvider with ChangeNotifier {
     _onTimerComplete();
   }
 
-  void _onTimerComplete() {
+  Future<void> _onTimerComplete() async {
     _timer?.cancel();
     _state = TimerState.stopped;
 
@@ -185,7 +185,7 @@ class TimerProvider with ChangeNotifier {
       _totalFocusSessions++;
 
       // Record completed pomodoro session to database
-      _recordPomodoroSession(completed: true);
+      await _recordPomodoroSession(completed: true);
 
       // Notify task provider that a pomodoro was completed
       _ref.read(taskProvider.notifier).completePomodoroForCurrentTask();
@@ -244,24 +244,24 @@ class TimerProvider with ChangeNotifier {
     }
   }
 
-  void switchToFocusMode() {
+  Future<void> switchToFocusMode() async {
     if (_mode == TimerMode.focus) return;
 
     // If a focus timer is running, record the incomplete session first
     if (_state == TimerState.running && _currentSessionStartTime != null) {
-      _recordPomodoroSession(completed: false);
+      await _recordPomodoroSession(completed: false);
     }
 
-    stopTimer();
+    await stopTimer();
     _mode = TimerMode.focus;
     _updateTimeForCurrentMode();
     notifyListeners();
   }
 
-  void switchToBreakMode() {
+  Future<void> switchToBreakMode() async {
     if (isBreakMode) return;
 
-    stopTimer();
+    await stopTimer();
     _mode = TimerMode.shortBreak;
     _updateTimeForCurrentMode();
     notifyListeners();
