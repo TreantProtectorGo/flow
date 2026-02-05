@@ -9,7 +9,7 @@ import '../utils/snackbar_util.dart';
 import 'dialogs/delete_confirmation_dialog.dart';
 
 /// Task Plan Editor - Allows users to adjust AI-generated plans before importing
-/// 
+///
 /// Responsibilities:
 /// 1. Display an editable task list
 /// 2. Support adding, deleting, editing, and reordering tasks
@@ -17,10 +17,7 @@ import 'dialogs/delete_confirmation_dialog.dart';
 class TaskPlanEditor extends ConsumerStatefulWidget {
   final TaskPlan initialPlan;
 
-  const TaskPlanEditor({
-    super.key,
-    required this.initialPlan,
-  });
+  const TaskPlanEditor({super.key, required this.initialPlan});
 
   @override
   ConsumerState<TaskPlanEditor> createState() => _TaskPlanEditorState();
@@ -43,18 +40,14 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        title: Text(l10n.editTaskPlan),
-      ),
+      appBar: AppBar(title: Text(l10n.editTaskPlan)),
       body: Column(
         children: [
           // Main goal editor
           _buildMainGoalEditor(theme, l10n),
 
           // Task list
-          Expanded(
-            child: _buildTaskList(theme, l10n),
-          ),
+          Expanded(child: _buildTaskList(theme, l10n)),
 
           // Bottom action bar with confirm button
           _buildBottomBar(theme, l10n),
@@ -76,10 +69,10 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         border: Border(
           bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
           ),
         ),
       ),
@@ -134,7 +127,7 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
             Icon(
               Icons.inbox_outlined,
               size: 64,
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -172,7 +165,7 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
         color: theme.colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -222,12 +215,19 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
             ),
             // Confirm button (M3 capsule style)
             FilledButton(
-              onPressed: _isFormValid() && !_isCreating ? _handleSaveAndCreate : null,
+              onPressed: _isFormValid() && !_isCreating
+                  ? _handleSaveAndCreate
+                  : null,
               style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 shape: const StadiumBorder(),
-                disabledBackgroundColor: theme.colorScheme.surfaceContainerHighest,
-                disabledForegroundColor: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
+                disabledBackgroundColor:
+                    theme.colorScheme.surfaceContainerHighest,
+                disabledForegroundColor: theme.colorScheme.onSurfaceVariant
+                    .withValues(alpha: 0.4),
               ),
               child: _isCreating
                   ? Row(
@@ -261,15 +261,12 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
   }
 
   bool _isFormValid() {
-    return _editablePlan.mainGoal.trim().isNotEmpty && 
-           _editablePlan.tasks.isNotEmpty;
+    return _editablePlan.mainGoal.trim().isNotEmpty &&
+        _editablePlan.tasks.isNotEmpty;
   }
 
   int _calculateTotalPomodoros() {
-    return _editablePlan.tasks.fold(
-      0,
-      (sum, task) => sum + task.pomodoroCount,
-    );
+    return _editablePlan.tasks.fold(0, (sum, task) => sum + task.pomodoroCount);
   }
 
   /// Calculate estimated time based on pomodoro count
@@ -277,7 +274,7 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
   String _calculateEstimatedTime() {
     final totalPomodoros = _calculateTotalPomodoros();
     final totalMinutes = totalPomodoros * 30; // 25 min focus + 5 min break
-    
+
     if (totalMinutes < 60) {
       return '$totalMinutes 分鐘';
     } else {
@@ -431,7 +428,7 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
 }
 
 /// Editable Task Card Widget
-/// 
+///
 /// Responsibilities:
 /// 1. Display information for a single task
 /// 2. Support inline editing
@@ -467,9 +464,10 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
       direction: DismissDirection.endToStart,
       confirmDismiss: (direction) async {
         return await DeleteConfirmationDialog.show(
-          context,
-          title: widget.task.title,
-        ) ?? false;
+              context,
+              title: widget.task.title,
+            ) ??
+            false;
       },
       onDismissed: (direction) {
         widget.onDelete();
@@ -564,9 +562,7 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
                           padding: EdgeInsets.zero,
                           iconSize: 22,
                           icon: Icon(
-                            _isExpanded
-                                ? Icons.expand_less
-                                : Icons.expand_more,
+                            _isExpanded ? Icons.expand_less : Icons.expand_more,
                           ),
                           onPressed: () {
                             setState(() {
@@ -593,14 +589,17 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
         ),
       ),
     );
-
   }
 
   Widget _buildPomodoroEditor(ThemeData theme, AppLocalizations l10n) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.timer_outlined, size: 14, color: theme.colorScheme.onSurfaceVariant),
+        Icon(
+          Icons.timer_outlined,
+          size: 14,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
         const SizedBox(width: 4),
         InkWell(
           onTap: () => _showPomodoroBottomSheet(theme, l10n),
@@ -656,7 +655,9 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
             return Container(
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -667,7 +668,9 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
                     width: 32,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.4,
+                      ),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -692,14 +695,17 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
                             height: 50,
                             margin: const EdgeInsets.symmetric(horizontal: 40),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+                              color: theme.colorScheme.primaryContainer
+                                  .withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                         ),
                         // Scrollable list
                         ListWheelScrollView.useDelegate(
-                          controller: FixedExtentScrollController(initialItem: initialIndex),
+                          controller: FixedExtentScrollController(
+                            initialItem: initialIndex,
+                          ),
                           itemExtent: 50,
                           perspective: 0.005,
                           diameterRatio: 1.2,
@@ -714,16 +720,20 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
                               if (index < 0 || index >= 20) return null;
                               final value = index + 1;
                               final isSelected = value == selectedValue;
-                              
+
                               return Center(
                                 child: Text(
                                   '$value',
-                                  style: theme.textTheme.headlineMedium?.copyWith(
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                    color: isSelected
-                                        ? theme.colorScheme.primary
-                                        : theme.colorScheme.onSurface.withOpacity(0.6),
-                                  ),
+                                  style: theme.textTheme.headlineMedium
+                                      ?.copyWith(
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.w500,
+                                        color: isSelected
+                                            ? theme.colorScheme.primary
+                                            : theme.colorScheme.onSurface
+                                                  .withValues(alpha: 0.6),
+                                      ),
                                 ),
                               );
                             },
@@ -740,7 +750,9 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
                       width: double.infinity,
                       child: FilledButton(
                         onPressed: () {
-                          widget.onEdit(widget.task.copyWith(pomodoroCount: selectedValue));
+                          widget.onEdit(
+                            widget.task.copyWith(pomodoroCount: selectedValue),
+                          );
                           Navigator.pop(context);
                         },
                         style: FilledButton.styleFrom(
@@ -765,11 +777,17 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
 
   Widget _buildPrioritySelector(ThemeData theme, AppLocalizations l10n) {
     final priority = widget.task.priority.toLowerCase();
-    
+
     // Use PriorityUtils for DRY color mapping
-    final bgColor = PriorityUtils.getBackgroundColor(priority, theme.colorScheme);
-    final fgColor = PriorityUtils.getForegroundColor(priority, theme.colorScheme);
-    
+    final bgColor = PriorityUtils.getBackgroundColor(
+      priority,
+      theme.colorScheme,
+    );
+    final fgColor = PriorityUtils.getForegroundColor(
+      priority,
+      theme.colorScheme,
+    );
+
     return Container(
       height: 24,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -784,8 +802,11 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              priority == 'high' ? l10n.priorityHigh : 
-              priority == 'low' ? l10n.priorityLow : l10n.priorityMedium,
+              priority == 'high'
+                  ? l10n.priorityHigh
+                  : priority == 'low'
+                  ? l10n.priorityLow
+                  : l10n.priorityMedium,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: fgColor,
                 fontWeight: FontWeight.w600,
@@ -793,17 +814,13 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
               ),
             ),
             const SizedBox(width: 2),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 14,
-              color: fgColor,
-            ),
+            Icon(Icons.arrow_drop_down, size: 14, color: fgColor),
           ],
         ),
       ),
     );
   }
-  
+
   void _showPriorityBottomSheet(ThemeData theme, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
@@ -826,13 +843,18 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
                 width: 32,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
+                  color: theme.colorScheme.onSurfaceVariant.withValues(
+                    alpha: 0.4,
+                  ),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               // Title
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 child: Text(
                   l10n.priority,
                   style: theme.textTheme.titleLarge?.copyWith(
@@ -845,23 +867,11 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-                    _buildPriorityOption(
-                      theme,
-                      l10n.priorityHigh,
-                      'high',
-                    ),
+                    _buildPriorityOption(theme, l10n.priorityHigh, 'high'),
                     const SizedBox(height: 12),
-                    _buildPriorityOption(
-                      theme,
-                      l10n.priorityMedium,
-                      'medium',
-                    ),
+                    _buildPriorityOption(theme, l10n.priorityMedium, 'medium'),
                     const SizedBox(height: 12),
-                    _buildPriorityOption(
-                      theme,
-                      l10n.priorityLow,
-                      'low',
-                    ),
+                    _buildPriorityOption(theme, l10n.priorityLow, 'low'),
                   ],
                 ),
               ),
@@ -872,17 +882,13 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
       },
     );
   }
-  
-  Widget _buildPriorityOption(
-    ThemeData theme,
-    String label,
-    String value,
-  ) {
+
+  Widget _buildPriorityOption(ThemeData theme, String label, String value) {
     // Use PriorityUtils for DRY color mapping
     final bgColor = PriorityUtils.getBackgroundColor(value, theme.colorScheme);
     final fgColor = PriorityUtils.getForegroundColor(value, theme.colorScheme);
     final isSelected = widget.task.priority.toLowerCase() == value;
-    
+
     return InkWell(
       onTap: () {
         widget.onEdit(widget.task.copyWith(priority: value));
@@ -892,10 +898,12 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? bgColor : theme.colorScheme.surfaceContainerHighest,
+          color: isSelected
+              ? bgColor
+              : theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
           border: isSelected
-              ? Border.all(color: fgColor.withOpacity(0.5), width: 2)
+              ? Border.all(color: fgColor.withValues(alpha: 0.5), width: 2)
               : null,
         ),
         child: Row(
@@ -909,12 +917,7 @@ class _EditableTaskCardState extends State<_EditableTaskCard> {
                 ),
               ),
             ),
-            if (isSelected)
-              Icon(
-                Icons.check_circle,
-                color: fgColor,
-                size: 24,
-              ),
+            if (isSelected) Icon(Icons.check_circle, color: fgColor, size: 24),
           ],
         ),
       ),

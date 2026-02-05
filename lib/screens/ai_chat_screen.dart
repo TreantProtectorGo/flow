@@ -187,7 +187,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
               color: colorScheme.surface,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -222,7 +222,9 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                           vertical: 12,
                         ),
                         hintStyle: TextStyle(
-                          color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+                          color: colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.6,
+                          ),
                         ),
                       ),
                       style: TextStyle(color: colorScheme.onSurface),
@@ -263,7 +265,9 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                         child: Icon(
                           Icons.arrow_upward_rounded,
                           color: chatState.isLoading
-                              ? colorScheme.onSurfaceVariant.withOpacity(0.4)
+                              ? colorScheme.onSurfaceVariant.withValues(
+                                  alpha: 0.4,
+                                )
                               : colorScheme.onPrimary,
                           size: 24,
                         ),

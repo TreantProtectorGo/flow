@@ -512,8 +512,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                               dotData: const FlDotData(show: true),
                               belowBarData: BarAreaData(
                                 show: true,
-                                color: theme.colorScheme.primary.withOpacity(
-                                  0.1,
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.1,
                                 ),
                               ),
                             ),
@@ -568,7 +568,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: stat.color.withOpacity(0.1),
+        color: stat.color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

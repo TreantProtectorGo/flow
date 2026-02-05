@@ -101,8 +101,9 @@ class StatsHeatmap extends StatelessWidget {
                                   ),
                                   borderRadius: BorderRadius.circular(3),
                                   border: Border.all(
-                                    color: theme.colorScheme.outline
-                                        .withOpacity(0.2),
+                                    color: theme.colorScheme.outline.withValues(
+                                      alpha: 0.2,
+                                    ),
                                     width: 0.5,
                                   ),
                                 ),
@@ -140,7 +141,7 @@ class StatsHeatmap extends StatelessWidget {
                     color: _getColorForIntensity(intensity, theme),
                     borderRadius: BorderRadius.circular(3),
                     border: Border.all(
-                      color: theme.colorScheme.outline.withOpacity(0.2),
+                      color: theme.colorScheme.outline.withValues(alpha: 0.2),
                       width: 0.5,
                     ),
                   ),
@@ -204,11 +205,11 @@ class StatsHeatmap extends StatelessWidget {
     if (intensity == 0) {
       return theme.colorScheme.surfaceContainer;
     } else if (intensity < 0.25) {
-      return baseColor.withOpacity(0.3);
+      return baseColor.withValues(alpha: 0.3);
     } else if (intensity < 0.5) {
-      return baseColor.withOpacity(0.5);
+      return baseColor.withValues(alpha: 0.5);
     } else if (intensity < 0.75) {
-      return baseColor.withOpacity(0.7);
+      return baseColor.withValues(alpha: 0.7);
     } else {
       return baseColor;
     }

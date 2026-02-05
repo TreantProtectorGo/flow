@@ -47,8 +47,8 @@ class StatsStreakCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: streakDays > 0
               ? [
-                  Colors.orange.withOpacity(0.2),
-                  Colors.deepOrange.withOpacity(0.1),
+                  Colors.orange.withValues(alpha: 0.2),
+                  Colors.deepOrange.withValues(alpha: 0.1),
                 ]
               : [
                   theme.colorScheme.surfaceContainerHighest,
@@ -58,8 +58,8 @@ class StatsStreakCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: streakDays > 0
-              ? Colors.orange.withOpacity(0.3)
-              : theme.colorScheme.outline.withOpacity(0.2),
+              ? Colors.orange.withValues(alpha: 0.3)
+              : theme.colorScheme.outline.withValues(alpha: 0.2),
           width: 2,
         ),
       ),
@@ -94,7 +94,7 @@ class StatsStreakCard extends StatelessWidget {
                         l10n.days,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: streakDays > 0
-                              ? Colors.orange.withOpacity(0.8)
+                              ? Colors.orange.withValues(alpha: 0.8)
                               : theme.colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
                         ),
@@ -117,7 +117,7 @@ class StatsStreakCard extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surface.withOpacity(0.5),
+                    color: theme.colorScheme.surface.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(

@@ -205,15 +205,15 @@ class TasksScreen extends ConsumerWidget {
   }
 
   Future<void> _showDeleteConfirmDialog(
-  BuildContext context,
-  WidgetRef ref,
-  Task task,
-) async {
+    BuildContext context,
+    WidgetRef ref,
+    Task task,
+  ) async {
     final confirmed = await DeleteConfirmationDialog.show(
       context,
       title: task.title,
     );
-    
+
     if (confirmed == true) {
       ref.read(taskProvider.notifier).deleteTask(task.id);
     }
@@ -273,7 +273,7 @@ class TasksScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.primary.withOpacity(0.3),
+            color: theme.colorScheme.primary.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -319,7 +319,7 @@ class TasksScreen extends ConsumerWidget {
                             _getModeDisplay(timerNotifier.mode, l10n),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onPrimaryContainer
-                                  .withOpacity(0.7),
+                                  .withValues(alpha: 0.7),
                             ),
                           ),
                         ],
@@ -354,8 +354,9 @@ class TasksScreen extends ConsumerWidget {
                         child: LinearProgressIndicator(
                           value: timerNotifier.progress,
                           minHeight: 8,
-                          backgroundColor: theme.colorScheme.surface
-                              .withOpacity(0.3),
+                          backgroundColor: theme.colorScheme.surface.withValues(
+                            alpha: 0.3,
+                          ),
                           valueColor: AlwaysStoppedAnimation<Color>(
                             theme.colorScheme.primary,
                           ),
@@ -577,7 +578,7 @@ class TasksScreen extends ConsumerWidget {
     final timerNotifier = ref.read(timerProvider.notifier);
     final isCurrentTask = ref.read(taskProvider).currentTaskId == task.id;
 
-// Set as current task
+    // Set as current task
     taskNotifier.setCurrentTask(task.id);
 
     // If not current task or timer is stopped, reset and start

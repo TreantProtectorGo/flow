@@ -42,38 +42,39 @@ class _SettingsSelectionScreenState<T>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar.large(
-            title: Text(widget.title),
-            pinned: true,
-            scrolledUnderElevation: 0,
-            titleTextStyle: theme.textTheme.headlineLarge?.copyWith(),
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              final option = widget.options[index];
-              return RadioListTile<T>(
-                value: option,
-                groupValue: _selectedValue,
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedValue = value);
-                    widget.onSelected(value);
-                  }
-                },
-                title: Text(
-                  widget.getLabel(option),
-                  style: theme.textTheme.bodyLarge?.copyWith(),
-                ),
-                controlAffinity: ListTileControlAffinity.leading,
-              );
-            }, childCount: widget.options.length),
-          ),
-        ],
+      body: RadioGroup<T>(
+        groupValue: _selectedValue,
+        onChanged: (value) {
+          if (value != null) {
+            setState(() => _selectedValue = value);
+            widget.onSelected(value);
+          }
+        },
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar.large(
+              title: Text(widget.title),
+              pinned: true,
+              scrolledUnderElevation: 0,
+              titleTextStyle: theme.textTheme.headlineLarge?.copyWith(),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final option = widget.options[index];
+                return RadioListTile<T>(
+                  value: option,
+                  title: Text(
+                    widget.getLabel(option),
+                    style: theme.textTheme.bodyLarge?.copyWith(),
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                );
+              }, childCount: widget.options.length),
+            ),
+          ],
+        ),
       ),
     );
   }

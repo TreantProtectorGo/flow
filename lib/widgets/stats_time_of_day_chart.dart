@@ -99,8 +99,8 @@ class StatsTimeOfDayChart extends StatelessWidget {
                     Text(
                       l10n.yourBestFocusTime,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer.withOpacity(
-                          0.8,
+                        color: theme.colorScheme.onPrimaryContainer.withValues(
+                          alpha: 0.8,
                         ),
                       ),
                     ),
@@ -116,8 +116,8 @@ class StatsTimeOfDayChart extends StatelessWidget {
                     Text(
                       l10n.completedPomodorosCount(bestTime['value'] as int),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer.withOpacity(
-                          0.8,
+                        color: theme.colorScheme.onPrimaryContainer.withValues(
+                          alpha: 0.8,
                         ),
                       ),
                     ),
@@ -206,7 +206,7 @@ class StatsTimeOfDayChart extends StatelessWidget {
                 horizontalInterval: 5,
                 getDrawingHorizontalLine: (value) {
                   return FlLine(
-                    color: theme.colorScheme.outline.withOpacity(0.1),
+                    color: theme.colorScheme.outline.withValues(alpha: 0.1),
                     strokeWidth: 1,
                   );
                 },
