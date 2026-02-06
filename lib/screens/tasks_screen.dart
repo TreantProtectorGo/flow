@@ -133,8 +133,9 @@ class TasksScreen extends ConsumerWidget {
             backgroundColor: theme.colorScheme.secondaryContainer,
             foregroundColor: theme.colorScheme.onSecondaryContainer,
             child: const Icon(Icons.auto_awesome),
+            shape: const CircleBorder(),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 15),
           // Add Task FAB
           FloatingActionButton.extended(
             onPressed: () => _showAddTaskDialog(context, ref),
@@ -142,6 +143,7 @@ class TasksScreen extends ConsumerWidget {
             icon: const Icon(Icons.add),
             label: Text(l10n.add),
           ),
+          const SizedBox(height: 10),
         ],
       ),
     );
