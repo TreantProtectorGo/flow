@@ -29,7 +29,7 @@ class TimerProvider with ChangeNotifier {
 
   // Debug mode: use short timers for testing (only in debug builds)
   static const bool _useDebugTimers =
-      kDebugMode && false; // Set to true to enable
+      kDebugMode && true; // Set to true to enable
 
   // Timer settings (debug: 10s/5s/8s, release: 25m/5m/15m)
   int _focusTimeInMinutes = _useDebugTimers
@@ -249,6 +249,9 @@ class TimerProvider with ChangeNotifier {
     _updateTimeForCurrentMode();
     _saveSettings();
     notifyListeners();
+
+    // Auto-continue to next phase
+    startTimer();
   }
 
   /// Record pomodoro session to database

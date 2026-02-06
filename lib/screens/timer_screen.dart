@@ -15,36 +15,24 @@ class TimerScreen extends ConsumerStatefulWidget {
 }
 
 class _TimerScreenState extends ConsumerState<TimerScreen>
-    with TickerProviderStateMixin {
-  // Animation controllers
+    with SingleTickerProviderStateMixin {
+  // Animation controller for progress indicator
   late AnimationController _progressController;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize animation controllers
+    // Initialize animation controller
     _progressController = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
-    );
-
-    _pulseController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
-
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
   }
 
   @override
   void dispose() {
     _progressController.dispose();
-    _pulseController.dispose();
     super.dispose();
   }
 
@@ -56,18 +44,9 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     final taskNotifier = ref.watch(taskProvider);
     final currentTask = taskNotifier.currentTask;
 
-    // Update animations based on timer state
+    // Update progress animation based on timer state
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _progressController.animateTo(timerNotifier.progress);
-
-      if (timerNotifier.isRunning) {
-        if (!_pulseController.isAnimating) {
-          _pulseController.repeat(reverse: true);
-        }
-      } else {
-        _pulseController.stop();
-        _pulseController.reset();
-      }
     });
 
     return Scaffold(
@@ -277,85 +256,78 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
         SizedBox(
           width: timerSize,
           height: timerSize,
-          child: AnimatedBuilder(
-            animation: _pulseAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: timerNotifier.isRunning ? _pulseAnimation.value : 1.0,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Background circle
-                    Container(
-                      width: timerSize,
-                      height: timerSize,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: theme.colorScheme.surfaceContainerHighest
-                            .withValues(alpha: 0.3),
-                      ),
-                    ),
-
-                    // Progress circle
-                    SizedBox(
-                      width: timerSize,
-                      height: timerSize,
-                      child: AnimatedBuilder(
-                        animation: _progressController,
-                        builder: (context, child) {
-                          return CustomPaint(
-                            painter: CircularProgressPainter(
-                              progress: _progressController.value,
-                              color: timerNotifier.isFocusMode
-                                  ? theme.colorScheme.primary
-                                  : theme.colorScheme.secondary,
-                              strokeWidth: strokeWidth,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-
-                    // Time display
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          timerNotifier.timeDisplayString,
-                          style: theme.textTheme.displayLarge?.copyWith(
-                            fontWeight: FontWeight.w300,
-                            fontSize: fontSize,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: timerNotifier.isFocusMode
-                                ? theme.colorScheme.primaryContainer
-                                : theme.colorScheme.secondaryContainer,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            _getModeDisplay(timerNotifier.mode, l10n),
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              color: timerNotifier.isFocusMode
-                                  ? theme.colorScheme.onPrimaryContainer
-                                  : theme.colorScheme.onSecondaryContainer,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Background circle
+              Container(
+                width: timerSize,
+                height: timerSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.3,
+                  ),
                 ),
-              );
-            },
+              ),
+
+              // Progress circle
+              SizedBox(
+                width: timerSize,
+                height: timerSize,
+                child: AnimatedBuilder(
+                  animation: _progressController,
+                  builder: (context, child) {
+                    return CustomPaint(
+                      painter: CircularProgressPainter(
+                        progress: _progressController.value,
+                        color: timerNotifier.isFocusMode
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.secondary,
+                        strokeWidth: strokeWidth,
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // Time display
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    timerNotifier.timeDisplayString,
+                    style: theme.textTheme.displayLarge?.copyWith(
+                      fontWeight: FontWeight.w300,
+                      fontSize: fontSize,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: timerNotifier.isFocusMode
+                          ? theme.colorScheme.primaryContainer
+                          : theme.colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      _getModeDisplay(timerNotifier.mode, l10n),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: timerNotifier.isFocusMode
+                            ? theme.colorScheme.onPrimaryContainer
+                            : theme.colorScheme.onSecondaryContainer,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
 
