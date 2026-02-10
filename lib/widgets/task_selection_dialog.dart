@@ -33,12 +33,16 @@ class TaskSelectionDialog extends ConsumerWidget {
             ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.inbox, size: 64, color: Colors.grey),
+                  Icon(
+                    Icons.inbox,
+                    size: 64,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(height: 16),
                   Text(l10n.noTasksToSelect),
                   Text(
                     l10n.pleaseAddTasksFirst,
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ],
               )

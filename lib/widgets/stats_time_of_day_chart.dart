@@ -142,8 +142,8 @@ class StatsTimeOfDayChart extends StatelessWidget {
                     final timeSlot = timeSlots[group.x.toInt()];
                     return BarTooltipItem(
                       '${timeSlot['name']}\n${l10n.completedPomodorosCount(timeSlot['value'] as int)}',
-                      const TextStyle(
-                        color: Colors.white,
+                      TextStyle(
+                        color: theme.colorScheme.onInverseSurface,
                         fontWeight: FontWeight.bold,
                       ),
                     );

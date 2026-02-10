@@ -146,8 +146,8 @@ class TasksScreen extends ConsumerWidget {
             heroTag: "aiChatButton",
             backgroundColor: theme.colorScheme.secondaryContainer,
             foregroundColor: theme.colorScheme.onSecondaryContainer,
-            child: const Icon(Icons.auto_awesome),
             shape: const CircleBorder(),
+            child: const Icon(Icons.auto_awesome),
           ),
           const SizedBox(height: 15),
           // Add Task FAB
@@ -391,7 +391,7 @@ class TasksScreen extends ConsumerWidget {
                         child: Icon(
                           Icons.check_circle,
                           size: 14,
-                          color: Colors.green.shade300,
+                          color: theme.colorScheme.tertiary,
                         ),
                       ),
                   ],
@@ -469,7 +469,7 @@ class TasksScreen extends ConsumerWidget {
     // Calculate pomodoro progress
     final pomodoroProgress = task.completedPomodoros / task.pomodoroCount;
     final progressColor = pomodoroProgress >= 1.0
-        ? Colors.green
+        ? theme.colorScheme.tertiary
         : theme.colorScheme.primary;
 
     return Dismissible(
@@ -481,10 +481,14 @@ class TasksScreen extends ConsumerWidget {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: Colors.green,
+          color: theme.colorScheme.tertiaryContainer,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Icon(Icons.check, color: Colors.white, size: 32),
+        child: Icon(
+          Icons.check,
+          color: theme.colorScheme.onTertiaryContainer,
+          size: 32,
+        ),
       ),
       confirmDismiss: (direction) async {
         // Mark as completed directly
@@ -631,7 +635,7 @@ class TasksScreen extends ConsumerWidget {
                                   child: Icon(
                                     Icons.check_circle,
                                     size: 14,
-                                    color: Colors.green,
+                                    color: theme.colorScheme.tertiary,
                                   ),
                                 ),
                             ],
