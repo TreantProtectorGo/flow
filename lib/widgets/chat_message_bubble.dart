@@ -4,6 +4,7 @@ import '../models/chat_message.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '../utils/snackbar_util.dart';
 import '../l10n/app_localizations.dart';
+import '../theme/m3_expressive.dart';
 
 class ChatMessageBubble extends StatefulWidget {
   final ChatMessage message;
@@ -141,7 +142,9 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
                             );
                             SnackBarUtil.showInfoSnackBar(
                               context,
-                              message: AppLocalizations.of(context)!.copiedToClipboard,
+                              message: AppLocalizations.of(
+                                context,
+                              )!.copiedToClipboard,
                             );
                           },
                           borderRadius: BorderRadius.circular(12),
@@ -217,14 +220,33 @@ class _TypingIndicator extends StatefulWidget {
 class _TypingIndicatorState extends State<_TypingIndicator>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  bool _reduceMotion = true;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1400),
+      duration: M3ExpressiveMotion.long,
       vsync: this,
-    )..repeat(); // 持續循環動畫
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nextReduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (_reduceMotion == nextReduceMotion) {
+      return;
+    }
+
+    _reduceMotion = nextReduceMotion;
+    if (_reduceMotion) {
+      _controller.stop();
+      _controller.value = 1;
+    } else {
+      _controller.repeat();
+    }
   }
 
   @override
@@ -236,6 +258,24 @@ class _TypingIndicatorState extends State<_TypingIndicator>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    if (_reduceMotion) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(3, (index) {
+          return Padding(
+            padding: EdgeInsets.only(right: index == 2 ? 0 : 4),
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+              ),
+            ),
+          );
+        }),
+      );
+    }
 
     return Row(
       mainAxisSize: MainAxisSize.min,

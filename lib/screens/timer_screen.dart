@@ -6,6 +6,7 @@ import '../providers/task_provider.dart';
 import '../widgets/task_selection_dialog.dart';
 import '../models/task.dart';
 import '../l10n/app_localizations.dart';
+import '../theme/m3_expressive.dart';
 
 class TimerScreen extends ConsumerStatefulWidget {
   const TimerScreen({super.key});
@@ -18,6 +19,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     with SingleTickerProviderStateMixin {
   // Animation controller for progress indicator
   late AnimationController _progressController;
+  double _lastProgress = 0;
 
   @override
   void initState() {
@@ -44,9 +46,27 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     final taskNotifier = ref.watch(taskProvider);
     final currentTask = taskNotifier.currentTask;
 
+    final reducedMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+
     // Update progress animation based on timer state
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _progressController.animateTo(timerNotifier.progress);
+      if (!mounted) {
+        return;
+      }
+
+      if (reducedMotion) {
+        _progressController.value = timerNotifier.progress;
+      } else {
+        final delta = (timerNotifier.progress - _lastProgress).abs();
+        final durationMs = (160 + (delta * 520)).clamp(160, 620).toInt();
+        _progressController.animateTo(
+          timerNotifier.progress,
+          duration: Duration(milliseconds: durationMs),
+          curve: M3ExpressiveMotion.emphasizedDecelerate,
+        );
+      }
+      _lastProgress = timerNotifier.progress;
     });
 
     return Scaffold(
@@ -86,6 +106,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                         timerNotifier,
                         constraints,
                         l10n,
+                        reducedMotion,
                       ),
 
                       SizedBox(height: sectionSpacing),
@@ -147,7 +168,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                 icon: const Icon(Icons.change_circle, size: 16),
                 label: Text(l10n.switchTask),
                 style: TextButton.styleFrom(
-                  minimumSize: const Size(0, 32),
+                  minimumSize: const Size(48, 48),
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
               ),
@@ -229,6 +250,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
     TimerProvider timerNotifier,
     BoxConstraints constraints,
     AppLocalizations l10n,
+    bool reducedMotion,
   ) {
     // Calculate responsive timer size based on BOTH width and height
     final availableWidth = constraints.maxWidth - 40; // Account for padding
@@ -304,7 +326,13 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Container(
+                  AnimatedContainer(
+                    duration: M3ExpressiveMotion.pickDuration(
+                      reducedMotion: reducedMotion,
+                      normal: const Duration(milliseconds: 180),
+                      expressive: M3ExpressiveMotion.medium,
+                    ),
+                    curve: M3ExpressiveMotion.emphasizedStandard,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 6,
@@ -313,7 +341,9 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                       color: timerNotifier.isFocusMode
                           ? theme.colorScheme.primaryContainer
                           : theme.colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(
+                        timerNotifier.isFocusMode ? 20 : 14,
+                      ),
                     ),
                     child: Text(
                       _getModeDisplay(timerNotifier.mode, l10n),
@@ -390,28 +420,41 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
         ),
 
         // Play/Pause button
-        FilledButton(
-          onPressed: () {
-            if (timerNotifier.isRunning) {
-              ref.read(timerProvider.notifier).pauseTimer();
-            } else {
-              ref.read(timerProvider.notifier).startTimer();
-            }
+        TweenAnimationBuilder<double>(
+          tween: Tween<double>(end: timerNotifier.isRunning ? 1.1 : 1.0),
+          duration: M3ExpressiveMotion.pickDuration(
+            reducedMotion:
+                MediaQuery.maybeOf(context)?.disableAnimations ?? false,
+            normal: const Duration(milliseconds: 180),
+            expressive: M3ExpressiveMotion.medium,
+          ),
+          curve: M3ExpressiveMotion.emphasizedDecelerate,
+          builder: (context, scale, child) {
+            return Transform.scale(scale: scale, child: child);
           },
-          style: FilledButton.styleFrom(minimumSize: const Size(120, 56)),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                timerNotifier.isRunning ? Icons.pause : Icons.play_arrow,
-                size: 24,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                timerNotifier.isRunning ? l10n.pause : l10n.start,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ],
+          child: FilledButton(
+            onPressed: () {
+              if (timerNotifier.isRunning) {
+                ref.read(timerProvider.notifier).pauseTimer();
+              } else {
+                ref.read(timerProvider.notifier).startTimer();
+              }
+            },
+            style: FilledButton.styleFrom(minimumSize: const Size(120, 56)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  timerNotifier.isRunning ? Icons.pause : Icons.play_arrow,
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  timerNotifier.isRunning ? l10n.pause : l10n.start,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
           ),
         ),
 

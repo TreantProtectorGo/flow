@@ -5,6 +5,7 @@ import '../widgets/chat_message_bubble.dart';
 import '../widgets/task_breakdown_card.dart';
 import '../widgets/dialogs/confirmation_dialog.dart';
 import '../l10n/app_localizations.dart';
+import '../theme/m3_expressive.dart';
 
 class AIChatScreen extends ConsumerStatefulWidget {
   final String? initialMessage;
@@ -43,11 +44,17 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
+      final reducedMotion =
+          MediaQuery.maybeOf(context)?.disableAnimations ?? false;
       Future.delayed(const Duration(milliseconds: 100), () {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+          duration: M3ExpressiveMotion.pickDuration(
+            reducedMotion: reducedMotion,
+            normal: const Duration(milliseconds: 220),
+            expressive: M3ExpressiveMotion.medium,
+          ),
+          curve: M3ExpressiveMotion.emphasizedDecelerate,
         );
       });
     }
@@ -155,8 +162,11 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                     onPressed: () {
                       ref.read(chatProvider.notifier).clearError();
                     },
-                    padding: const EdgeInsets.all(4),
-                    constraints: const BoxConstraints(),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
                     tooltip: l10n.close,
                   ),
                 ],
@@ -249,44 +259,70 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                 const SizedBox(width: 8),
 
                 // Send button
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: chatState.isLoading
-                        ? null
-                        : LinearGradient(
-                            colors: [
-                              colorScheme.primary,
-                              colorScheme.secondary,
-                            ],
-                          ),
-                    color: chatState.isLoading
-                        ? colorScheme.surfaceContainerHighest
-                        : null,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(24),
-                      onTap: chatState.isLoading
-                          ? null
-                          : () => _handleSubmit(_textController.text),
-                      child: Container(
-                        width: 48,
-                        height: 48,
-                        alignment: Alignment.center,
-                        child: Icon(
-                          Icons.arrow_upward_rounded,
-                          color: chatState.isLoading
-                              ? colorScheme.onSurfaceVariant.withValues(
-                                  alpha: 0.4,
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _textController,
+                  builder: (context, value, _) {
+                    final canSend =
+                        value.text.trim().isNotEmpty && !chatState.isLoading;
+                    final reducedMotion =
+                        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+                    final duration = M3ExpressiveMotion.pickDuration(
+                      reducedMotion: reducedMotion,
+                      normal: const Duration(milliseconds: 180),
+                      expressive: M3ExpressiveMotion.medium,
+                    );
+
+                    return AnimatedScale(
+                      scale: canSend ? 1.1 : 1.0,
+                      duration: duration,
+                      curve: M3ExpressiveMotion.emphasizedDecelerate,
+                      child: AnimatedContainer(
+                        duration: duration,
+                        curve: M3ExpressiveMotion.emphasizedStandard,
+                        decoration: BoxDecoration(
+                          gradient: canSend
+                              ? LinearGradient(
+                                  colors: [
+                                    colorScheme.primary,
+                                    colorScheme.secondary,
+                                  ],
                                 )
-                              : colorScheme.onPrimary,
-                          size: 24,
+                              : null,
+                          color: canSend
+                              ? null
+                              : colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(
+                            canSend ? 18 : 24,
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(
+                              canSend ? 18 : 24,
+                            ),
+                            onTap: canSend
+                                ? () => _handleSubmit(_textController.text)
+                                : null,
+                            child: Container(
+                              width: 48,
+                              height: 48,
+                              alignment: Alignment.center,
+                              child: Icon(
+                                Icons.arrow_upward_rounded,
+                                color: canSend
+                                    ? colorScheme.onPrimary
+                                    : colorScheme.onSurfaceVariant.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                size: 24,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ],
             ),
