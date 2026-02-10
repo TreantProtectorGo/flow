@@ -16,6 +16,8 @@ class StatsStreakCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final accent = theme.colorScheme.tertiary;
+    final onAccent = theme.colorScheme.onTertiary;
 
     // 根據連續天數顯示不同的火焰
     String getFlameEmoji() {
@@ -47,8 +49,8 @@ class StatsStreakCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: streakDays > 0
               ? [
-                  Colors.orange.withValues(alpha: 0.2),
-                  Colors.deepOrange.withValues(alpha: 0.1),
+                  theme.colorScheme.tertiaryContainer,
+                  theme.colorScheme.surfaceContainerHigh,
                 ]
               : [
                   theme.colorScheme.surfaceContainerHighest,
@@ -58,7 +60,7 @@ class StatsStreakCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: streakDays > 0
-              ? Colors.orange.withValues(alpha: 0.3)
+              ? accent.withValues(alpha: 0.4)
               : theme.colorScheme.outline.withValues(alpha: 0.2),
           width: 2,
         ),
@@ -81,7 +83,7 @@ class StatsStreakCard extends StatelessWidget {
                       style: theme.textTheme.displayLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: streakDays > 0
-                            ? Colors.orange
+                            ? accent
                             : theme.colorScheme.onSurface,
                         fontSize: 36,
                         height: 1,
@@ -94,7 +96,7 @@ class StatsStreakCard extends StatelessWidget {
                         l10n.days,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: streakDays > 0
-                              ? Colors.orange.withValues(alpha: 0.8)
+                              ? accent.withValues(alpha: 0.85)
                               : theme.colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
                         ),
@@ -117,7 +119,9 @@ class StatsStreakCard extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surface.withValues(alpha: 0.5),
+                    color: streakDays > 0
+                        ? onAccent.withValues(alpha: 0.12)
+                        : theme.colorScheme.surface.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(

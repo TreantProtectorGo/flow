@@ -25,6 +25,10 @@ class StatsGoalCard extends StatelessWidget {
     final progress = goal > 0 ? (current / goal).clamp(0.0, 1.0) : 0.0;
     final percentage = (progress * 100).toInt();
     final isCompleted = current >= goal;
+    final onAccent =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+        ? Colors.white
+        : Colors.black;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -78,15 +82,15 @@ class StatsGoalCard extends StatelessWidget {
                     color: color,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, color: Colors.white, size: 16),
-                      SizedBox(width: 4),
+                      Icon(Icons.check_circle, color: onAccent, size: 16),
+                      const SizedBox(width: 4),
                       Text(
                         '達成',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: onAccent,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),

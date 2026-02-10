@@ -128,11 +128,10 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                 icon: Icons.percent,
                 label: l10n.completionRate,
                 value: '${stats.todayCompletionRate.toStringAsFixed(0)}%',
-                color: stats.todayCompletionRate >= 70
-                    ? Colors.green
-                    : stats.todayCompletionRate >= 40
-                    ? Colors.orange
-                    : Colors.red,
+                color: _completionRateColor(
+                  stats.todayCompletionRate,
+                  theme.colorScheme,
+                ),
               ),
             ],
           ),
@@ -157,10 +156,10 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                                   '${l10n.completed}\n${stats.todayCompleted}',
                               color: theme.colorScheme.primary,
                               radius: 80,
-                              titleStyle: const TextStyle(
+                              titleStyle: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: theme.colorScheme.onPrimary,
                               ),
                             ),
                             if (stats.todayIncomplete > 0)
@@ -226,7 +225,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                 icon: Icons.local_fire_department,
                 label: l10n.streakDays,
                 value: '${stats.streakDays}',
-                color: Colors.orange,
+                color: theme.colorScheme.tertiary,
               ),
               _StatItem(
                 icon: Icons.trending_up,
@@ -289,7 +288,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                                 );
                                 return BarTooltipItem(
                                   '$day\n${l10n.pomodoroCount(rod.toY.toInt())}',
-                                  const TextStyle(color: Colors.white),
+                                  TextStyle(
+                                    color: theme.colorScheme.onInverseSurface,
+                                  ),
                                 );
                               },
                             ),
@@ -411,7 +412,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                 icon: Icons.star,
                 label: l10n.bestDay,
                 value: '${stats.monthBestDay}',
-                color: Colors.amber,
+                color: theme.colorScheme.tertiary,
               ),
             ],
           ),
@@ -450,7 +451,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                                 return touchedSpots.map((spot) {
                                   return LineTooltipItem(
                                     '${spot.y.toInt()} 個',
-                                    const TextStyle(color: Colors.white),
+                                    TextStyle(
+                                      color: theme.colorScheme.onInverseSurface,
+                                    ),
                                   );
                                 }).toList();
                               },
@@ -661,4 +664,14 @@ class _StatItem {
     required this.value,
     required this.color,
   });
+}
+
+Color _completionRateColor(double rate, ColorScheme colorScheme) {
+  if (rate >= 70) {
+    return colorScheme.primary;
+  }
+  if (rate >= 40) {
+    return colorScheme.tertiary;
+  }
+  return colorScheme.error;
 }

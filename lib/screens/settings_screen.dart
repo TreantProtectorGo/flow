@@ -326,7 +326,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.primary,
               title: AppLocalizations.of(context)!.exportData,
               subtitle: AppLocalizations.of(context)!.exportDataSubtitle,
-              trailing: ElevatedButton(
+              trailing: FilledButton.tonal(
                 onPressed: () {},
                 child: Text(AppLocalizations.of(context)!.exportCSV),
               ),
@@ -339,12 +339,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.error,
               title: AppLocalizations.of(context)!.clearAllData,
               subtitle: AppLocalizations.of(context)!.clearAllDataSubtitle,
-              trailing: ElevatedButton(
+              trailing: FilledButton(
                 onPressed: () =>
                     _showConfirmDialog(AppLocalizations.of(context)!.clearData),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.error,
-                  foregroundColor: Colors.white,
+                style: FilledButton.styleFrom(
+                  backgroundColor: theme.colorScheme.errorContainer,
+                  foregroundColor: theme.colorScheme.onErrorContainer,
                 ),
                 child: Text(AppLocalizations.of(context)!.clearData),
               ),
@@ -354,13 +354,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               iconColor: theme.colorScheme.error,
               title: AppLocalizations.of(context)!.deleteAccount,
               subtitle: AppLocalizations.of(context)!.deleteAccountSubtitle,
-              trailing: ElevatedButton(
+              trailing: FilledButton(
                 onPressed: () => _showConfirmDialog(
                   AppLocalizations.of(context)!.deleteAccount,
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.error,
-                  foregroundColor: Colors.white,
+                style: FilledButton.styleFrom(
+                  backgroundColor: theme.colorScheme.errorContainer,
+                  foregroundColor: theme.colorScheme.onErrorContainer,
                 ),
                 child: Text(AppLocalizations.of(context)!.deleteAccount),
               ),
