@@ -899,4 +899,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notificationChannelDescription =>
       'Pomodoro timer completion notifications';
+
+  @override
+  String get notificationTaskCompleteTitle => 'Task Complete!';
+
+  @override
+  String notificationTaskCompleteBody(String taskTitle) {
+    return 'All pomodoros for \"$taskTitle\" have been completed';
+  }
 }

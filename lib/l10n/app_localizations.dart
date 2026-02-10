@@ -1748,6 +1748,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'番茄鐘計時器完成通知'**
   String get notificationChannelDescription;
+
+  /// No description provided for @notificationTaskCompleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'任務完成！'**
+  String get notificationTaskCompleteTitle;
+
+  /// No description provided for @notificationTaskCompleteBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'「{taskTitle}」的所有番茄鐘已完成'**
+  String notificationTaskCompleteBody(String taskTitle);
 }
 
 class _AppLocalizationsDelegate

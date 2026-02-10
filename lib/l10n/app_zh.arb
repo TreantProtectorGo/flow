@@ -528,5 +528,15 @@
   "notificationLongBreakCompleteTitle": "長休息結束",
   "notificationBreakCompleteBody": "準備好繼續專注了嗎",
   "notificationChannelName": "計時器通知",
-  "notificationChannelDescription": "番茄鐘計時器完成通知"
+  "notificationChannelDescription": "番茄鐘計時器完成通知",
+
+  "notificationTaskCompleteTitle": "任務完成！",
+  "notificationTaskCompleteBody": "「{taskTitle}」的所有番茄鐘已完成",
+  "@notificationTaskCompleteBody": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  }
 }

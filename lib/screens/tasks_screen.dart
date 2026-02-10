@@ -50,22 +50,36 @@ class TasksScreen extends ConsumerWidget {
                           if (currentTask != null && isTimerRunning)
                             const SizedBox(height: 20),
 
-                          // In-progress tasks
-                          if (taskNotifier.inProgressTasks.isNotEmpty) ...[
+                          // In-progress tasks (exclude the currently running task to avoid duplicate)
+                          if (taskNotifier.inProgressTasks
+                              .where(
+                                (task) =>
+                                    !(currentTask != null &&
+                                        isTimerRunning &&
+                                        task.id == currentTask.id),
+                              )
+                              .isNotEmpty) ...[
                             _buildSectionHeader(l10n.inProgress, theme),
                             const SizedBox(height: 15),
-                            ...taskNotifier.inProgressTasks.map(
-                              (task) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: _buildTaskCard(
-                                  task,
-                                  theme,
-                                  context,
-                                  ref,
-                                  l10n,
+                            ...taskNotifier.inProgressTasks
+                                .where(
+                                  (task) =>
+                                      !(currentTask != null &&
+                                          isTimerRunning &&
+                                          task.id == currentTask.id),
+                                )
+                                .map(
+                                  (task) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: _buildTaskCard(
+                                      task,
+                                      theme,
+                                      context,
+                                      ref,
+                                      l10n,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
                             const SizedBox(height: 30),
                           ],
 
@@ -355,6 +369,33 @@ class TasksScreen extends ConsumerWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 8),
+                // Pomodoro progress display
+                Row(
+                  children: [
+                    Text(
+                      l10n.pomodoroProgress(
+                        task.completedPomodoros,
+                        task.pomodoroCount,
+                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer.withValues(
+                          alpha: 0.8,
+                        ),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (task.completedPomodoros >= task.pomodoroCount)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Icon(
+                          Icons.check_circle,
+                          size: 14,
+                          color: Colors.green.shade300,
+                        ),
+                      ),
+                  ],
+                ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -510,21 +551,22 @@ class TasksScreen extends ConsumerWidget {
                     ),
                     // Action buttons row
                     if (task.status != TaskStatus.completed) ...[
-                      // AI Breakdown button
-                      IconButton(
-                        onPressed: () => _openAIChatWithTask(context, task),
-                        icon: Icon(
-                          Icons.auto_awesome,
-                          size: 20,
-                          color: theme.colorScheme.secondary,
+                      // AI Breakdown button (hide for AI-generated tasks)
+                      if (!task.isAIGenerated)
+                        IconButton(
+                          onPressed: () => _openAIChatWithTask(context, task),
+                          icon: Icon(
+                            Icons.auto_awesome,
+                            size: 20,
+                            color: theme.colorScheme.secondary,
+                          ),
+                          tooltip: l10n.breakdownWithAI,
+                          style: IconButton.styleFrom(
+                            minimumSize: const Size(36, 36),
+                            padding: EdgeInsets.zero,
+                          ),
                         ),
-                        tooltip: l10n.breakdownWithAI,
-                        style: IconButton.styleFrom(
-                          minimumSize: const Size(36, 36),
-                          padding: EdgeInsets.zero,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
+                      if (!task.isAIGenerated) const SizedBox(width: 4),
                       // Start pomodoro button
                       FilledButton.icon(
                         onPressed: () =>

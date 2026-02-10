@@ -33,7 +33,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -49,6 +49,13 @@ class DatabaseHelper {
       debugPrint(
         '📦 [DB] Migrated to version 2: added completed_pomodoros column',
       );
+    }
+    if (oldVersion < 3) {
+      // Add is_ai_generated column to tasks table
+      await db.execute(
+        'ALTER TABLE tasks ADD COLUMN is_ai_generated INTEGER NOT NULL DEFAULT 0',
+      );
+      debugPrint('📦 [DB] Migrated to version 3: added is_ai_generated column');
     }
   }
 
@@ -68,7 +75,8 @@ class DatabaseHelper {
         priority TEXT NOT NULL,
         status TEXT NOT NULL,
         created_at TEXT NOT NULL,
-        completed_at TEXT
+        completed_at TEXT,
+        is_ai_generated INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
@@ -133,6 +141,7 @@ class DatabaseHelper {
       'status': task.status.name,
       'created_at': task.createdAt.toIso8601String(),
       'completed_at': task.completedAt?.toIso8601String(),
+      'is_ai_generated': task.isAIGenerated ? 1 : 0,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
     debugPrint('✅ [DB] Task insertion successful');
     return result;
@@ -158,6 +167,7 @@ class DatabaseHelper {
             'status': json['status'],
             'createdAt': json['created_at'],
             'completedAt': json['completed_at'],
+            'isAIGenerated': (json['is_ai_generated'] ?? 0) == 1,
           }),
         )
         .toList();
@@ -188,6 +198,7 @@ class DatabaseHelper {
       'status': json['status'],
       'createdAt': json['created_at'],
       'completedAt': json['completed_at'],
+      'isAIGenerated': (json['is_ai_generated'] ?? 0) == 1,
     });
   }
 
@@ -210,6 +221,7 @@ class DatabaseHelper {
         'status': task.status.name,
         'created_at': task.createdAt.toIso8601String(),
         'completed_at': task.completedAt?.toIso8601String(),
+        'is_ai_generated': task.isAIGenerated ? 1 : 0,
       },
       where: 'id = ?',
       whereArgs: [task.id],

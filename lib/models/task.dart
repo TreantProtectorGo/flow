@@ -14,6 +14,7 @@ class Task {
   final TaskStatus status;
   final DateTime createdAt;
   final DateTime? completedAt;
+  final bool isAIGenerated; // Whether this task was created by AI breakdown
 
   Task({
     required this.id,
@@ -25,6 +26,7 @@ class Task {
     required this.status,
     required this.createdAt,
     this.completedAt,
+    this.isAIGenerated = false,
   });
 
   Task copyWith({
@@ -37,6 +39,7 @@ class Task {
     TaskStatus? status,
     DateTime? createdAt,
     DateTime? completedAt,
+    bool? isAIGenerated,
   }) {
     return Task(
       id: id ?? this.id,
@@ -48,6 +51,7 @@ class Task {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       completedAt: completedAt ?? this.completedAt,
+      isAIGenerated: isAIGenerated ?? this.isAIGenerated,
     );
   }
 
@@ -62,6 +66,7 @@ class Task {
       'status': status.name,
       'createdAt': createdAt.toIso8601String(),
       'completedAt': completedAt?.toIso8601String(),
+      'isAIGenerated': isAIGenerated,
     };
   }
 
@@ -80,6 +85,7 @@ class Task {
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'])
           : null,
+      isAIGenerated: json['isAIGenerated'] ?? false,
     );
   }
 

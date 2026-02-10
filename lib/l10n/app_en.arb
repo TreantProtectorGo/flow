@@ -441,5 +441,15 @@
   "notificationLongBreakCompleteTitle": "Long Break Complete",
   "notificationBreakCompleteBody": "Ready to focus again?",
   "notificationChannelName": "Timer Notifications",
-  "notificationChannelDescription": "Pomodoro timer completion notifications"
+  "notificationChannelDescription": "Pomodoro timer completion notifications",
+
+  "notificationTaskCompleteTitle": "Task Complete!",
+  "notificationTaskCompleteBody": "All pomodoros for \"{taskTitle}\" have been completed",
+  "@notificationTaskCompleteBody": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  }
 }

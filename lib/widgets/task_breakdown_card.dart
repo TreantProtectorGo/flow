@@ -219,6 +219,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
           description: description,
           pomodoroCount: taskItem.pomodoroCount,
           priority: priority,
+          isAIGenerated: true,
         );
 
         // 添加微小延遲確保每個任務有唯一的時間戳

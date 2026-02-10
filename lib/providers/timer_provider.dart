@@ -208,11 +208,43 @@ class TimerProvider with ChangeNotifier {
       // Record completed pomodoro session to database
       await _recordPomodoroSession(completed: true);
 
+      // Check if this pomodoro will complete the task BEFORE incrementing
+      // (completedPomodoros + 1) because we haven't incremented yet
+      final willCompleteTask =
+          currentTask != null &&
+          (currentTask.completedPomodoros + 1) >= currentTask.pomodoroCount;
+
       // Notify task provider that a pomodoro was completed
       _ref.read(taskProvider.notifier).completePomodoroForCurrentTask();
 
       // Update statistics data
       _ref.read(statisticsProvider.notifier).loadStatistics();
+
+      if (willCompleteTask) {
+        // Task has completed all its pomodoros - show task complete notification and stop
+        await _notificationService.showTaskCompleteNotification(
+          title: notificationStrings.taskCompleteTitle,
+          body: notificationStrings.taskCompleteBody(currentTask.title),
+          channelName: notificationStrings.channelName,
+          channelDescription: notificationStrings.channelDescription,
+        );
+
+        debugPrint(
+          '🎉 [TIMER] Task "${currentTask.title}" completed all pomodoros (${currentTask.pomodoroCount}/${currentTask.pomodoroCount})',
+        );
+
+        // Auto-complete the task
+        await _ref
+            .read(taskProvider.notifier)
+            .markTaskAsCompleted(currentTask.id);
+
+        // Reset to focus mode but don't auto-start
+        _mode = TimerMode.focus;
+        _updateTimeForCurrentMode();
+        _saveSettings();
+        notifyListeners();
+        return; // Stop here, don't auto-continue
+      }
 
       // Show notification for focus session complete
       await _notificationService.showFocusCompleteNotification(

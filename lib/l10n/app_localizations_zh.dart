@@ -886,6 +886,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get notificationChannelDescription => '番茄鐘計時器完成通知';
+
+  @override
+  String get notificationTaskCompleteTitle => '任務完成！';
+
+  @override
+  String notificationTaskCompleteBody(String taskTitle) {
+    return '「$taskTitle」的所有番茄鐘已完成';
+  }
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1770,4 +1778,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get notificationChannelDescription => '番茄鐘計時器完成通知';
+
+  @override
+  String get notificationTaskCompleteTitle => '任務完成！';
+
+  @override
+  String notificationTaskCompleteBody(String taskTitle) {
+    return '「$taskTitle」的所有番茄鐘已完成';
+  }
 }

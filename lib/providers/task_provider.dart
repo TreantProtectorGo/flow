@@ -105,6 +105,7 @@ class TaskProvider with ChangeNotifier {
     required int pomodoroCount,
     required TaskPriority priority,
     TaskStatus status = TaskStatus.pending,
+    bool isAIGenerated = false,
   }) async {
     final task = Task(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -114,6 +115,7 @@ class TaskProvider with ChangeNotifier {
       priority: priority,
       status: status,
       createdAt: DateTime.now(),
+      isAIGenerated: isAIGenerated,
     );
 
     // 保存到資料庫

@@ -143,6 +143,30 @@ class NotificationService {
     );
   }
 
+  /// Show a notification when all task pomodoros are completed
+  /// [title] - Localized title
+  /// [body] - Localized body message
+  Future<void> showTaskCompleteNotification({
+    required String title,
+    required String body,
+    required String channelName,
+    required String channelDescription,
+  }) async {
+    if (!_isInitialized) {
+      debugPrint('[NOTIFICATION] Service not initialized');
+      return;
+    }
+
+    await _showNotification(
+      id: 3,
+      title: title,
+      body: body,
+      payload: 'task_complete',
+      channelName: channelName,
+      channelDescription: channelDescription,
+    );
+  }
+
   /// Internal method to show a notification
   Future<void> _showNotification({
     required int id,

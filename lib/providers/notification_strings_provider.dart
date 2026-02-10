@@ -39,4 +39,7 @@ class NotificationStrings {
   String get breakCompleteBody => _l10n.notificationBreakCompleteBody;
   String get channelName => _l10n.notificationChannelName;
   String get channelDescription => _l10n.notificationChannelDescription;
+  String get taskCompleteTitle => _l10n.notificationTaskCompleteTitle;
+  String taskCompleteBody(String taskTitle) =>
+      _l10n.notificationTaskCompleteBody(taskTitle);
 }
