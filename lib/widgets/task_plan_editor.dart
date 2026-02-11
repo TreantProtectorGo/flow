@@ -363,6 +363,11 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
     try {
       final taskNotifier = ref.read(taskProvider);
       final l10n = AppLocalizations.of(context)!;
+      final aiSessionId = DateTime.now().millisecondsSinceEpoch.toString();
+      final aiSessionTitle =
+          (_editablePlan.sessionTitle?.trim().isNotEmpty ?? false)
+          ? _editablePlan.sessionTitle!.trim()
+          : _editablePlan.mainGoal.trim();
 
       // Create in reverse order to ensure the first task appears at the top
       for (final taskItem in _editablePlan.tasks.reversed) {
@@ -395,6 +400,9 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
           description: description,
           pomodoroCount: taskItem.pomodoroCount,
           priority: priority,
+          isAIGenerated: true,
+          aiSessionId: aiSessionId,
+          aiSessionTitle: aiSessionTitle,
         );
 
         await Future.delayed(const Duration(milliseconds: 10));

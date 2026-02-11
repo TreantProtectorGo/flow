@@ -33,7 +33,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -57,6 +57,13 @@ class DatabaseHelper {
       );
       debugPrint('📦 [DB] Migrated to version 3: added is_ai_generated column');
     }
+    if (oldVersion < 4) {
+      await db.execute('ALTER TABLE tasks ADD COLUMN ai_session_id TEXT');
+      await db.execute('ALTER TABLE tasks ADD COLUMN ai_session_title TEXT');
+      debugPrint(
+        '📦 [DB] Migrated to version 4: added ai_session_id and ai_session_title columns',
+      );
+    }
   }
 
   /// Creates all database tables and indexes on first run
@@ -76,7 +83,9 @@ class DatabaseHelper {
         status TEXT NOT NULL,
         created_at TEXT NOT NULL,
         completed_at TEXT,
-        is_ai_generated INTEGER NOT NULL DEFAULT 0
+        is_ai_generated INTEGER NOT NULL DEFAULT 0,
+        ai_session_id TEXT,
+        ai_session_title TEXT
       )
     ''');
 
@@ -142,6 +151,8 @@ class DatabaseHelper {
       'created_at': task.createdAt.toIso8601String(),
       'completed_at': task.completedAt?.toIso8601String(),
       'is_ai_generated': task.isAIGenerated ? 1 : 0,
+      'ai_session_id': task.aiSessionId,
+      'ai_session_title': task.aiSessionTitle,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
     debugPrint('✅ [DB] Task insertion successful');
     return result;
@@ -168,6 +179,8 @@ class DatabaseHelper {
             'createdAt': json['created_at'],
             'completedAt': json['completed_at'],
             'isAIGenerated': (json['is_ai_generated'] ?? 0) == 1,
+            'aiSessionId': json['ai_session_id'],
+            'aiSessionTitle': json['ai_session_title'],
           }),
         )
         .toList();
@@ -199,6 +212,8 @@ class DatabaseHelper {
       'createdAt': json['created_at'],
       'completedAt': json['completed_at'],
       'isAIGenerated': (json['is_ai_generated'] ?? 0) == 1,
+      'aiSessionId': json['ai_session_id'],
+      'aiSessionTitle': json['ai_session_title'],
     });
   }
 
@@ -222,6 +237,8 @@ class DatabaseHelper {
         'created_at': task.createdAt.toIso8601String(),
         'completed_at': task.completedAt?.toIso8601String(),
         'is_ai_generated': task.isAIGenerated ? 1 : 0,
+        'ai_session_id': task.aiSessionId,
+        'ai_session_title': task.aiSessionTitle,
       },
       where: 'id = ?',
       whereArgs: [task.id],
@@ -293,6 +310,9 @@ class DatabaseHelper {
             'status': json['status'],
             'createdAt': json['created_at'],
             'completedAt': json['completed_at'],
+            'isAIGenerated': (json['is_ai_generated'] ?? 0) == 1,
+            'aiSessionId': json['ai_session_id'],
+            'aiSessionTitle': json['ai_session_title'],
           }),
         )
         .toList();

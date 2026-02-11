@@ -864,14 +864,14 @@ class TasksScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: _buildAiSessionToggleCard(
-              tasks: group.tasks,
+              group: group,
               theme: theme,
               context: context,
               ref: ref,
               l10n: l10n,
               onAddToCalendar: () => _quickAddTaskGroupToCalendar(
                 context,
-                group.tasks,
+                group,
                 focusMinutes,
                 l10n,
               ),
@@ -907,7 +907,14 @@ class TasksScreen extends ConsumerWidget {
     while (index < tasks.length) {
       final task = tasks[index];
       if (!task.isAIGenerated) {
-        groups.add(_TaskGroup(tasks: [task], isAiSessionGroup: false));
+        groups.add(
+          _TaskGroup(
+            tasks: [task],
+            isAiSessionGroup: false,
+            sessionTitle: null,
+            sessionId: null,
+          ),
+        );
         index += 1;
         continue;
       }
@@ -915,6 +922,7 @@ class TasksScreen extends ConsumerWidget {
       final aiTasks = <Task>[task];
       var cursor = index + 1;
       var previous = task;
+      final seedSessionId = task.aiSessionId;
 
       while (cursor < tasks.length) {
         final candidate = tasks[cursor];
@@ -922,9 +930,15 @@ class TasksScreen extends ConsumerWidget {
           break;
         }
 
-        final gap = previous.createdAt.difference(candidate.createdAt).abs();
-        if (gap > _aiSessionGap) {
-          break;
+        if (seedSessionId != null && seedSessionId.isNotEmpty) {
+          if (candidate.aiSessionId != seedSessionId) {
+            break;
+          }
+        } else {
+          final gap = previous.createdAt.difference(candidate.createdAt).abs();
+          if (gap > _aiSessionGap) {
+            break;
+          }
         }
 
         aiTasks.add(candidate);
@@ -932,8 +946,16 @@ class TasksScreen extends ConsumerWidget {
         cursor += 1;
       }
 
+      final aiTitle = task.aiSessionTitle?.trim();
       groups.add(
-        _TaskGroup(tasks: aiTasks, isAiSessionGroup: aiTasks.length > 1),
+        _TaskGroup(
+          tasks: aiTasks,
+          isAiSessionGroup: aiTasks.length > 1,
+          sessionTitle: (aiTitle != null && aiTitle.isNotEmpty)
+              ? aiTitle
+              : null,
+          sessionId: seedSessionId,
+        ),
       );
       index = cursor;
     }
@@ -942,13 +964,15 @@ class TasksScreen extends ConsumerWidget {
   }
 
   Widget _buildAiSessionToggleCard({
-    required List<Task> tasks,
+    required _TaskGroup group,
     required ThemeData theme,
     required BuildContext context,
     required WidgetRef ref,
     required AppLocalizations l10n,
     required VoidCallback onAddToCalendar,
   }) {
+    final tasks = group.tasks;
+    final groupTitle = group.sessionTitle ?? l10n.aiSessionGroup(tasks.length);
     return Card(
       margin: EdgeInsets.zero,
       elevation: 2,
@@ -980,7 +1004,7 @@ class TasksScreen extends ConsumerWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  l10n.aiSessionGroup(tasks.length),
+                  groupTitle,
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: theme.colorScheme.onSecondaryContainer,
                     fontWeight: FontWeight.w700,
@@ -1026,10 +1050,11 @@ class TasksScreen extends ConsumerWidget {
 
   Future<void> _quickAddTaskGroupToCalendar(
     BuildContext context,
-    List<Task> tasks,
+    _TaskGroup group,
     int focusMinutes,
     AppLocalizations l10n,
   ) async {
+    final tasks = group.tasks;
     if (tasks.isEmpty) {
       return;
     }
@@ -1047,8 +1072,10 @@ class TasksScreen extends ConsumerWidget {
 
       final startFrom = DateTime.now();
       final looksMultiDay = tasks.length > 1;
+      final groupTitle =
+          group.sessionTitle ?? l10n.aiSessionGroup(tasks.length);
       final added = await _calendarService.quickAddPlanEntries(
-        planTitle: tasks.first.title,
+        planTitle: groupTitle,
         entries: entries,
         focusMinutes: focusMinutes,
         startFrom: startFrom,
@@ -1066,13 +1093,13 @@ class TasksScreen extends ConsumerWidget {
         case CalendarAddResult.saved:
           SnackBarUtil.showSuccessSnackBar(
             context,
-            message: l10n.calendarAdded(l10n.aiSessionGroup(tasks.length)),
+            message: l10n.calendarAdded(groupTitle),
           );
           break;
         case CalendarAddResult.opened:
           SnackBarUtil.showInfoSnackBar(
             context,
-            message: l10n.calendarOpened(l10n.aiSessionGroup(tasks.length)),
+            message: l10n.calendarOpened(groupTitle),
           );
           break;
         case CalendarAddResult.canceled:
@@ -1108,8 +1135,15 @@ class TasksScreen extends ConsumerWidget {
 class _TaskGroup {
   final List<Task> tasks;
   final bool isAiSessionGroup;
+  final String? sessionTitle;
+  final String? sessionId;
 
-  const _TaskGroup({required this.tasks, required this.isAiSessionGroup});
+  const _TaskGroup({
+    required this.tasks,
+    required this.isAiSessionGroup,
+    required this.sessionTitle,
+    required this.sessionId,
+  });
 }
 
 String _getModeDisplay(TimerMode mode, AppLocalizations l10n) {

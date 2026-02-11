@@ -2,11 +2,13 @@ enum MessageRole { user, assistant, system }
 
 class TaskPlan {
   final String mainGoal;
+  final String? sessionTitle;
   final String estimatedTime;
   final List<TaskPlanItem> tasks;
 
   TaskPlan({
     required this.mainGoal,
+    this.sessionTitle,
     required this.estimatedTime,
     required this.tasks,
   });
@@ -14,6 +16,7 @@ class TaskPlan {
   factory TaskPlan.fromJson(Map<String, dynamic> json) {
     return TaskPlan(
       mainGoal: json['mainGoal'] as String,
+      sessionTitle: json['sessionTitle'] as String?,
       estimatedTime: json['estimatedTime'] as String,
       tasks: (json['tasks'] as List<dynamic>)
           .map((task) => TaskPlanItem.fromJson(task as Map<String, dynamic>))
@@ -24,6 +27,7 @@ class TaskPlan {
   Map<String, dynamic> toJson() {
     return {
       'mainGoal': mainGoal,
+      'sessionTitle': sessionTitle,
       'estimatedTime': estimatedTime,
       'tasks': tasks.map((task) => task.toJson()).toList(),
     };
@@ -32,11 +36,13 @@ class TaskPlan {
   /// Creates a modified copy of this TaskPlan
   TaskPlan copyWith({
     String? mainGoal,
+    String? sessionTitle,
     String? estimatedTime,
     List<TaskPlanItem>? tasks,
   }) {
     return TaskPlan(
       mainGoal: mainGoal ?? this.mainGoal,
+      sessionTitle: sessionTitle ?? this.sessionTitle,
       estimatedTime: estimatedTime ?? this.estimatedTime,
       tasks: tasks ?? this.tasks,
     );

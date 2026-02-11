@@ -216,6 +216,11 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
 
     try {
       final taskNotifier = ref.read(taskProvider);
+      final aiSessionId = DateTime.now().millisecondsSinceEpoch.toString();
+      final aiSessionTitle =
+          (widget.taskPlan.sessionTitle?.trim().isNotEmpty ?? false)
+          ? widget.taskPlan.sessionTitle!.trim()
+          : widget.taskPlan.mainGoal.trim();
 
       // 反轉順序創建，確保第一個任務在最前面
       for (final taskItem in widget.taskPlan.tasks.reversed) {
@@ -251,6 +256,8 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
           pomodoroCount: taskItem.pomodoroCount,
           priority: priority,
           isAIGenerated: true,
+          aiSessionId: aiSessionId,
+          aiSessionTitle: aiSessionTitle,
         );
 
         // 添加微小延遲確保每個任務有唯一的時間戳
