@@ -115,23 +115,25 @@ class DatabaseHelper {
       );
     }
 
-    final sessionCount =
+    final unassignedCount =
         Sqflite.firstIntValue(
-          await db.rawQuery('SELECT COUNT(*) FROM chat_sessions'),
+          await db.rawQuery(
+            "SELECT COUNT(*) FROM chat_messages WHERE chat_session_id IS NULL OR chat_session_id = ''",
+          ),
         ) ??
         0;
-    if (sessionCount == 0) {
+    if (unassignedCount > 0) {
       final now = DateTime.now().toIso8601String();
       await db.insert('chat_sessions', {
-        'id': 'default',
-        'title': 'New Chat',
+        'id': 'legacy',
+        'title': 'Previous Chat',
         'created_at': now,
         'updated_at': now,
-      });
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.rawUpdate(
+        "UPDATE chat_messages SET chat_session_id = 'legacy' WHERE chat_session_id IS NULL OR chat_session_id = ''",
+      );
     }
-    await db.rawUpdate(
-      "UPDATE chat_messages SET chat_session_id = 'default' WHERE chat_session_id IS NULL OR chat_session_id = ''",
-    );
     _chatSchemaEnsured = true;
   }
 
@@ -178,16 +180,25 @@ class DatabaseHelper {
       await db.execute(
         'ALTER TABLE chat_messages ADD COLUMN chat_session_id TEXT',
       );
-      final now = DateTime.now().toIso8601String();
-      await db.insert('chat_sessions', {
-        'id': 'default',
-        'title': 'New Chat',
-        'created_at': now,
-        'updated_at': now,
-      }, conflictAlgorithm: ConflictAlgorithm.ignore);
-      await db.rawUpdate(
-        "UPDATE chat_messages SET chat_session_id = 'default' WHERE chat_session_id IS NULL OR chat_session_id = ''",
-      );
+      final unassignedCount =
+          Sqflite.firstIntValue(
+            await db.rawQuery(
+              "SELECT COUNT(*) FROM chat_messages WHERE chat_session_id IS NULL OR chat_session_id = ''",
+            ),
+          ) ??
+          0;
+      if (unassignedCount > 0) {
+        final now = DateTime.now().toIso8601String();
+        await db.insert('chat_sessions', {
+          'id': 'legacy',
+          'title': 'Previous Chat',
+          'created_at': now,
+          'updated_at': now,
+        }, conflictAlgorithm: ConflictAlgorithm.ignore);
+        await db.rawUpdate(
+          "UPDATE chat_messages SET chat_session_id = 'legacy' WHERE chat_session_id IS NULL OR chat_session_id = ''",
+        );
+      }
       await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(chat_session_id)',
       );
@@ -280,14 +291,6 @@ class DatabaseHelper {
     await db.execute(
       'CREATE INDEX idx_chat_sessions_updated_at ON chat_sessions(updated_at)',
     );
-
-    final now = DateTime.now().toIso8601String();
-    await db.insert('chat_sessions', {
-      'id': 'default',
-      'title': 'New Chat',
-      'created_at': now,
-      'updated_at': now,
-    });
   }
 
   // ==================== Tasks CRUD Operations ====================
