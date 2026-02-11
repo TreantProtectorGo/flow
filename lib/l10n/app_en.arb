@@ -412,6 +412,8 @@
   "aiChatTitle": "AI Assistant",
   "thinking": "Thinking...",
   "clearConversation": "Clear Conversation",
+  "chatHistory": "Chat History",
+  "noChatHistory": "No chat history yet",
   "confirmClearConversation": "Are you sure you want to clear all conversation history?",
   "clearConversationButton": "Clear",
   "sendMessage": "Send message",

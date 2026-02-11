@@ -1,11 +1,15 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../providers/chat_provider.dart';
 import '../widgets/chat_message_bubble.dart';
 import '../widgets/task_breakdown_card.dart';
 import '../widgets/dialogs/confirmation_dialog.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/m3_expressive.dart';
+import '../models/chat_message.dart';
 
 class AIChatScreen extends ConsumerStatefulWidget {
   final String? initialMessage;
@@ -60,6 +64,111 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
     }
   }
 
+  void _showChatHistorySheet(List<ChatMessage> allMessages) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final history = allMessages
+        .where((message) => message.role == MessageRole.user)
+        .toList()
+        .reversed
+        .toList();
+
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetContext) {
+        if (history.isEmpty) {
+          return SizedBox(
+            height: 180,
+            child: Center(
+              child: Text(
+                l10n.noChatHistory,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return SafeArea(
+          top: false,
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.58,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.history,
+                        size: 20,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.chatHistory,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+                    itemCount: history.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (_, index) {
+                      final message = history[index];
+                      final when = DateFormat(
+                        'yyyy/MM/dd HH:mm',
+                      ).format(message.timestamp.toLocal());
+                      return ListTile(
+                        leading: const Icon(Icons.chat_bubble_outline),
+                        title: Text(
+                          message.content,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(when),
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          final targetIndex = allMessages.indexWhere(
+                            (item) => item.id == message.id,
+                          );
+                          if (targetIndex == -1 ||
+                              !_scrollController.hasClients) {
+                            return;
+                          }
+                          final roughOffset = targetIndex * 120.0;
+                          final maxOffset =
+                              _scrollController.position.maxScrollExtent;
+                          final targetOffset = math.min(roughOffset, maxOffset);
+                          _scrollController.animateTo(
+                            targetOffset,
+                            duration: const Duration(milliseconds: 260),
+                            curve: Curves.easeOutCubic,
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _handleSubmit(String text) async {
     if (text.trim().isEmpty) return;
 
@@ -105,6 +214,12 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
               )
             : null,
         actions: [
+          if (chatState.messages.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.history),
+              tooltip: l10n.chatHistory,
+              onPressed: () => _showChatHistorySheet(chatState.messages),
+            ),
           if (chatState.messages.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline),

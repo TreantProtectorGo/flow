@@ -463,6 +463,8 @@
   "aiChatTitle": "AI 助手",
   "thinking": "正在思考...",
   "clearConversation": "清空對話",
+  "chatHistory": "對話紀錄",
+  "noChatHistory": "目前沒有對話紀錄",
   "confirmClearConversation": "確定要清空所有對話記錄嗎？",
   "clearConversationButton": "清空",
   "sendMessage": "發送訊息",
