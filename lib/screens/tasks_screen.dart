@@ -862,10 +862,12 @@ class TasksScreen extends ConsumerWidget {
       if (group.isAiSessionGroup) {
         widgets.add(
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: _buildAiSessionHeader(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildAiSessionToggleCard(
               tasks: group.tasks,
               theme: theme,
+              context: context,
+              ref: ref,
               l10n: l10n,
               onAddToCalendar: () => _quickAddTaskGroupToCalendar(
                 context,
@@ -876,22 +878,22 @@ class TasksScreen extends ConsumerWidget {
             ),
           ),
         );
-      }
-
-      for (final task in group.tasks) {
-        widgets.add(
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _buildTaskCard(
-              task,
-              theme,
-              context,
-              ref,
-              l10n,
-              showCalendarButton: !group.isAiSessionGroup,
+      } else {
+        for (final task in group.tasks) {
+          widgets.add(
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildTaskCard(
+                task,
+                theme,
+                context,
+                ref,
+                l10n,
+                showCalendarButton: true,
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     }
 
@@ -939,36 +941,61 @@ class TasksScreen extends ConsumerWidget {
     return groups;
   }
 
-  Widget _buildAiSessionHeader({
+  Widget _buildAiSessionToggleCard({
     required List<Task> tasks,
     required ThemeData theme,
+    required BuildContext context,
+    required WidgetRef ref,
     required AppLocalizations l10n,
     required VoidCallback onAddToCalendar,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.auto_awesome,
-            size: 18,
-            color: theme.colorScheme.onSecondaryContainer,
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 2,
+      surfaceTintColor: theme.colorScheme.surfaceTint,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Theme(
+        data: theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          collapsedIconColor: theme.colorScheme.onSecondaryContainer,
+          iconColor: theme.colorScheme.onSecondaryContainer,
+          backgroundColor: theme.colorScheme.surface,
+          collapsedBackgroundColor: theme.colorScheme.secondaryContainer
+              .withValues(alpha: 0.35),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              l10n.aiSessionGroup(tasks.length),
-              style: theme.textTheme.labelLarge?.copyWith(
+          collapsedShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.auto_awesome,
+                size: 18,
                 color: theme.colorScheme.onSecondaryContainer,
-                fontWeight: FontWeight.w600,
               ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.aiSessionGroup(tasks.length),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onSecondaryContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          subtitle: Text(
+            l10n.aiSessionToggleHint,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          IconButton.filledTonal(
+          trailing: IconButton.filledTonal(
             onPressed: onAddToCalendar,
             icon: const Icon(Icons.calendar_month, size: 18),
             tooltip: l10n.addToCalendar,
@@ -977,7 +1004,22 @@ class TasksScreen extends ConsumerWidget {
               padding: EdgeInsets.zero,
             ),
           ),
-        ],
+          children: tasks
+              .map(
+                (task) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _buildTaskCard(
+                    task,
+                    theme,
+                    context,
+                    ref,
+                    l10n,
+                    showCalendarButton: false,
+                  ),
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }

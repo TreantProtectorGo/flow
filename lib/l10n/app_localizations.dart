@@ -1803,6 +1803,12 @@ abstract class AppLocalizations {
   /// **'AI 同一批任務（{count} 個）'**
   String aiSessionGroup(int count);
 
+  /// No description provided for @aiSessionToggleHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'點一下可展開或收合'**
+  String get aiSessionToggleHint;
+
   /// No description provided for @notificationFocusCompleteTitle.
   ///
   /// In zh, this message translates to:

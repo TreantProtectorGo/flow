@@ -925,6 +925,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get aiSessionToggleHint => '點一下可展開或收合';
+
+  @override
   String get notificationFocusCompleteTitle => '專注時間結束';
 
   @override
@@ -1878,6 +1881,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String aiSessionGroup(int count) {
     return 'AI 同一批任務（$count 個）';
   }
+
+  @override
+  String get aiSessionToggleHint => '點一下可展開或收合';
 
   @override
   String get notificationFocusCompleteTitle => '專注時間結束';

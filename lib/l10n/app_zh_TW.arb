@@ -537,6 +537,7 @@
       }
     }
   },
+  "aiSessionToggleHint": "點一下可展開或收合",
 
   "notificationFocusCompleteTitle": "專注時間結束",
   "notificationFocusCompleteBody": "專注時段已完成，休息一下吧",

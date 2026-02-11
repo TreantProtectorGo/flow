@@ -936,6 +936,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get aiSessionToggleHint => 'Tap to expand or collapse';
+
+  @override
   String get notificationFocusCompleteTitle => 'Focus Time Complete';
 
   @override

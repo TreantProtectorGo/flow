@@ -485,6 +485,7 @@
       }
     }
   },
+  "aiSessionToggleHint": "Tap to expand or collapse",
 
   "notificationFocusCompleteTitle": "Focus Time Complete",
   "notificationFocusCompleteBody": "Focus session complete. Time for a break!",
