@@ -658,7 +658,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noChatHistory => '目前沒有對話紀錄';
 
   @override
-  String get confirmClearConversation => '確定要清空所有對話記錄嗎？';
+  String get confirmClearConversation => '確定要清空目前這個對話嗎？';
 
   @override
   String get clearConversationButton => '清空';
@@ -1631,7 +1631,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get noChatHistory => '目前沒有對話紀錄';
 
   @override
-  String get confirmClearConversation => '確定要清空所有對話記錄嗎？';
+  String get confirmClearConversation => '確定要清空目前這個對話嗎？';
 
   @override
   String get clearConversationButton => '清空';

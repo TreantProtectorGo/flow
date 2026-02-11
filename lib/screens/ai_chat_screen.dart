@@ -1,15 +1,13 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../providers/chat_provider.dart';
-import '../widgets/chat_message_bubble.dart';
-import '../widgets/task_breakdown_card.dart';
-import '../widgets/dialogs/confirmation_dialog.dart';
+
 import '../l10n/app_localizations.dart';
+import '../providers/chat_provider.dart';
 import '../theme/m3_expressive.dart';
-import '../models/chat_message.dart';
+import '../widgets/chat_message_bubble.dart';
+import '../widgets/dialogs/confirmation_dialog.dart';
+import '../widgets/task_breakdown_card.dart';
 
 class AIChatScreen extends ConsumerStatefulWidget {
   final String? initialMessage;
@@ -29,7 +27,6 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
   @override
   void initState() {
     super.initState();
-    // Send initial message after build if provided
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.initialMessage != null && !_initialMessageSent) {
         _initialMessageSent = true;
@@ -64,14 +61,9 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
     }
   }
 
-  void _showChatHistorySheet(List<ChatMessage> allMessages) {
+  void _showChatHistorySheet(ChatState chatState) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final history = allMessages
-        .where((message) => message.role == MessageRole.user)
-        .toList()
-        .reversed
-        .toList();
 
     showModalBottomSheet<void>(
       context: context,
@@ -81,7 +73,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (sheetContext) {
-        if (history.isEmpty) {
+        if (chatState.sessions.isEmpty) {
           return SizedBox(
             height: 180,
             child: Center(
@@ -123,39 +115,40 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                 Expanded(
                   child: ListView.separated(
                     padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-                    itemCount: history.length,
+                    itemCount: chatState.sessions.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (_, index) {
-                      final message = history[index];
+                      final session = chatState.sessions[index];
+                      final isCurrent =
+                          session.id == chatState.currentSessionId;
                       final when = DateFormat(
                         'yyyy/MM/dd HH:mm',
-                      ).format(message.timestamp.toLocal());
+                      ).format(session.updatedAt.toLocal());
                       return ListTile(
-                        leading: const Icon(Icons.chat_bubble_outline),
+                        leading: Icon(
+                          isCurrent
+                              ? Icons.check_circle
+                              : Icons.chat_bubble_outline,
+                          color: isCurrent
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
                         title: Text(
-                          message.content,
-                          maxLines: 2,
+                          session.title,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         subtitle: Text(when),
-                        onTap: () {
+                        onTap: () async {
                           Navigator.of(sheetContext).pop();
-                          final targetIndex = allMessages.indexWhere(
-                            (item) => item.id == message.id,
-                          );
-                          if (targetIndex == -1 ||
-                              !_scrollController.hasClients) {
-                            return;
+                          if (!isCurrent) {
+                            await ref
+                                .read(chatProvider.notifier)
+                                .switchSession(session.id);
+                            if (mounted) {
+                              _scrollToBottom();
+                            }
                           }
-                          final roughOffset = targetIndex * 120.0;
-                          final maxOffset =
-                              _scrollController.position.maxScrollExtent;
-                          final targetOffset = math.min(roughOffset, maxOffset);
-                          _scrollController.animateTo(
-                            targetOffset,
-                            duration: const Duration(milliseconds: 260),
-                            curve: Curves.easeOutCubic,
-                          );
                         },
                       );
                     },
@@ -174,41 +167,35 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
 
     final chatNotifier = ref.read(chatProvider.notifier);
 
-    // Add user message
     await chatNotifier.addUserMessage(text.trim());
     _textController.clear();
-
-    // Scroll to bottom
     _scrollToBottom();
 
-    // Generate AI response
     await chatNotifier.generateAIResponse(text.trim());
-
-    // Scroll to bottom to show complete AI response
     _scrollToBottom();
   }
 
-  Future<void> _startNewChat(List<ChatMessage> messages) async {
-    final l10n = AppLocalizations.of(context)!;
-    if (messages.isNotEmpty) {
-      final confirmed = await ConfirmationDialog.show(
-        context,
-        title: l10n.newChat,
-        content: l10n.confirmStartNewChat,
-        confirmText: l10n.startNewChat,
-        isDangerous: false,
-      );
-      if (confirmed != true) {
-        return;
-      }
-    }
-
-    await ref.read(chatProvider.notifier).clearChat();
+  Future<void> _startNewChat() async {
+    await ref.read(chatProvider.notifier).createNewSession();
     if (!mounted) {
       return;
     }
     _textController.clear();
     _focusNode.requestFocus();
+  }
+
+  Future<void> _clearCurrentChat() async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: l10n.clearConversation,
+      content: l10n.confirmClearConversation,
+      confirmText: l10n.clearConversationButton,
+      isDangerous: true,
+    );
+    if (confirmed == true) {
+      await ref.read(chatProvider.notifier).clearChat();
+    }
   }
 
   @override
@@ -235,42 +222,33 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                   color: colorScheme.onSurfaceVariant,
                 ),
               )
-            : null,
+            : Text(
+                chatState.currentSession?.title ?? l10n.newChat,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
         actions: [
           TextButton.icon(
-            onPressed: () => _startNewChat(chatState.messages),
+            onPressed: chatState.isLoading ? null : _startNewChat,
             icon: const Icon(Icons.add),
             label: Text(l10n.newChat),
           ),
-          if (chatState.messages.isNotEmpty)
+          if (chatState.sessions.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.history),
               tooltip: l10n.chatHistory,
-              onPressed: () => _showChatHistorySheet(chatState.messages),
+              onPressed: () => _showChatHistorySheet(chatState),
             ),
           if (chatState.messages.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: l10n.clearConversation,
-              onPressed: () async {
-                // DRY: Use shared ConfirmationDialog
-                final confirmed = await ConfirmationDialog.show(
-                  context,
-                  title: l10n.clearConversation,
-                  content: l10n.confirmClearConversation,
-                  confirmText: l10n.clearConversationButton,
-                  isDangerous: true,
-                );
-                if (confirmed == true) {
-                  await ref.read(chatProvider.notifier).clearChat();
-                }
-              },
+              onPressed: _clearCurrentChat,
             ),
         ],
       ),
       body: Column(
         children: [
-          // Error message display
           if (chatState.error != null)
             Container(
               width: double.infinity,
@@ -315,8 +293,6 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                 ],
               ),
             ),
-
-          // Message list
           Expanded(
             child: chatState.messages.isEmpty
                 ? _buildEmptyState(context)
@@ -331,14 +307,12 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                       final message = chatState.messages[index];
                       return Column(
                         children: [
-                          // Only show message bubble when content is not empty or no task plan
                           if (message.content.isNotEmpty ||
                               message.taskPlan == null)
                             ChatMessageBubble(
                               message: message,
                               key: ValueKey(message.id),
                             ),
-                          // If message contains task plan, show task breakdown card
                           if (message.taskPlan != null)
                             TaskBreakdownCard(taskPlan: message.taskPlan!),
                         ],
@@ -346,8 +320,6 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                     },
                   ),
           ),
-
-          // Input area
           Container(
             decoration: BoxDecoration(
               color: colorScheme.surface,
@@ -368,7 +340,6 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Input field
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
@@ -400,8 +371,6 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-
-                // Send button
                 ValueListenableBuilder<TextEditingValue>(
                   valueListenable: _textController,
                   builder: (context, value, _) {

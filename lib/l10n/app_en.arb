@@ -417,7 +417,7 @@
   "confirmStartNewChat": "Start a new chat? Current conversation will be cleared.",
   "chatHistory": "Chat History",
   "noChatHistory": "No chat history yet",
-  "confirmClearConversation": "Are you sure you want to clear all conversation history?",
+  "confirmClearConversation": "Are you sure you want to clear this chat?",
   "clearConversationButton": "Clear",
   "sendMessage": "Send message",
   "typeMessage": "Type a message...",

@@ -43,7 +43,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -85,6 +85,15 @@ class DatabaseHelper {
       return;
     }
 
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS chat_sessions (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+
     final columns = await db.rawQuery('PRAGMA table_info(chat_messages)');
     final names = columns
         .map((column) => column['name'] as String?)
@@ -97,6 +106,32 @@ class DatabaseHelper {
       );
       debugPrint('📦 [DB] Repaired chat_messages schema: added task_plan_json');
     }
+    if (!names.contains('chat_session_id')) {
+      await db.execute(
+        'ALTER TABLE chat_messages ADD COLUMN chat_session_id TEXT',
+      );
+      debugPrint(
+        '📦 [DB] Repaired chat_messages schema: added chat_session_id',
+      );
+    }
+
+    final sessionCount =
+        Sqflite.firstIntValue(
+          await db.rawQuery('SELECT COUNT(*) FROM chat_sessions'),
+        ) ??
+        0;
+    if (sessionCount == 0) {
+      final now = DateTime.now().toIso8601String();
+      await db.insert('chat_sessions', {
+        'id': 'default',
+        'title': 'New Chat',
+        'created_at': now,
+        'updated_at': now,
+      });
+    }
+    await db.rawUpdate(
+      "UPDATE chat_messages SET chat_session_id = 'default' WHERE chat_session_id IS NULL OR chat_session_id = ''",
+    );
     _chatSchemaEnsured = true;
   }
 
@@ -130,6 +165,38 @@ class DatabaseHelper {
         'ALTER TABLE chat_messages ADD COLUMN task_plan_json TEXT',
       );
       debugPrint('📦 [DB] Migrated to version 5: added task_plan_json column');
+    }
+    if (oldVersion < 6) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS chat_sessions (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      ''');
+      await db.execute(
+        'ALTER TABLE chat_messages ADD COLUMN chat_session_id TEXT',
+      );
+      final now = DateTime.now().toIso8601String();
+      await db.insert('chat_sessions', {
+        'id': 'default',
+        'title': 'New Chat',
+        'created_at': now,
+        'updated_at': now,
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.rawUpdate(
+        "UPDATE chat_messages SET chat_session_id = 'default' WHERE chat_session_id IS NULL OR chat_session_id = ''",
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(chat_session_id)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_chat_sessions_updated_at ON chat_sessions(updated_at)',
+      );
+      debugPrint(
+        '📦 [DB] Migrated to version 6: added chat_sessions and chat_session_id',
+      );
     }
   }
 
@@ -180,7 +247,17 @@ class DatabaseHelper {
         role TEXT NOT NULL,
         timestamp TEXT NOT NULL,
         is_streaming INTEGER NOT NULL,
-        task_plan_json TEXT
+        task_plan_json TEXT,
+        chat_session_id TEXT
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE chat_sessions (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
       )
     ''');
 
@@ -197,6 +274,20 @@ class DatabaseHelper {
     await db.execute(
       'CREATE INDEX idx_pomodoro_sessions_task_id ON pomodoro_sessions(task_id)',
     );
+    await db.execute(
+      'CREATE INDEX idx_chat_messages_session ON chat_messages(chat_session_id)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_chat_sessions_updated_at ON chat_sessions(updated_at)',
+    );
+
+    final now = DateTime.now().toIso8601String();
+    await db.insert('chat_sessions', {
+      'id': 'default',
+      'title': 'New Chat',
+      'created_at': now,
+      'updated_at': now,
+    });
   }
 
   // ==================== Tasks CRUD Operations ====================
@@ -390,7 +481,10 @@ class DatabaseHelper {
 
   // ==================== Chat Messages Operations ====================
 
-  Future<int> insertChatMessage(ChatMessage message) async {
+  Future<int> insertChatMessage(
+    ChatMessage message, {
+    required String sessionId,
+  }) async {
     final db = await database;
     return db.insert('chat_messages', {
       'id': message.id,
@@ -401,12 +495,18 @@ class DatabaseHelper {
       'task_plan_json': message.taskPlan != null
           ? jsonEncode(message.taskPlan!.toJson())
           : null,
+      'chat_session_id': sessionId,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<List<ChatMessage>> getChatMessages() async {
+  Future<List<ChatMessage>> getChatMessages(String sessionId) async {
     final db = await database;
-    final rows = await db.query('chat_messages', orderBy: 'timestamp ASC');
+    final rows = await db.query(
+      'chat_messages',
+      where: 'chat_session_id = ?',
+      whereArgs: [sessionId],
+      orderBy: 'timestamp ASC',
+    );
     return rows.map((row) {
       final rawTaskPlan = row['task_plan_json'] as String?;
       TaskPlan? taskPlan;
@@ -433,6 +533,79 @@ class DatabaseHelper {
   Future<int> clearChatMessages() async {
     final db = await database;
     return db.delete('chat_messages');
+  }
+
+  Future<int> clearChatMessagesBySession(String sessionId) async {
+    final db = await database;
+    return db.delete(
+      'chat_messages',
+      where: 'chat_session_id = ?',
+      whereArgs: [sessionId],
+    );
+  }
+
+  Future<List<ChatSession>> getChatSessions() async {
+    final db = await database;
+    final rows = await db.query('chat_sessions', orderBy: 'updated_at DESC');
+    return rows
+        .map(
+          (row) => ChatSession(
+            id: row['id'] as String,
+            title: row['title'] as String,
+            createdAt: DateTime.parse(row['created_at'] as String),
+            updatedAt: DateTime.parse(row['updated_at'] as String),
+          ),
+        )
+        .toList();
+  }
+
+  Future<ChatSession> createChatSession({required String title}) async {
+    final db = await database;
+    final now = DateTime.now();
+    final id = 'chat_${now.microsecondsSinceEpoch}';
+    final normalizedTitle = title.trim().isEmpty ? 'New Chat' : title.trim();
+    await db.insert('chat_sessions', {
+      'id': id,
+      'title': normalizedTitle,
+      'created_at': now.toIso8601String(),
+      'updated_at': now.toIso8601String(),
+    });
+    return ChatSession(
+      id: id,
+      title: normalizedTitle,
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
+
+  Future<void> touchChatSession(
+    String sessionId, {
+    String? title,
+    DateTime? when,
+  }) async {
+    final db = await database;
+    final values = <String, Object?>{
+      'updated_at': (when ?? DateTime.now()).toIso8601String(),
+    };
+    if (title != null && title.trim().isNotEmpty) {
+      values['title'] = title.trim();
+    }
+    await db.update(
+      'chat_sessions',
+      values,
+      where: 'id = ?',
+      whereArgs: [sessionId],
+    );
+  }
+
+  Future<int> deleteChatSession(String sessionId) async {
+    final db = await database;
+    await db.delete(
+      'chat_messages',
+      where: 'chat_session_id = ?',
+      whereArgs: [sessionId],
+    );
+    return db.delete('chat_sessions', where: 'id = ?', whereArgs: [sessionId]);
   }
 
   // ==================== Pomodoro Sessions Operations ====================

@@ -668,7 +668,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirmClearConversation =>
-      'Are you sure you want to clear all conversation history?';
+      'Are you sure you want to clear this chat?';
 
   @override
   String get clearConversationButton => 'Clear';

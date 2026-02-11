@@ -9,18 +9,42 @@ import 'package:http/http.dart' as http;
 
 class ChatState {
   final List<ChatMessage> messages;
+  final List<ChatSession> sessions;
+  final String? currentSessionId;
   final bool isLoading;
   final String? error;
 
-  ChatState({this.messages = const [], this.isLoading = false, this.error});
+  ChatState({
+    this.messages = const [],
+    this.sessions = const [],
+    this.currentSessionId,
+    this.isLoading = false,
+    this.error,
+  });
+
+  ChatSession? get currentSession {
+    if (currentSessionId == null) {
+      return null;
+    }
+    for (final session in sessions) {
+      if (session.id == currentSessionId) {
+        return session;
+      }
+    }
+    return null;
+  }
 
   ChatState copyWith({
     List<ChatMessage>? messages,
+    List<ChatSession>? sessions,
+    String? currentSessionId,
     bool? isLoading,
     String? error,
   }) {
     return ChatState(
       messages: messages ?? this.messages,
+      sessions: sessions ?? this.sessions,
+      currentSessionId: currentSessionId ?? this.currentSessionId,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
     );
@@ -29,23 +53,84 @@ class ChatState {
 
 class ChatNotifier extends StateNotifier<ChatState> {
   ChatNotifier() : super(ChatState()) {
-    _loadChatHistory();
+    _initializeChat();
   }
 
   final _uuid = const Uuid();
   final DatabaseHelper _db = DatabaseHelper.instance;
 
-  Future<void> _loadChatHistory() async {
+  Future<void> _initializeChat() async {
     try {
-      final history = await _db.getChatMessages();
-      state = state.copyWith(messages: history);
+      final sessions = await _db.getChatSessions();
+      if (sessions.isEmpty) {
+        final created = await _db.createChatSession(title: 'New Chat');
+        state = state.copyWith(
+          sessions: [created],
+          currentSessionId: created.id,
+          messages: const [],
+        );
+        return;
+      }
+      final currentSession = sessions.first;
+      final messages = await _db.getChatMessages(currentSession.id);
+      state = state.copyWith(
+        sessions: sessions,
+        currentSessionId: currentSession.id,
+        messages: messages,
+      );
     } catch (e) {
-      debugPrint('Failed to load chat history: $e');
+      debugPrint('Failed to initialize chat: $e');
+    }
+  }
+
+  Future<void> _reloadSessions({String? currentSessionId}) async {
+    final sessions = await _db.getChatSessions();
+    state = state.copyWith(
+      sessions: sessions,
+      currentSessionId: currentSessionId ?? state.currentSessionId,
+    );
+  }
+
+  String _titleFromPrompt(String text) {
+    final normalized = text.trim().replaceAll(RegExp(r'\s+'), ' ');
+    if (normalized.isEmpty) {
+      return 'New Chat';
+    }
+    return normalized.length > 32
+        ? '${normalized.substring(0, 32).trim()}...'
+        : normalized;
+  }
+
+  Future<void> createNewSession() async {
+    try {
+      final session = await _db.createChatSession(title: 'New Chat');
+      await _reloadSessions(currentSessionId: session.id);
+      state = state.copyWith(messages: const [], error: null);
+    } catch (e) {
+      debugPrint('Failed to create chat session: $e');
+    }
+  }
+
+  Future<void> switchSession(String sessionId) async {
+    try {
+      final messages = await _db.getChatMessages(sessionId);
+      await _reloadSessions(currentSessionId: sessionId);
+      state = state.copyWith(messages: messages, error: null);
+    } catch (e) {
+      debugPrint('Failed to switch chat session: $e');
     }
   }
 
   // 添加用戶訊息
   Future<void> addUserMessage(String content) async {
+    final sessionId = state.currentSessionId;
+    if (sessionId == null) {
+      await _initializeChat();
+    }
+    final activeSessionId = state.currentSessionId;
+    if (activeSessionId == null) {
+      return;
+    }
     final message = ChatMessage(
       id: _uuid.v4(),
       content: content,
@@ -55,7 +140,16 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
     state = state.copyWith(messages: [...state.messages, message]);
     try {
-      await _db.insertChatMessage(message);
+      await _db.insertChatMessage(message, sessionId: activeSessionId);
+      final current = state.currentSession;
+      final shouldRename =
+          current != null &&
+          (current.title.trim().isEmpty || current.title.trim() == 'New Chat');
+      await _db.touchChatSession(
+        activeSessionId,
+        title: shouldRename ? _titleFromPrompt(content) : null,
+      );
+      await _reloadSessions(currentSessionId: activeSessionId);
     } catch (e) {
       debugPrint('Failed to persist user message: $e');
     }
@@ -213,7 +307,12 @@ class ChatNotifier extends StateNotifier<ChatState> {
         (msg) => msg.id == aiMessageId,
       );
       try {
-        await _db.insertChatMessage(finalMessage);
+        final activeSessionId = state.currentSessionId;
+        if (activeSessionId != null) {
+          await _db.insertChatMessage(finalMessage, sessionId: activeSessionId);
+          await _db.touchChatSession(activeSessionId);
+          await _reloadSessions(currentSessionId: activeSessionId);
+        }
       } catch (e) {
         debugPrint('Failed to persist assistant message: $e');
       }
@@ -233,9 +332,15 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   // 清空對話
   Future<void> clearChat() async {
-    state = ChatState();
+    final activeSessionId = state.currentSessionId;
+    if (activeSessionId == null) {
+      return;
+    }
+    state = state.copyWith(messages: const []);
     try {
-      await _db.clearChatMessages();
+      await _db.clearChatMessagesBySession(activeSessionId);
+      await _db.touchChatSession(activeSessionId);
+      await _reloadSessions(currentSessionId: activeSessionId);
     } catch (e) {
       debugPrint('Failed to clear chat history: $e');
     }

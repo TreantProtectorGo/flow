@@ -1332,7 +1332,7 @@ abstract class AppLocalizations {
   /// No description provided for @confirmClearConversation.
   ///
   /// In zh, this message translates to:
-  /// **'確定要清空所有對話記錄嗎？'**
+  /// **'確定要清空目前這個對話嗎？'**
   String get confirmClearConversation;
 
   /// No description provided for @clearConversationButton.

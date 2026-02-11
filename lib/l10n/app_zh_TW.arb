@@ -468,7 +468,7 @@
   "confirmStartNewChat": "要開始新對話嗎？目前對話會被清空。",
   "chatHistory": "對話紀錄",
   "noChatHistory": "目前沒有對話紀錄",
-  "confirmClearConversation": "確定要清空所有對話記錄嗎？",
+  "confirmClearConversation": "確定要清空目前這個對話嗎？",
   "clearConversationButton": "清空",
   "sendMessage": "發送訊息",
   "typeMessage": "輸入訊息...",
