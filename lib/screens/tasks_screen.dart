@@ -14,6 +14,7 @@ import 'ai_chat_screen.dart';
 class TasksScreen extends ConsumerWidget {
   const TasksScreen({super.key});
   static const CalendarService _calendarService = CalendarService();
+  static const Duration _aiSessionGap = Duration(minutes: 2);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -92,17 +93,12 @@ class TasksScreen extends ConsumerWidget {
                           if (taskNotifier.pendingTasks.isEmpty)
                             _buildEmptyState(l10n.emptyPendingTasks, theme)
                           else
-                            ...taskNotifier.pendingTasks.map(
-                              (task) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: _buildTaskCard(
-                                  task,
-                                  theme,
-                                  context,
-                                  ref,
-                                  l10n,
-                                ),
-                              ),
+                            ..._buildPendingTaskWidgets(
+                              tasks: taskNotifier.pendingTasks,
+                              theme: theme,
+                              context: context,
+                              ref: ref,
+                              l10n: l10n,
                             ),
 
                           const SizedBox(height: 30),
@@ -458,8 +454,9 @@ class TasksScreen extends ConsumerWidget {
     ThemeData theme,
     BuildContext context,
     WidgetRef ref,
-    AppLocalizations l10n,
-  ) {
+    AppLocalizations l10n, {
+    bool showCalendarButton = true,
+  }) {
     final taskNotifier = ref.watch(taskProvider);
     final timerNotifier = ref.watch(timerProvider);
     final isCurrentTask = taskNotifier.currentTaskId == task.id;
@@ -594,7 +591,7 @@ class TasksScreen extends ConsumerWidget {
                     ),
                     // Action buttons row
                     if (task.status != TaskStatus.completed) ...[
-                      if (!isTimerRunning) ...[
+                      if (!isTimerRunning && showCalendarButton) ...[
                         IconButton.filledTonal(
                           onPressed: () => _quickAddTaskToCalendar(
                             context,
@@ -849,6 +846,228 @@ class TasksScreen extends ConsumerWidget {
       }
     }
   }
+
+  List<Widget> _buildPendingTaskWidgets({
+    required List<Task> tasks,
+    required ThemeData theme,
+    required BuildContext context,
+    required WidgetRef ref,
+    required AppLocalizations l10n,
+  }) {
+    final groups = _groupPendingTasks(tasks);
+    final focusMinutes = ref.watch(timerProvider).focusTimeInMinutes;
+    final widgets = <Widget>[];
+
+    for (final group in groups) {
+      if (group.isAiSessionGroup) {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _buildAiSessionHeader(
+              tasks: group.tasks,
+              theme: theme,
+              l10n: l10n,
+              onAddToCalendar: () => _quickAddTaskGroupToCalendar(
+                context,
+                group.tasks,
+                focusMinutes,
+                l10n,
+              ),
+            ),
+          ),
+        );
+      }
+
+      for (final task in group.tasks) {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildTaskCard(
+              task,
+              theme,
+              context,
+              ref,
+              l10n,
+              showCalendarButton: !group.isAiSessionGroup,
+            ),
+          ),
+        );
+      }
+    }
+
+    return widgets;
+  }
+
+  List<_TaskGroup> _groupPendingTasks(List<Task> tasks) {
+    final groups = <_TaskGroup>[];
+    var index = 0;
+
+    while (index < tasks.length) {
+      final task = tasks[index];
+      if (!task.isAIGenerated) {
+        groups.add(_TaskGroup(tasks: [task], isAiSessionGroup: false));
+        index += 1;
+        continue;
+      }
+
+      final aiTasks = <Task>[task];
+      var cursor = index + 1;
+      var previous = task;
+
+      while (cursor < tasks.length) {
+        final candidate = tasks[cursor];
+        if (!candidate.isAIGenerated) {
+          break;
+        }
+
+        final gap = previous.createdAt.difference(candidate.createdAt).abs();
+        if (gap > _aiSessionGap) {
+          break;
+        }
+
+        aiTasks.add(candidate);
+        previous = candidate;
+        cursor += 1;
+      }
+
+      groups.add(
+        _TaskGroup(tasks: aiTasks, isAiSessionGroup: aiTasks.length > 1),
+      );
+      index = cursor;
+    }
+
+    return groups;
+  }
+
+  Widget _buildAiSessionHeader({
+    required List<Task> tasks,
+    required ThemeData theme,
+    required AppLocalizations l10n,
+    required VoidCallback onAddToCalendar,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.auto_awesome,
+            size: 18,
+            color: theme.colorScheme.onSecondaryContainer,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              l10n.aiSessionGroup(tasks.length),
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          IconButton.filledTonal(
+            onPressed: onAddToCalendar,
+            icon: const Icon(Icons.calendar_month, size: 18),
+            tooltip: l10n.addToCalendar,
+            style: IconButton.styleFrom(
+              minimumSize: const Size(36, 36),
+              padding: EdgeInsets.zero,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _quickAddTaskGroupToCalendar(
+    BuildContext context,
+    List<Task> tasks,
+    int focusMinutes,
+    AppLocalizations l10n,
+  ) async {
+    if (tasks.isEmpty) {
+      return;
+    }
+
+    try {
+      final entries = tasks
+          .map(
+            (task) => CalendarPlanEntry(
+              title: task.title,
+              description: task.description?.trim() ?? '',
+              pomodoroCount: task.pomodoroCount,
+            ),
+          )
+          .toList();
+
+      final startFrom = DateTime.now();
+      final looksMultiDay = tasks.length > 1;
+      final added = await _calendarService.quickAddPlanEntries(
+        planTitle: tasks.first.title,
+        entries: entries,
+        focusMinutes: focusMinutes,
+        startFrom: startFrom,
+        scheduleMode: looksMultiDay
+            ? CalendarPlanScheduleMode.spreadByDay
+            : CalendarPlanScheduleMode.singleDay,
+        spreadDays: looksMultiDay ? tasks.length : 1,
+      );
+
+      if (!context.mounted) {
+        return;
+      }
+
+      switch (added) {
+        case CalendarAddResult.saved:
+          SnackBarUtil.showSuccessSnackBar(
+            context,
+            message: l10n.calendarAdded(l10n.aiSessionGroup(tasks.length)),
+          );
+          break;
+        case CalendarAddResult.opened:
+          SnackBarUtil.showInfoSnackBar(
+            context,
+            message: l10n.calendarOpened(l10n.aiSessionGroup(tasks.length)),
+          );
+          break;
+        case CalendarAddResult.canceled:
+          SnackBarUtil.showInfoSnackBar(
+            context,
+            message: l10n.calendarAddCancelled,
+          );
+          break;
+        case CalendarAddResult.duplicate:
+          SnackBarUtil.showInfoSnackBar(
+            context,
+            message: l10n.calendarAlreadyAdded,
+          );
+          break;
+        case CalendarAddResult.failed:
+          SnackBarUtil.showErrorSnackBar(
+            context,
+            message: l10n.calendarAddFailed,
+          );
+          break;
+      }
+    } catch (_) {
+      if (context.mounted) {
+        SnackBarUtil.showErrorSnackBar(
+          context,
+          message: l10n.calendarAddFailed,
+        );
+      }
+    }
+  }
+}
+
+class _TaskGroup {
+  final List<Task> tasks;
+  final bool isAiSessionGroup;
+
+  const _TaskGroup({required this.tasks, required this.isAiSessionGroup});
 }
 
 String _getModeDisplay(TimerMode mode, AppLocalizations l10n) {

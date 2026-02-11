@@ -931,6 +931,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get breakdownWithAI => 'Break down with AI';
 
   @override
+  String aiSessionGroup(int count) {
+    return 'AI Session ($count tasks)';
+  }
+
+  @override
   String get notificationFocusCompleteTitle => 'Focus Time Complete';
 
   @override

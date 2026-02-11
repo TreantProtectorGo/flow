@@ -1797,6 +1797,12 @@ abstract class AppLocalizations {
   /// **'用 AI 拆解'**
   String get breakdownWithAI;
 
+  /// No description provided for @aiSessionGroup.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 同一批任務（{count} 個）'**
+  String aiSessionGroup(int count);
+
   /// No description provided for @notificationFocusCompleteTitle.
   ///
   /// In zh, this message translates to:

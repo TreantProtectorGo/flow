@@ -529,6 +529,14 @@
     }
   },
   "breakdownWithAI": "用 AI 拆解",
+  "aiSessionGroup": "AI 同一批任務（{count} 個）",
+  "@aiSessionGroup": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
 
   "notificationFocusCompleteTitle": "專注時間結束",
   "notificationFocusCompleteBody": "專注時段已完成，休息一下吧",

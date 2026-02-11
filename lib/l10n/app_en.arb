@@ -477,6 +477,14 @@
     }
   },
   "breakdownWithAI": "Break down with AI",
+  "aiSessionGroup": "AI Session ({count} tasks)",
+  "@aiSessionGroup": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
 
   "notificationFocusCompleteTitle": "Focus Time Complete",
   "notificationFocusCompleteBody": "Focus session complete. Time for a break!",

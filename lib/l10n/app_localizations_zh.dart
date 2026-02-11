@@ -920,6 +920,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get breakdownWithAI => '用 AI 拆解';
 
   @override
+  String aiSessionGroup(int count) {
+    return 'AI 同一批任務（$count 個）';
+  }
+
+  @override
   String get notificationFocusCompleteTitle => '專注時間結束';
 
   @override
@@ -1868,6 +1873,11 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get breakdownWithAI => '用 AI 拆解';
+
+  @override
+  String aiSessionGroup(int count) {
+    return 'AI 同一批任務（$count 個）';
+  }
 
   @override
   String get notificationFocusCompleteTitle => '專注時間結束';
