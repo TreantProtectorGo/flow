@@ -336,11 +336,21 @@ class ChatNotifier extends StateNotifier<ChatState> {
     if (activeSessionId == null) {
       return;
     }
-    state = state.copyWith(messages: const []);
     try {
-      await _db.clearChatMessagesBySession(activeSessionId);
-      await _db.touchChatSession(activeSessionId);
-      await _reloadSessions(currentSessionId: activeSessionId);
+      await _db.deleteChatSession(activeSessionId);
+      var sessions = await _db.getChatSessions();
+      if (sessions.isEmpty) {
+        final created = await _db.createChatSession(title: 'New Chat');
+        sessions = [created];
+      }
+      final next = sessions.first;
+      final messages = await _db.getChatMessages(next.id);
+      state = state.copyWith(
+        sessions: sessions,
+        currentSessionId: next.id,
+        messages: messages,
+        error: null,
+      );
     } catch (e) {
       debugPrint('Failed to clear chat history: $e');
     }
