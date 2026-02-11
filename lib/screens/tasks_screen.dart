@@ -73,7 +73,7 @@ class TasksScreen extends ConsumerWidget {
                                 )
                                 .map(
                                   (task) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.only(bottom: 8),
                                     child: _buildTaskCard(
                                       task,
                                       theme,
@@ -109,7 +109,7 @@ class TasksScreen extends ConsumerWidget {
                             const SizedBox(height: 15),
                             ...taskNotifier.completedTasks.map(
                               (task) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.only(bottom: 8),
                                 child: Opacity(
                                   opacity: 0.6,
                                   child: _buildTaskCard(
@@ -496,7 +496,7 @@ class TasksScreen extends ConsumerWidget {
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
           color: theme.colorScheme.tertiaryContainer,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Icon(
           Icons.check,
@@ -514,130 +514,51 @@ class TasksScreen extends ConsumerWidget {
         margin: EdgeInsets.zero,
         surfaceTintColor: theme.colorScheme.surfaceTint,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           side: isCurrentTask
               ? BorderSide(color: theme.colorScheme.primary, width: 2)
               : BorderSide.none,
         ),
         child: InkWell(
           onTap: () => _showEditTaskDialog(context, ref, task),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            task.title,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w500,
-                              decoration: task.status == TaskStatus.completed
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                            ),
-                          ),
-                          if (isTimerRunning) ...[
-                            const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.timer,
-                                    size: 14,
-                                    color: theme.colorScheme.onPrimaryContainer,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    l10n.focusingNow,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color:
-                                          theme.colorScheme.onPrimaryContainer,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    timerNotifier.timeDisplayString,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color:
-                                          theme.colorScheme.onPrimaryContainer,
-                                      fontWeight: FontWeight.w700,
-                                      fontFeatures: [
-                                        const FontFeature.tabularFigures(),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ],
+                      child: Text(
+                        task.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          decoration: task.status == TaskStatus.completed
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
                       ),
                     ),
-                    // Action buttons row
                     if (task.status != TaskStatus.completed) ...[
-                      if (!isTimerRunning && showCalendarButton) ...[
-                        IconButton.filledTonal(
-                          onPressed: () => _quickAddTaskToCalendar(
-                            context,
-                            task,
-                            timerNotifier.focusTimeInMinutes,
-                            l10n,
-                          ),
-                          icon: const Icon(Icons.calendar_month, size: 18),
-                          tooltip: l10n.addToCalendar,
-                          style: IconButton.styleFrom(
-                            minimumSize: const Size(36, 36),
-                            padding: EdgeInsets.zero,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                      ],
-                      // AI Breakdown button (hide for AI-generated tasks)
-                      if (!task.isAIGenerated)
-                        IconButton(
-                          onPressed: () => _openAIChatWithTask(context, task),
-                          icon: Icon(
-                            Icons.auto_awesome,
-                            size: 20,
-                            color: theme.colorScheme.secondary,
-                          ),
-                          tooltip: l10n.breakdownWithAI,
-                          style: IconButton.styleFrom(
-                            minimumSize: const Size(36, 36),
-                            padding: EdgeInsets.zero,
-                          ),
-                        ),
-                      if (!task.isAIGenerated) const SizedBox(width: 4),
-                      // Start pomodoro button
+                      const SizedBox(width: 8),
                       FilledButton.icon(
                         onPressed: () =>
                             _startPomodoroForTask(context, ref, task, l10n),
                         icon: Icon(
                           isCurrentTask ? Icons.play_arrow : Icons.timer,
-                          size: 18,
+                          size: 16,
                         ),
                         label: Text(
                           isCurrentTask ? l10n.continueButton : l10n.start,
                         ),
                         style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 36),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          minimumSize: const Size(0, 28),
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
                           backgroundColor: isCurrentTask
                               ? theme.colorScheme.primary
                               : theme.colorScheme.primaryContainer,
@@ -651,70 +572,151 @@ class TasksScreen extends ConsumerWidget {
                 ),
                 if (task.description != null &&
                     task.description!.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Text(
                     task.description!,
-                    style: theme.textTheme.bodyMedium?.copyWith(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
-                const SizedBox(height: 12),
-                // Pomodoro progress bar and stats
-                Row(
-                  children: [
-                    // Progress indicator with emoji
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                l10n.pomodoroProgress(
-                                  task.completedPomodoros,
-                                  task.pomodoroCount,
+                if (isTimerRunning ||
+                    (task.status != TaskStatus.completed &&
+                        (!task.isAIGenerated || showCalendarButton))) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      if (isTimerRunning)
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.timer,
+                                  size: 13,
+                                  color: theme.colorScheme.onPrimaryContainer,
                                 ),
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: progressColor,
-                                ),
-                              ),
-                              if (task.completedPomodoros >= task.pomodoroCount)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 4),
-                                  child: Icon(
-                                    Icons.check_circle,
-                                    size: 14,
-                                    color: theme.colorScheme.tertiary,
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    '${l10n.focusingNow} ${timerNotifier.timeDisplayString}',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color:
+                                          theme.colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.w700,
+                                      fontFeatures: [
+                                        const FontFeature.tabularFigures(),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                            ],
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 4),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: pomodoroProgress.clamp(0.0, 1.0),
-                              minHeight: 4,
-                              backgroundColor:
-                                  theme.colorScheme.surfaceContainerHighest,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                progressColor,
+                        ),
+                      if (task.status != TaskStatus.completed &&
+                          !isTimerRunning &&
+                          showCalendarButton) ...[
+                        if (isTimerRunning) const SizedBox(width: 6),
+                        IconButton.filledTonal(
+                          onPressed: () => _quickAddTaskToCalendar(
+                            context,
+                            task,
+                            timerNotifier.focusTimeInMinutes,
+                            l10n,
+                          ),
+                          icon: const Icon(Icons.calendar_month, size: 16),
+                          tooltip: l10n.addToCalendar,
+                          style: IconButton.styleFrom(
+                            minimumSize: const Size(28, 28),
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ],
+                      if (task.status != TaskStatus.completed &&
+                          !task.isAIGenerated) ...[
+                        if (isTimerRunning ||
+                            (!isTimerRunning && showCalendarButton))
+                          const SizedBox(width: 4),
+                        IconButton(
+                          onPressed: () => _openAIChatWithTask(context, task),
+                          icon: Icon(
+                            Icons.auto_awesome,
+                            size: 18,
+                            color: theme.colorScheme.secondary,
+                          ),
+                          tooltip: l10n.breakdownWithAI,
+                          style: IconButton.styleFrom(
+                            minimumSize: const Size(28, 28),
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(
+                            l10n.pomodoroProgress(
+                              task.completedPomodoros,
+                              task.pomodoroCount,
+                            ),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: progressColor,
+                            ),
+                          ),
+                          if (task.completedPomodoros >= task.pomodoroCount)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: Icon(
+                                Icons.check_circle,
+                                size: 14,
+                                color: theme.colorScheme.tertiary,
+                              ),
+                            ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: pomodoroProgress.clamp(0.0, 1.0),
+                                minHeight: 3,
+                                backgroundColor:
+                                    theme.colorScheme.surfaceContainerHighest,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  progressColor,
+                                ),
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    // Priority chip
+                    const SizedBox(width: 8),
                     Chip(
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       labelPadding: const EdgeInsets.symmetric(
-                        horizontal: 2,
+                        horizontal: 1,
                         vertical: -2,
                       ),
                       padding: EdgeInsets.zero,
@@ -723,7 +725,7 @@ class TasksScreen extends ConsumerWidget {
                         task.priorityText(l10n),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: priorityColor,
-                          fontSize: 10,
+                          fontSize: 9,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -862,7 +864,7 @@ class TasksScreen extends ConsumerWidget {
       if (group.isAiSessionGroup) {
         widgets.add(
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 8),
             child: _buildAiSessionToggleCard(
               group: group,
               theme: theme,
@@ -875,6 +877,7 @@ class TasksScreen extends ConsumerWidget {
                 focusMinutes,
                 l10n,
               ),
+              onDeleteSession: () => _deleteTaskGroup(context, ref, group),
             ),
           ),
         );
@@ -882,7 +885,7 @@ class TasksScreen extends ConsumerWidget {
         for (final task in group.tasks) {
           widgets.add(
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: 8),
               child: _buildTaskCard(
                 task,
                 theme,
@@ -970,6 +973,7 @@ class TasksScreen extends ConsumerWidget {
     required WidgetRef ref,
     required AppLocalizations l10n,
     required VoidCallback onAddToCalendar,
+    required VoidCallback onDeleteSession,
   }) {
     final tasks = group.tasks;
     final groupTitle = group.sessionTitle ?? l10n.aiSessionGroup(tasks.length);
@@ -981,8 +985,8 @@ class TasksScreen extends ConsumerWidget {
       child: Theme(
         data: theme.copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
           collapsedIconColor: theme.colorScheme.onSecondaryContainer,
           iconColor: theme.colorScheme.onSecondaryContainer,
           backgroundColor: theme.colorScheme.surface,
@@ -1019,19 +1023,35 @@ class TasksScreen extends ConsumerWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          trailing: IconButton.filledTonal(
-            onPressed: onAddToCalendar,
-            icon: const Icon(Icons.calendar_month, size: 18),
-            tooltip: l10n.addToCalendar,
-            style: IconButton.styleFrom(
-              minimumSize: const Size(36, 36),
-              padding: EdgeInsets.zero,
-            ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton.filledTonal(
+                onPressed: onAddToCalendar,
+                icon: const Icon(Icons.calendar_month, size: 18),
+                tooltip: l10n.addToCalendar,
+                style: IconButton.styleFrom(
+                  minimumSize: const Size(36, 36),
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                onPressed: onDeleteSession,
+                icon: const Icon(Icons.delete_outline, size: 18),
+                tooltip: l10n.delete,
+                style: IconButton.styleFrom(
+                  minimumSize: const Size(36, 36),
+                  padding: EdgeInsets.zero,
+                  foregroundColor: theme.colorScheme.error,
+                ),
+              ),
+            ],
           ),
           children: tasks
               .map(
                 (task) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: 6),
                   child: _buildTaskCard(
                     task,
                     theme,
@@ -1128,6 +1148,33 @@ class TasksScreen extends ConsumerWidget {
           message: l10n.calendarAddFailed,
         );
       }
+    }
+  }
+
+  Future<void> _deleteTaskGroup(
+    BuildContext context,
+    WidgetRef ref,
+    _TaskGroup group,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final title = group.sessionTitle ?? l10n.aiSessionGroup(group.tasks.length);
+    final confirmed = await DeleteConfirmationDialog.show(
+      context,
+      title: title,
+    );
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+
+    final notifier = ref.read(taskProvider.notifier);
+    final currentTaskId = ref.read(taskProvider).currentTaskId;
+    final containsCurrent = group.tasks.any((task) => task.id == currentTaskId);
+    if (containsCurrent) {
+      await notifier.setCurrentTask(null);
+    }
+
+    for (final task in group.tasks) {
+      await notifier.deleteTask(task.id);
     }
   }
 }
