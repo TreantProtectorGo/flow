@@ -8,10 +8,12 @@ import '../widgets/task_form_dialog.dart';
 import '../widgets/dialogs/delete_confirmation_dialog.dart';
 import '../utils/snackbar_util.dart';
 import '../l10n/app_localizations.dart';
+import '../services/calendar_service.dart';
 import 'ai_chat_screen.dart';
 
 class TasksScreen extends ConsumerWidget {
   const TasksScreen({super.key});
+  static const CalendarService _calendarService = CalendarService();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -415,6 +417,21 @@ class TasksScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
+                    FilledButton.tonalIcon(
+                      onPressed: () => _quickAddTaskToCalendar(
+                        context,
+                        task,
+                        timerNotifier.focusTimeInMinutes,
+                        l10n,
+                      ),
+                      icon: const Icon(Icons.calendar_month, size: 16),
+                      label: Text(l10n.addToCalendar),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: () => context.go('/timer'),
                       icon: const Icon(Icons.visibility, size: 16),
@@ -530,24 +547,46 @@ class TasksScreen extends ConsumerWidget {
                           ),
                           if (isTimerRunning) ...[
                             const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.timer,
-                                  size: 14,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  l10n.timerRunning(
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.timer,
+                                    size: 14,
+                                    color: theme.colorScheme.onPrimaryContainer,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    l10n.focusingNow,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color:
+                                          theme.colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
                                     timerNotifier.timeDisplayString,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color:
+                                          theme.colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.w700,
+                                      fontFeatures: [
+                                        const FontFeature.tabularFigures(),
+                                      ],
+                                    ),
                                   ),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ],
                         ],
@@ -555,6 +594,23 @@ class TasksScreen extends ConsumerWidget {
                     ),
                     // Action buttons row
                     if (task.status != TaskStatus.completed) ...[
+                      if (!isTimerRunning) ...[
+                        IconButton.filledTonal(
+                          onPressed: () => _quickAddTaskToCalendar(
+                            context,
+                            task,
+                            timerNotifier.focusTimeInMinutes,
+                            l10n,
+                          ),
+                          icon: const Icon(Icons.calendar_month, size: 18),
+                          tooltip: l10n.addToCalendar,
+                          style: IconButton.styleFrom(
+                            minimumSize: const Size(36, 36),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
                       // AI Breakdown button (hide for AI-generated tasks)
                       if (!task.isAIGenerated)
                         IconButton(
@@ -734,6 +790,63 @@ class TasksScreen extends ConsumerWidget {
         context,
         message: l10n.continueTask(task.title),
       );
+    }
+  }
+
+  Future<void> _quickAddTaskToCalendar(
+    BuildContext context,
+    Task task,
+    int focusMinutes,
+    AppLocalizations l10n,
+  ) async {
+    try {
+      final added = await _calendarService.quickAddTask(
+        task,
+        focusMinutes: focusMinutes,
+      );
+      if (!context.mounted) {
+        return;
+      }
+
+      switch (added) {
+        case CalendarAddResult.saved:
+          SnackBarUtil.showSuccessSnackBar(
+            context,
+            message: l10n.calendarAdded(task.title),
+          );
+          break;
+        case CalendarAddResult.opened:
+          SnackBarUtil.showInfoSnackBar(
+            context,
+            message: l10n.calendarOpened(task.title),
+          );
+          break;
+        case CalendarAddResult.canceled:
+          SnackBarUtil.showInfoSnackBar(
+            context,
+            message: l10n.calendarAddCancelled,
+          );
+          break;
+        case CalendarAddResult.duplicate:
+          SnackBarUtil.showInfoSnackBar(
+            context,
+            message: l10n.calendarAlreadyAdded,
+          );
+          break;
+        case CalendarAddResult.failed:
+          SnackBarUtil.showErrorSnackBar(
+            context,
+            message: l10n.calendarAddFailed,
+          );
+          break;
+      }
+    } catch (_) {
+      if (context.mounted) {
+        SnackBarUtil.showErrorSnackBar(
+          context,
+          message: l10n.calendarAddFailed,
+        );
+      }
     }
   }
 }

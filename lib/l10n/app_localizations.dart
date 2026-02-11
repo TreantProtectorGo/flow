@@ -459,6 +459,102 @@ abstract class AppLocalizations {
   /// **'繼續任務：{taskTitle}'**
   String continueTask(String taskTitle);
 
+  /// No description provided for @addToCalendar.
+  ///
+  /// In zh, this message translates to:
+  /// **'加入行事曆'**
+  String get addToCalendar;
+
+  /// No description provided for @addPlanToCalendar.
+  ///
+  /// In zh, this message translates to:
+  /// **'将计划加入行事历'**
+  String get addPlanToCalendar;
+
+  /// No description provided for @calendarOpened.
+  ///
+  /// In zh, this message translates to:
+  /// **'已打开行事历：{taskTitle}'**
+  String calendarOpened(String taskTitle);
+
+  /// No description provided for @calendarAdded.
+  ///
+  /// In zh, this message translates to:
+  /// **'已加入行事曆：{taskTitle}'**
+  String calendarAdded(String taskTitle);
+
+  /// No description provided for @calendarAddCancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消建立行事曆事件'**
+  String get calendarAddCancelled;
+
+  /// No description provided for @calendarAlreadyAdded.
+  ///
+  /// In zh, this message translates to:
+  /// **'這個計劃已加入行事曆'**
+  String get calendarAlreadyAdded;
+
+  /// No description provided for @calendarAddFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'無法加入行事曆'**
+  String get calendarAddFailed;
+
+  /// No description provided for @addingToCalendar.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在加入行事曆...'**
+  String get addingToCalendar;
+
+  /// No description provided for @reviewCalendarPlanTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'確認行事曆事件'**
+  String get reviewCalendarPlanTitle;
+
+  /// No description provided for @calendarScheduleModeLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'排程方式'**
+  String get calendarScheduleModeLabel;
+
+  /// No description provided for @calendarScheduleSingleDay.
+  ///
+  /// In zh, this message translates to:
+  /// **'同一天'**
+  String get calendarScheduleSingleDay;
+
+  /// No description provided for @calendarScheduleSpreadDays.
+  ///
+  /// In zh, this message translates to:
+  /// **'分散在 {count} 天'**
+  String calendarScheduleSpreadDays(int count);
+
+  /// No description provided for @calendarStartDateLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'開始日期'**
+  String get calendarStartDateLabel;
+
+  /// No description provided for @calendarStartTimeLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'開始時間'**
+  String get calendarStartTimeLabel;
+
+  /// No description provided for @calendarEventsPreview.
+  ///
+  /// In zh, this message translates to:
+  /// **'將建立 {count} 個事件'**
+  String calendarEventsPreview(int count);
+
+  /// No description provided for @addEventsToCalendar.
+  ///
+  /// In zh, this message translates to:
+  /// **'加入 {count} 個事件'**
+  String addEventsToCalendar(int count);
+
   /// No description provided for @taskAdded.
   ///
   /// In zh, this message translates to:

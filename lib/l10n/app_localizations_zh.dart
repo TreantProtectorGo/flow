@@ -199,6 +199,64 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get addToCalendar => '加入行事曆';
+
+  @override
+  String get addPlanToCalendar => '将计划加入行事历';
+
+  @override
+  String calendarOpened(String taskTitle) {
+    return '已打开行事历：$taskTitle';
+  }
+
+  @override
+  String calendarAdded(String taskTitle) {
+    return '已加入行事曆：$taskTitle';
+  }
+
+  @override
+  String get calendarAddCancelled => '已取消建立行事曆事件';
+
+  @override
+  String get calendarAlreadyAdded => '這個計劃已加入行事曆';
+
+  @override
+  String get calendarAddFailed => '無法加入行事曆';
+
+  @override
+  String get addingToCalendar => '正在加入行事曆...';
+
+  @override
+  String get reviewCalendarPlanTitle => '確認行事曆事件';
+
+  @override
+  String get calendarScheduleModeLabel => '排程方式';
+
+  @override
+  String get calendarScheduleSingleDay => '同一天';
+
+  @override
+  String calendarScheduleSpreadDays(int count) {
+    return '分散在 $count 天';
+  }
+
+  @override
+  String get calendarStartDateLabel => '開始日期';
+
+  @override
+  String get calendarStartTimeLabel => '開始時間';
+
+  @override
+  String calendarEventsPreview(int count) {
+    return '將建立 $count 個事件';
+  }
+
+  @override
+  String addEventsToCalendar(int count) {
+    return '加入 $count 個事件';
+  }
+
+  @override
   String taskAdded(String taskTitle) {
     return '已新增任務：$taskTitle';
   }
@@ -1088,6 +1146,64 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String continueTask(String taskTitle) {
     return '繼續任務：$taskTitle';
+  }
+
+  @override
+  String get addToCalendar => '加入行事曆';
+
+  @override
+  String get addPlanToCalendar => '將計劃加入行事曆';
+
+  @override
+  String calendarOpened(String taskTitle) {
+    return '已開啟行事曆：$taskTitle';
+  }
+
+  @override
+  String calendarAdded(String taskTitle) {
+    return '已加入行事曆：$taskTitle';
+  }
+
+  @override
+  String get calendarAddCancelled => '已取消建立行事曆事件';
+
+  @override
+  String get calendarAlreadyAdded => '這個計劃已加入行事曆';
+
+  @override
+  String get calendarAddFailed => '無法加入行事曆';
+
+  @override
+  String get addingToCalendar => '正在加入行事曆...';
+
+  @override
+  String get reviewCalendarPlanTitle => '確認行事曆事件';
+
+  @override
+  String get calendarScheduleModeLabel => '排程方式';
+
+  @override
+  String get calendarScheduleSingleDay => '同一天';
+
+  @override
+  String calendarScheduleSpreadDays(int count) {
+    return '分散在 $count 天';
+  }
+
+  @override
+  String get calendarStartDateLabel => '開始日期';
+
+  @override
+  String get calendarStartTimeLabel => '開始時間';
+
+  @override
+  String calendarEventsPreview(int count) {
+    return '將建立 $count 個事件';
+  }
+
+  @override
+  String addEventsToCalendar(int count) {
+    return '加入 $count 個事件';
   }
 
   @override

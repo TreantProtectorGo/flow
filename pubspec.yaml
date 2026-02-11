@@ -63,6 +63,8 @@ dependencies:
   
   # Markdown Support
   flutter_markdown: ^0.7.4+1
+  add_2_calendar: ^3.0.1
+  open_filex: ^4.7.0
 
 dev_dependencies:
   flutter_test:

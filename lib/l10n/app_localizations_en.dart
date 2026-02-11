@@ -199,6 +199,64 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get addToCalendar => 'Add to Calendar';
+
+  @override
+  String get addPlanToCalendar => 'Add Plan to Calendar';
+
+  @override
+  String calendarOpened(String taskTitle) {
+    return 'Opened Calendar: $taskTitle';
+  }
+
+  @override
+  String calendarAdded(String taskTitle) {
+    return 'Added to Calendar: $taskTitle';
+  }
+
+  @override
+  String get calendarAddCancelled => 'Calendar event creation cancelled';
+
+  @override
+  String get calendarAlreadyAdded => 'This plan was already added to Calendar';
+
+  @override
+  String get calendarAddFailed => 'Could not add to Calendar';
+
+  @override
+  String get addingToCalendar => 'Adding to Calendar...';
+
+  @override
+  String get reviewCalendarPlanTitle => 'Review Calendar Events';
+
+  @override
+  String get calendarScheduleModeLabel => 'Schedule Mode';
+
+  @override
+  String get calendarScheduleSingleDay => 'Single Day';
+
+  @override
+  String calendarScheduleSpreadDays(int count) {
+    return 'Spread Across $count Days';
+  }
+
+  @override
+  String get calendarStartDateLabel => 'Start Date';
+
+  @override
+  String get calendarStartTimeLabel => 'Start Time';
+
+  @override
+  String calendarEventsPreview(int count) {
+    return '$count events will be created';
+  }
+
+  @override
+  String addEventsToCalendar(int count) {
+    return 'Add $count Events';
+  }
+
+  @override
   String taskAdded(String taskTitle) {
     return 'Task Added: $taskTitle';
   }

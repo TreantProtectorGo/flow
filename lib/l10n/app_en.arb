@@ -194,6 +194,57 @@
 
   "startFocus": "Start Focus: {taskTitle}",
   "continueTask": "Continue Task: {taskTitle}",
+  "addToCalendar": "Add to Calendar",
+  "addPlanToCalendar": "Add Plan to Calendar",
+  "calendarOpened": "Opened Calendar: {taskTitle}",
+  "@calendarOpened": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarAdded": "Added to Calendar: {taskTitle}",
+  "@calendarAdded": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarAddCancelled": "Calendar event creation cancelled",
+  "calendarAlreadyAdded": "This plan was already added to Calendar",
+  "calendarAddFailed": "Could not add to Calendar",
+  "addingToCalendar": "Adding to Calendar...",
+  "reviewCalendarPlanTitle": "Review Calendar Events",
+  "calendarScheduleModeLabel": "Schedule Mode",
+  "calendarScheduleSingleDay": "Single Day",
+  "calendarScheduleSpreadDays": "Spread Across {count} Days",
+  "@calendarScheduleSpreadDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarStartDateLabel": "Start Date",
+  "calendarStartTimeLabel": "Start Time",
+  "calendarEventsPreview": "{count} events will be created",
+  "@calendarEventsPreview": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addEventsToCalendar": "Add {count} Events",
+  "@addEventsToCalendar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "taskAdded": "Task Added: {taskTitle}",
   "confirmDelete": "Are you sure you want to delete \"{taskTitle}\"?",
 

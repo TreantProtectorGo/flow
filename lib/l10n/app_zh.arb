@@ -106,6 +106,57 @@
       }
     }
   },
+  "addToCalendar": "加入行事曆",
+  "addPlanToCalendar": "将计划加入行事历",
+  "calendarOpened": "已打开行事历：{taskTitle}",
+  "@calendarOpened": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarAdded": "已加入行事曆：{taskTitle}",
+  "@calendarAdded": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarAddCancelled": "已取消建立行事曆事件",
+  "calendarAlreadyAdded": "這個計劃已加入行事曆",
+  "calendarAddFailed": "無法加入行事曆",
+  "addingToCalendar": "正在加入行事曆...",
+  "reviewCalendarPlanTitle": "確認行事曆事件",
+  "calendarScheduleModeLabel": "排程方式",
+  "calendarScheduleSingleDay": "同一天",
+  "calendarScheduleSpreadDays": "分散在 {count} 天",
+  "@calendarScheduleSpreadDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarStartDateLabel": "開始日期",
+  "calendarStartTimeLabel": "開始時間",
+  "calendarEventsPreview": "將建立 {count} 個事件",
+  "@calendarEventsPreview": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addEventsToCalendar": "加入 {count} 個事件",
+  "@addEventsToCalendar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
 
   "taskAdded": "已新增任務：{taskTitle}",
   "@taskAdded": {
