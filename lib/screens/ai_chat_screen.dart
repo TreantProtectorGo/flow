@@ -188,6 +188,29 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
     _scrollToBottom();
   }
 
+  Future<void> _startNewChat(List<ChatMessage> messages) async {
+    final l10n = AppLocalizations.of(context)!;
+    if (messages.isNotEmpty) {
+      final confirmed = await ConfirmationDialog.show(
+        context,
+        title: l10n.newChat,
+        content: l10n.confirmStartNewChat,
+        confirmText: l10n.startNewChat,
+        isDangerous: false,
+      );
+      if (confirmed != true) {
+        return;
+      }
+    }
+
+    await ref.read(chatProvider.notifier).clearChat();
+    if (!mounted) {
+      return;
+    }
+    _textController.clear();
+    _focusNode.requestFocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -214,6 +237,11 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
               )
             : null,
         actions: [
+          TextButton.icon(
+            onPressed: () => _startNewChat(chatState.messages),
+            icon: const Icon(Icons.add),
+            label: Text(l10n.newChat),
+          ),
           if (chatState.messages.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.history),

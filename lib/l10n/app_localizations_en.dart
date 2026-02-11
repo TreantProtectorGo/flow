@@ -651,6 +651,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearConversation => 'Clear Conversation';
 
   @override
+  String get newChat => 'New Chat';
+
+  @override
+  String get startNewChat => 'Start New Chat';
+
+  @override
+  String get confirmStartNewChat =>
+      'Start a new chat? Current conversation will be cleared.';
+
+  @override
   String get chatHistory => 'Chat History';
 
   @override

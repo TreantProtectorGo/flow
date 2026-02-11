@@ -1299,6 +1299,24 @@ abstract class AppLocalizations {
   /// **'清空對話'**
   String get clearConversation;
 
+  /// No description provided for @newChat.
+  ///
+  /// In zh, this message translates to:
+  /// **'新對話'**
+  String get newChat;
+
+  /// No description provided for @startNewChat.
+  ///
+  /// In zh, this message translates to:
+  /// **'開始新對話'**
+  String get startNewChat;
+
+  /// No description provided for @confirmStartNewChat.
+  ///
+  /// In zh, this message translates to:
+  /// **'要開始新對話嗎？目前對話會被清空。'**
+  String get confirmStartNewChat;
+
   /// No description provided for @chatHistory.
   ///
   /// In zh, this message translates to:
