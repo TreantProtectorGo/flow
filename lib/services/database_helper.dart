@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'dart:convert';
+import '../models/chat_message.dart';
 import '../models/task.dart';
 
 /// DatabaseHelper - SQLite database access layer using singleton pattern
@@ -12,6 +14,8 @@ class DatabaseHelper {
 
   /// Cached database instance to avoid multiple connections
   static Database? _database;
+  bool _taskSchemaEnsured = false;
+  bool _chatSchemaEnsured = false;
 
   /// Private constructor for singleton pattern
   DatabaseHelper._init();
@@ -19,8 +23,14 @@ class DatabaseHelper {
   /// Lazily initializes and returns the database instance
   /// Returns cached instance if already initialized, otherwise initializes new connection
   Future<Database> get database async {
-    if (_database != null) return _database!;
+    if (_database != null) {
+      await _ensureTaskSchema(_database!);
+      await _ensureChatSchema(_database!);
+      return _database!;
+    }
     _database = await _initDB('focus.db');
+    await _ensureTaskSchema(_database!);
+    await _ensureChatSchema(_database!);
     return _database!;
   }
 
@@ -33,10 +43,61 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _ensureTaskSchema(Database db) async {
+    if (_taskSchemaEnsured) {
+      return;
+    }
+
+    final columns = await db.rawQuery('PRAGMA table_info(tasks)');
+    final names = columns
+        .map((column) => column['name'] as String?)
+        .whereType<String>()
+        .toSet();
+
+    final missing = <String>[];
+    if (!names.contains('ai_session_id')) {
+      missing.add('ALTER TABLE tasks ADD COLUMN ai_session_id TEXT');
+    }
+    if (!names.contains('ai_session_title')) {
+      missing.add('ALTER TABLE tasks ADD COLUMN ai_session_title TEXT');
+    }
+
+    for (final statement in missing) {
+      await db.execute(statement);
+    }
+
+    if (missing.isNotEmpty) {
+      debugPrint(
+        '📦 [DB] Repaired tasks schema by adding missing ai_session columns',
+      );
+    }
+    _taskSchemaEnsured = true;
+  }
+
+  Future<void> _ensureChatSchema(Database db) async {
+    if (_chatSchemaEnsured) {
+      return;
+    }
+
+    final columns = await db.rawQuery('PRAGMA table_info(chat_messages)');
+    final names = columns
+        .map((column) => column['name'] as String?)
+        .whereType<String>()
+        .toSet();
+
+    if (!names.contains('task_plan_json')) {
+      await db.execute(
+        'ALTER TABLE chat_messages ADD COLUMN task_plan_json TEXT',
+      );
+      debugPrint('📦 [DB] Repaired chat_messages schema: added task_plan_json');
+    }
+    _chatSchemaEnsured = true;
   }
 
   /// Handles database schema upgrades between versions
@@ -63,6 +124,12 @@ class DatabaseHelper {
       debugPrint(
         '📦 [DB] Migrated to version 4: added ai_session_id and ai_session_title columns',
       );
+    }
+    if (oldVersion < 5) {
+      await db.execute(
+        'ALTER TABLE chat_messages ADD COLUMN task_plan_json TEXT',
+      );
+      debugPrint('📦 [DB] Migrated to version 5: added task_plan_json column');
     }
   }
 
@@ -112,7 +179,8 @@ class DatabaseHelper {
         content TEXT NOT NULL,
         role TEXT NOT NULL,
         timestamp TEXT NOT NULL,
-        is_streaming INTEGER NOT NULL
+        is_streaming INTEGER NOT NULL,
+        task_plan_json TEXT
       )
     ''');
 
@@ -320,6 +388,55 @@ class DatabaseHelper {
 
   // ==================== Pomodoro Sessions Operations ====================
 
+  // ==================== Chat Messages Operations ====================
+
+  Future<int> insertChatMessage(ChatMessage message) async {
+    final db = await database;
+    return db.insert('chat_messages', {
+      'id': message.id,
+      'content': message.content,
+      'role': message.role.name,
+      'timestamp': message.timestamp.toIso8601String(),
+      'is_streaming': message.isStreaming ? 1 : 0,
+      'task_plan_json': message.taskPlan != null
+          ? jsonEncode(message.taskPlan!.toJson())
+          : null,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<List<ChatMessage>> getChatMessages() async {
+    final db = await database;
+    final rows = await db.query('chat_messages', orderBy: 'timestamp ASC');
+    return rows.map((row) {
+      final rawTaskPlan = row['task_plan_json'] as String?;
+      TaskPlan? taskPlan;
+      if (rawTaskPlan != null && rawTaskPlan.isNotEmpty) {
+        try {
+          taskPlan = TaskPlan.fromJson(
+            jsonDecode(rawTaskPlan) as Map<String, dynamic>,
+          );
+        } catch (_) {
+          taskPlan = null;
+        }
+      }
+      return ChatMessage(
+        id: row['id'] as String,
+        content: row['content'] as String,
+        role: messageRoleFromString(row['role'] as String),
+        timestamp: DateTime.parse(row['timestamp'] as String),
+        isStreaming: (row['is_streaming'] as int? ?? 0) == 1,
+        taskPlan: taskPlan,
+      );
+    }).toList();
+  }
+
+  Future<int> clearChatMessages() async {
+    final db = await database;
+    return db.delete('chat_messages');
+  }
+
+  // ==================== Pomodoro Sessions Operations ====================
+
   /// Inserts a new pomodoro session record into the database
   /// [taskId]: Optional ID of the associated task (null for break-only sessions)
   /// [startTime]: Session start timestamp
@@ -437,6 +554,9 @@ class DatabaseHelper {
   Future<void> close() async {
     final db = await database;
     await db.close();
+    _database = null;
+    _taskSchemaEnsured = false;
+    _chatSchemaEnsured = false;
   }
 
   /// Completely deletes the database file from device storage
@@ -446,5 +566,8 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'focus.db');
     await databaseFactory.deleteDatabase(path);
+    _database = null;
+    _taskSchemaEnsured = false;
+    _chatSchemaEnsured = false;
   }
 }

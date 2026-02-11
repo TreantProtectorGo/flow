@@ -1,5 +1,12 @@
 enum MessageRole { user, assistant, system }
 
+MessageRole messageRoleFromString(String value) {
+  return MessageRole.values.firstWhere(
+    (role) => role.name == value,
+    orElse: () => MessageRole.assistant,
+  );
+}
+
 class TaskPlan {
   final String mainGoal;
   final String? sessionTitle;
@@ -134,6 +141,30 @@ class ChatMessage {
       timestamp: timestamp ?? this.timestamp,
       isStreaming: isStreaming ?? this.isStreaming,
       taskPlan: taskPlan ?? this.taskPlan,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'content': content,
+      'role': role.name,
+      'timestamp': timestamp.toIso8601String(),
+      'isStreaming': isStreaming,
+      'taskPlan': taskPlan?.toJson(),
+    };
+  }
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      id: json['id'] as String,
+      content: json['content'] as String,
+      role: messageRoleFromString(json['role'] as String),
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      isStreaming: json['isStreaming'] as bool? ?? false,
+      taskPlan: json['taskPlan'] != null
+          ? TaskPlan.fromJson(json['taskPlan'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

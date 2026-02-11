@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/chat_message.dart';
 import '../config/api_config.dart';
+import '../services/database_helper.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -27,12 +28,24 @@ class ChatState {
 }
 
 class ChatNotifier extends StateNotifier<ChatState> {
-  ChatNotifier() : super(ChatState());
+  ChatNotifier() : super(ChatState()) {
+    _loadChatHistory();
+  }
 
   final _uuid = const Uuid();
+  final DatabaseHelper _db = DatabaseHelper.instance;
+
+  Future<void> _loadChatHistory() async {
+    try {
+      final history = await _db.getChatMessages();
+      state = state.copyWith(messages: history);
+    } catch (e) {
+      debugPrint('Failed to load chat history: $e');
+    }
+  }
 
   // 添加用戶訊息
-  void addUserMessage(String content) {
+  Future<void> addUserMessage(String content) async {
     final message = ChatMessage(
       id: _uuid.v4(),
       content: content,
@@ -41,6 +54,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
     );
 
     state = state.copyWith(messages: [...state.messages, message]);
+    try {
+      await _db.insertChatMessage(message);
+    } catch (e) {
+      debugPrint('Failed to persist user message: $e');
+    }
   }
 
   // 使用後端 API 生成 AI 回覆（支援 streaming）
@@ -191,6 +209,14 @@ class ChatNotifier extends StateNotifier<ChatState> {
       }).toList();
 
       state = state.copyWith(messages: updatedMessages, isLoading: false);
+      final finalMessage = updatedMessages.firstWhere(
+        (msg) => msg.id == aiMessageId,
+      );
+      try {
+        await _db.insertChatMessage(finalMessage);
+      } catch (e) {
+        debugPrint('Failed to persist assistant message: $e');
+      }
     } catch (e) {
       state = state.copyWith(
         error: '[AI_RESPONSE_FAILED]: $e',
@@ -206,8 +232,13 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 
   // 清空對話
-  void clearChat() {
+  Future<void> clearChat() async {
     state = ChatState();
+    try {
+      await _db.clearChatMessages();
+    } catch (e) {
+      debugPrint('Failed to clear chat history: $e');
+    }
   }
 
   // 清除錯誤訊息

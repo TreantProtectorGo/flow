@@ -66,7 +66,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
     final chatNotifier = ref.read(chatProvider.notifier);
 
     // Add user message
-    chatNotifier.addUserMessage(text.trim());
+    await chatNotifier.addUserMessage(text.trim());
     _textController.clear();
 
     // Scroll to bottom
@@ -119,7 +119,7 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                   isDangerous: true,
                 );
                 if (confirmed == true) {
-                  ref.read(chatProvider.notifier).clearChat();
+                  await ref.read(chatProvider.notifier).clearChat();
                 }
               },
             ),
