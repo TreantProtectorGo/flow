@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../models/task.dart';
 import '../providers/task_provider.dart';
 import '../providers/timer_provider.dart';
@@ -8,6 +11,7 @@ import '../widgets/task_form_dialog.dart';
 import '../widgets/dialogs/delete_confirmation_dialog.dart';
 import '../utils/snackbar_util.dart';
 import '../l10n/app_localizations.dart';
+import '../services/calendar_quick_add_planner.dart';
 import '../services/calendar_service.dart';
 import 'ai_chat_screen.dart';
 
@@ -1080,6 +1084,8 @@ class TasksScreen extends ConsumerWidget {
     }
 
     try {
+      final groupTitle =
+          group.sessionTitle ?? l10n.aiSessionGroup(tasks.length);
       final entries = tasks
           .map(
             (task) => CalendarPlanEntry(
@@ -1090,19 +1096,25 @@ class TasksScreen extends ConsumerWidget {
           )
           .toList();
 
-      final startFrom = DateTime.now();
-      final looksMultiDay = tasks.length > 1;
-      final groupTitle =
-          group.sessionTitle ?? l10n.aiSessionGroup(tasks.length);
+      final review = await _showGroupCalendarReviewSheet(
+        context: context,
+        l10n: l10n,
+        groupTitle: groupTitle,
+        entries: entries,
+        focusMinutes: focusMinutes,
+      );
+      if (review == null) {
+        return;
+      }
+
       final added = await _calendarService.quickAddPlanEntries(
         planTitle: groupTitle,
         entries: entries,
         focusMinutes: focusMinutes,
-        startFrom: startFrom,
-        scheduleMode: looksMultiDay
-            ? CalendarPlanScheduleMode.spreadByDay
-            : CalendarPlanScheduleMode.singleDay,
-        spreadDays: looksMultiDay ? tasks.length : 1,
+        startFrom: review.startFrom,
+        scheduleMode: review.scheduleMode,
+        spreadDays: review.spreadDays,
+        exportFingerprint: review.exportFingerprint,
       );
 
       if (!context.mounted) {
@@ -1151,6 +1163,334 @@ class TasksScreen extends ConsumerWidget {
     }
   }
 
+  Future<_TaskGroupCalendarReviewSelection?> _showGroupCalendarReviewSheet({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required String groupTitle,
+    required List<CalendarPlanEntry> entries,
+    required int focusMinutes,
+  }) async {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    DateTime selectedStart = CalendarQuickAddPlanner.nextQuarterHour(
+      DateTime.now(),
+    );
+    final suggestedDays = _detectRequestedDays(groupTitle, entries);
+    CalendarPlanScheduleMode scheduleMode = suggestedDays > 1
+        ? CalendarPlanScheduleMode.spreadByDay
+        : CalendarPlanScheduleMode.singleDay;
+    var spreadDays = math.max(1, suggestedDays);
+
+    return showModalBottomSheet<_TaskGroupCalendarReviewSelection>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (sheetContext, setSheetState) {
+            final previewEvents = _calendarService.buildPlanPreview(
+              planTitle: groupTitle,
+              entries: entries,
+              focusMinutes: focusMinutes,
+              startFrom: selectedStart,
+              scheduleMode: scheduleMode,
+              spreadDays: spreadDays,
+            );
+            final dateText = DateFormat.yMMMd(locale).format(selectedStart);
+            final timeText = MaterialLocalizations.of(
+              sheetContext,
+            ).formatTimeOfDay(TimeOfDay.fromDateTime(selectedStart));
+
+            return SizedBox(
+              height: MediaQuery.of(sheetContext).size.height * 0.84,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.reviewCalendarPlanTitle,
+                      style: Theme.of(sheetContext).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      groupTitle,
+                      style: Theme.of(sheetContext).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final selectedDate = await showDatePicker(
+                                context: sheetContext,
+                                initialDate: selectedStart,
+                                firstDate: DateTime.now().subtract(
+                                  const Duration(days: 365),
+                                ),
+                                lastDate: DateTime.now().add(
+                                  const Duration(days: 365 * 2),
+                                ),
+                              );
+                              if (selectedDate == null) {
+                                return;
+                              }
+                              setSheetState(() {
+                                selectedStart = DateTime(
+                                  selectedDate.year,
+                                  selectedDate.month,
+                                  selectedDate.day,
+                                  selectedStart.hour,
+                                  selectedStart.minute,
+                                );
+                              });
+                            },
+                            icon: const Icon(Icons.calendar_today),
+                            label: Text(
+                              '${l10n.calendarStartDateLabel}: $dateText',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final selectedTime = await showTimePicker(
+                                context: sheetContext,
+                                initialTime: TimeOfDay.fromDateTime(
+                                  selectedStart,
+                                ),
+                              );
+                              if (selectedTime == null) {
+                                return;
+                              }
+                              setSheetState(() {
+                                selectedStart = DateTime(
+                                  selectedStart.year,
+                                  selectedStart.month,
+                                  selectedStart.day,
+                                  selectedTime.hour,
+                                  selectedTime.minute,
+                                );
+                              });
+                            },
+                            icon: const Icon(Icons.schedule),
+                            label: Text(
+                              '${l10n.calendarStartTimeLabel}: $timeText',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.calendarScheduleModeLabel,
+                      style: Theme.of(sheetContext).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: Text(l10n.calendarScheduleSingleDay),
+                          selected:
+                              scheduleMode ==
+                              CalendarPlanScheduleMode.singleDay,
+                          onSelected: (selected) {
+                            if (!selected) {
+                              return;
+                            }
+                            setSheetState(() {
+                              scheduleMode = CalendarPlanScheduleMode.singleDay;
+                            });
+                          },
+                        ),
+                        ChoiceChip(
+                          label: Text(
+                            l10n.calendarScheduleSpreadDays(spreadDays),
+                          ),
+                          selected:
+                              scheduleMode ==
+                              CalendarPlanScheduleMode.spreadByDay,
+                          onSelected: (selected) {
+                            if (!selected) {
+                              return;
+                            }
+                            setSheetState(() {
+                              scheduleMode =
+                                  CalendarPlanScheduleMode.spreadByDay;
+                              spreadDays = math.max(2, spreadDays);
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    if (scheduleMode ==
+                        CalendarPlanScheduleMode.spreadByDay) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Slider(
+                              min: 2,
+                              max: math.max(2, entries.length).toDouble(),
+                              divisions: math.max(1, entries.length - 2),
+                              value: spreadDays
+                                  .clamp(2, math.max(2, entries.length))
+                                  .toDouble(),
+                              onChanged: (value) {
+                                setSheetState(() {
+                                  spreadDays = value.round();
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.calendarEventsPreview(previewEvents.length),
+                      style: Theme.of(sheetContext).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: previewEvents.length,
+                        itemBuilder: (context, index) {
+                          final event = previewEvents[index];
+                          final dateFormat = DateFormat.yMMMd(locale);
+                          final start = DateFormat.jm(
+                            locale,
+                          ).format(event.start);
+                          final end = DateFormat.jm(locale).format(event.end);
+                          final sameDate =
+                              event.start.year == event.end.year &&
+                              event.start.month == event.end.month &&
+                              event.start.day == event.end.day;
+                          final subtitle = sameDate
+                              ? '${dateFormat.format(event.start)}  $start - $end'
+                              : '${dateFormat.format(event.start)} $start - ${dateFormat.format(event.end)} $end';
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: ListTile(
+                              dense: true,
+                              title: Text(
+                                event.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Text(subtitle),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(sheetContext).pop(),
+                            child: Text(l10n.cancel),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              final fingerprint = _calendarService
+                                  .buildPlanExportFingerprint(
+                                    planTitle: groupTitle,
+                                    entries: entries,
+                                    focusMinutes: focusMinutes,
+                                    startFrom: selectedStart,
+                                    scheduleMode: scheduleMode,
+                                    spreadDays: spreadDays,
+                                  );
+                              Navigator.of(sheetContext).pop(
+                                _TaskGroupCalendarReviewSelection(
+                                  startFrom: selectedStart,
+                                  scheduleMode: scheduleMode,
+                                  spreadDays: spreadDays,
+                                  exportFingerprint: fingerprint,
+                                ),
+                              );
+                            },
+                            child: Text(
+                              l10n.addEventsToCalendar(previewEvents.length),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  int _detectRequestedDays(String groupTitle, List<CalendarPlanEntry> entries) {
+    final titleDays = _extractDays(groupTitle);
+    if (titleDays != null && titleDays > 1) {
+      return titleDays;
+    }
+
+    var maxDay = 0;
+    var found = 0;
+    for (final entry in entries) {
+      final day = _extractDayIndex(entry.title);
+      if (day != null && day > 0) {
+        found++;
+        if (day > maxDay) {
+          maxDay = day;
+        }
+      }
+    }
+    if (found >= math.max(2, entries.length ~/ 2) && maxDay > 1) {
+      return maxDay;
+    }
+    return 1;
+  }
+
+  int? _extractDays(String text) {
+    final english = RegExp(
+      r'\\b(\\d{1,2})\\s*days?\\b',
+      caseSensitive: false,
+    ).firstMatch(text);
+    if (english != null) {
+      return int.tryParse(english.group(1)!);
+    }
+    final chinese = RegExp(r'(\\d{1,2})\\s*天').firstMatch(text);
+    if (chinese != null) {
+      return int.tryParse(chinese.group(1)!);
+    }
+    return null;
+  }
+
+  int? _extractDayIndex(String text) {
+    final english = RegExp(
+      r'\\bday\\s*(\\d{1,2})\\b',
+      caseSensitive: false,
+    ).firstMatch(text);
+    if (english != null) {
+      return int.tryParse(english.group(1)!);
+    }
+    final chinese = RegExp(r'第\\s*(\\d{1,2})\\s*天').firstMatch(text);
+    if (chinese != null) {
+      return int.tryParse(chinese.group(1)!);
+    }
+    return null;
+  }
+
   Future<void> _deleteTaskGroup(
     BuildContext context,
     WidgetRef ref,
@@ -1190,6 +1530,20 @@ class _TaskGroup {
     required this.isAiSessionGroup,
     required this.sessionTitle,
     required this.sessionId,
+  });
+}
+
+class _TaskGroupCalendarReviewSelection {
+  final DateTime startFrom;
+  final CalendarPlanScheduleMode scheduleMode;
+  final int spreadDays;
+  final String exportFingerprint;
+
+  const _TaskGroupCalendarReviewSelection({
+    required this.startFrom,
+    required this.scheduleMode,
+    required this.spreadDays,
+    required this.exportFingerprint,
   });
 }
 
