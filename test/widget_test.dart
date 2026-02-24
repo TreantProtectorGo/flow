@@ -9,13 +9,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:focus/main.dart';
+import 'package:focus/screens/timer_screen.dart';
 
 void main() {
   testWidgets('App starts and shows timer screen', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const ProviderScope(child: FocusApp()));
+    await tester.pumpAndSettle();
 
-    // Verify that the app starts with the timer screen
-    expect(find.text('專注番茄'), findsOneWidget);
+    // Verify that the initial route renders the timer screen widget.
+    expect(find.byType(TimerScreen), findsOneWidget);
   });
 }

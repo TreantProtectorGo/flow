@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'task_provider.dart';
 import 'statistics_provider.dart';
+import 'settings_provider.dart';
 import 'notification_strings_provider.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
@@ -19,6 +20,14 @@ enum TimerMode {
   focus, // Focus time: 25 minutes
   shortBreak, // Short break: 5 minutes
   longBreak, // Long break: 15 minutes
+}
+
+bool shouldTakeLongBreak({
+  required int completedSessions,
+  required int longBreakFrequency,
+}) {
+  final normalizedFrequency = longBreakFrequency <= 0 ? 4 : longBreakFrequency;
+  return completedSessions > 0 && completedSessions % normalizedFrequency == 0;
 }
 
 class TimerProvider with ChangeNotifier {
@@ -257,7 +266,11 @@ class TimerProvider with ChangeNotifier {
       );
 
       // Decide next phase: short break or long break
-      if (_completedSessions % 4 == 0) {
+      final longBreakFrequency = _ref.read(settingsProvider).longBreakFrequency;
+      if (shouldTakeLongBreak(
+        completedSessions: _completedSessions,
+        longBreakFrequency: longBreakFrequency,
+      )) {
         _mode = TimerMode.longBreak;
       } else {
         _mode = TimerMode.shortBreak;
