@@ -1,46 +1,72 @@
-# Focus - Productivity Enhancement App
+# Flow (FocusAI)
 
-Focus is a Flutter application designed to improve concentration and work efficiency. By combining the Pomodoro technique with task management features, it helps users manage their time and workflow more effectively.
+Flow is a cross-platform productivity app built with Flutter. It combines Pomodoro timeboxing, task management, and AI-assisted task planning in one clean workflow.
 
-## Features
+This project is designed as a production-style portfolio app that demonstrates end-to-end product thinking across mobile UX, local persistence, and backend AI streaming.
 
-- **Focus Timer**: Timer based on the Pomodoro technique to help users stay focused and take appropriate breaks
-- **Task Management**: Create, organize, and track daily tasks
-- **Statistics**: View your focus time statistics and work efficiency data
-- **Theme Switching**: Support for light and dark modes for a comfortable user experience
-- **Cross-Platform Support**: Available for iOS, Android, Web, macOS, Windows, and Linux
+## Highlights
 
-## Installation Guide
+- Pomodoro timer with focus, short break, and long break modes
+- Task management with priority, status tracking, and estimated pomodoro counts
+- AI planning chat that turns user goals into structured task plans
+- Calendar planning support for AI-generated plans
+- Statistics dashboard (today/week/month trends, streaks, goal progress, heatmap)
+- Persistent local storage with SQLite (`sqflite`)
+- Adaptive navigation for phone, tablet, and desktop layouts
+- Localization support (English and Traditional Chinese)
+
+## Tech Stack
+
+- Flutter 3.8+ / Dart 3.8+
+- `flutter_riverpod` for state management
+- `go_router` for navigation
+- `sqflite` + `shared_preferences` for persistence
+- Material 3 + dynamic color
+- `fl_chart` for analytics visualizations
+
+## Architecture (App)
+
+- `lib/screens`: main UI screens (timer, tasks, stats, settings, AI chat)
+- `lib/widgets`: reusable UI components and dialogs
+- `lib/providers`: state and business logic
+- `lib/services`: persistence, notifications, calendar utilities
+- `lib/models`: domain models (tasks, chat messages, plans)
+
+## Getting Started
 
 ### Prerequisites
-- Flutter SDK 3.0 or higher
-- Dart SDK 2.17 or higher
-- Development environment for your target platform (Xcode, Android Studio, etc.)
 
-### Installation Steps
+- Flutter SDK 3.8.1 or newer
+- Dart SDK 3.8.1 or newer
+- A running backend server for AI chat (see `focus-backend` project)
+
+### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/TreantProtectorGo/focus.git
-
-# Navigate to project directory
-cd focus
-
-# Install dependencies
+git clone https://github.com/<your-username>/focus.git
+cd focus/focus
 flutter pub get
-
-# Run the application
-flutter run
 ```
 
-## Project Structure
+### Run Locally
 
-- `/lib`: Main application code
-  - `/screens`: Feature pages
-  - `/providers`: State management
-  - `/theme`: Application theme
-  - `/utils`: Utility functions
+```bash
+flutter run --dart-define=API_BASE_URL=http://localhost:3000
+```
 
-## TODO List
+If `API_BASE_URL` is not provided, the app defaults to `http://localhost:3000`.
 
-- [ ] Integrate Gemini API for smart task management
+## Resume / CV Talking Points
+
+- Built a full-stack productivity product (Flutter + Node.js) with real-time AI chat streaming (SSE)
+- Designed an AI workflow that transforms natural-language goals into actionable Pomodoro task plans
+- Implemented analytics features (streaks, completion trends, and goal tracking) to improve user feedback loops
+- Delivered cross-platform UI with localization and adaptive navigation patterns
+
+## Related Project
+
+- Backend API: `focus-backend/` (Express + AI provider integration)
+
+## Status
+
+Active personal project, continuously improving UX and planning intelligence.
