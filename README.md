@@ -1,4 +1,4 @@
-# Flow (FocusAI)
+# Flow
 
 Flow is a cross-platform productivity app built with Flutter. It combines Pomodoro timeboxing, task management, and AI-assisted task planning in one clean workflow.
 
