@@ -692,7 +692,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editPlan => 'Edit Plan';
 
   @override
-  String get createDirectly => 'Create Directly';
+  String get createDirectly => 'Create';
 
   @override
   String get editTaskPlan => 'Edit Task Plan';

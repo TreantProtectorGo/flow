@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../models/chat_message.dart';
 import '../models/task.dart';
+import '../providers/settings_provider.dart';
 import '../providers/task_provider.dart';
 import '../providers/timer_provider.dart';
 import '../services/calendar_quick_add_planner.dart';
 import '../services/calendar_service.dart';
+import '../utils/pomodoro_time_utils.dart';
 import '../utils/snackbar_util.dart';
 import '../l10n/app_localizations.dart';
 import 'task_plan_editor.dart';
@@ -121,7 +123,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
                     Expanded(
                       child: Text(
                         l10n.estimatedCompletionTime(
-                          widget.taskPlan.estimatedTime,
+                          _calculateEstimatedTimeString(l10n),
                         ),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
@@ -168,7 +170,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // Create directly button: creates all tasks from plan
+                      // Create button: creates all tasks from plan
                       Expanded(
                         child: FilledButton.icon(
                           onPressed: (_isCreatingTasks || _isAddingToCalendar)
@@ -207,6 +209,38 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
         builder: (context) => TaskPlanEditor(initialPlan: widget.taskPlan),
       ),
     );
+  }
+
+  /// 根據蕃茄鐘數量和用戶設定計算預計所需時間
+  String _calculateEstimatedTimeString(AppLocalizations l10n) {
+    final totalPomodoros = widget.taskPlan.tasks.fold(
+      0,
+      (sum, task) => sum + task.pomodoroCount,
+    );
+    final timer = ref.read(timerProvider);
+    final settings = ref.read(settingsProvider);
+    final totalMinutes = calculateEstimatedMinutes(
+      totalPomodoros: totalPomodoros,
+      focusMinutes: timer.focusTimeInMinutes,
+      shortBreakMinutes: timer.shortBreakTimeInMinutes,
+      longBreakMinutes: timer.longBreakTimeInMinutes,
+      longBreakFrequency: settings.longBreakFrequency,
+    );
+    return formatEstimatedTime(totalMinutes, l10n);
+  }
+
+  /// 計算單個任務的預計所需時間
+  String _calculateTaskTimeString(int pomodoroCount, AppLocalizations l10n) {
+    final timer = ref.read(timerProvider);
+    final settings = ref.read(settingsProvider);
+    final totalMinutes = calculateEstimatedMinutes(
+      totalPomodoros: pomodoroCount,
+      focusMinutes: timer.focusTimeInMinutes,
+      shortBreakMinutes: timer.shortBreakTimeInMinutes,
+      longBreakMinutes: timer.longBreakTimeInMinutes,
+      longBreakFrequency: settings.longBreakFrequency,
+    );
+    return formatEstimatedTime(totalMinutes, l10n);
   }
 
   Future<void> _createTasksFromPlan() async {
@@ -815,7 +849,7 @@ class _TaskBreakdownCardState extends ConsumerState<TaskBreakdownCard> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  l10n.pomodoroCountText(task.pomodoroCount),
+                                  '${l10n.pomodoroCountText(task.pomodoroCount)} · ${_calculateTaskTimeString(task.pomodoroCount, l10n)}',
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),

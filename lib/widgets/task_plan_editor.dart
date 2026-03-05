@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/chat_message.dart';
 import '../models/task.dart';
 import '../providers/task_provider.dart';
+import '../providers/timer_provider.dart';
+import '../providers/settings_provider.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/pomodoro_time_utils.dart';
 import '../utils/priority_utils.dart';
 import '../utils/snackbar_util.dart';
 import 'dialogs/delete_confirmation_dialog.dart';
@@ -269,22 +272,20 @@ class _TaskPlanEditorState extends ConsumerState<TaskPlanEditor> {
     return _editablePlan.tasks.fold(0, (sum, task) => sum + task.pomodoroCount);
   }
 
-  /// Calculate estimated time based on pomodoro count
-  /// Each pomodoro = 25 minutes focus + 5 minutes break = 30 minutes
+  /// 根據蕃茄鐘數量和用戶設定計算預計所需時間
   String _calculateEstimatedTime() {
     final totalPomodoros = _calculateTotalPomodoros();
-    final totalMinutes = totalPomodoros * 30; // 25 min focus + 5 min break
-
-    if (totalMinutes < 60) {
-      return '$totalMinutes 分鐘';
-    } else {
-      final hours = totalMinutes ~/ 60;
-      final minutes = totalMinutes % 60;
-      if (minutes == 0) {
-        return '$hours 小時';
-      }
-      return '$hours 小時 $minutes 分鐘';
-    }
+    final timer = ref.read(timerProvider);
+    final settings = ref.read(settingsProvider);
+    final totalMinutes = calculateEstimatedMinutes(
+      totalPomodoros: totalPomodoros,
+      focusMinutes: timer.focusTimeInMinutes,
+      shortBreakMinutes: timer.shortBreakTimeInMinutes,
+      longBreakMinutes: timer.longBreakTimeInMinutes,
+      longBreakFrequency: settings.longBreakFrequency,
+    );
+    final l10n = AppLocalizations.of(context)!;
+    return formatEstimatedTime(totalMinutes, l10n);
   }
 
   /// Update estimated time automatically
