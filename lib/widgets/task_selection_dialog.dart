@@ -94,7 +94,7 @@ class TaskSelectionDialog extends ConsumerWidget {
                                     const SizedBox(width: 4),
                                     Flexible(
                                       child: Text(
-                                        '${task.pomodoroCount}${l10n.items}',
+                                        l10n.pomodoroCountText(task.pomodoroCount),
                                         style: theme.textTheme.bodySmall,
                                         overflow: TextOverflow.ellipsis,
                                       ),
