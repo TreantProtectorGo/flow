@@ -17,6 +17,8 @@ class Task {
   final bool isAIGenerated; // Whether this task was created by AI breakdown
   final String? aiSessionId;
   final String? aiSessionTitle;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
 
   Task({
     required this.id,
@@ -31,7 +33,9 @@ class Task {
     this.isAIGenerated = false,
     this.aiSessionId,
     this.aiSessionTitle,
-  });
+    DateTime? updatedAt,
+    this.deletedAt,
+  }) : updatedAt = updatedAt ?? createdAt;
 
   Task copyWith({
     String? id,
@@ -46,6 +50,8 @@ class Task {
     bool? isAIGenerated,
     String? aiSessionId,
     String? aiSessionTitle,
+    DateTime? updatedAt,
+    DateTime? deletedAt,
   }) {
     return Task(
       id: id ?? this.id,
@@ -60,6 +66,8 @@ class Task {
       isAIGenerated: isAIGenerated ?? this.isAIGenerated,
       aiSessionId: aiSessionId ?? this.aiSessionId,
       aiSessionTitle: aiSessionTitle ?? this.aiSessionTitle,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 
@@ -77,6 +85,8 @@ class Task {
       'isAIGenerated': isAIGenerated,
       'aiSessionId': aiSessionId,
       'aiSessionTitle': aiSessionTitle,
+      'updatedAt': updatedAt.toIso8601String(),
+      'deletedAt': deletedAt?.toIso8601String(),
     };
   }
 
@@ -98,6 +108,12 @@ class Task {
       isAIGenerated: json['isAIGenerated'] ?? false,
       aiSessionId: json['aiSessionId'] as String?,
       aiSessionTitle: json['aiSessionTitle'] as String?,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : null,
+      deletedAt: json['deletedAt'] != null
+          ? DateTime.parse(json['deletedAt'])
+          : null,
     );
   }
 

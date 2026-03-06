@@ -516,5 +516,33 @@
         "type": "String"
       }
     }
+  },
+
+  "signInToEnableSync": "Sign in to enable cloud sync",
+  "signInWithGoogle": "Sign in with Google",
+  "signInWithApple": "Sign in with Apple",
+  "signOut": "Sign Out",
+  "lastSynced": "Last synced: {time}",
+  "@lastSynced": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNow": "Sync Now",
+  "syncing": "Syncing…",
+  "syncError": "Sync failed",
+  "signInFailed": "Sign-in failed. Please try again.",
+  "signOutConfirmTitle": "Confirm Sign Out",
+  "signOutConfirmMessage": "Cloud sync will stop after signing out. Local data will not be deleted.",
+  "accountSection": "Account",
+  "daysAgo": "{count} days ago",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

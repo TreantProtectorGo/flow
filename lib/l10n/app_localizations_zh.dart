@@ -975,6 +975,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String notificationTaskCompleteBody(String taskTitle) {
     return '「$taskTitle」的所有番茄鐘已完成';
   }
+
+  @override
+  String get signInToEnableSync => '登入以啟用雲端同步';
+
+  @override
+  String get signInWithGoogle => '使用 Google 登入';
+
+  @override
+  String get signInWithApple => '使用 Apple 登入';
+
+  @override
+  String get signOut => '登出';
+
+  @override
+  String lastSynced(String time) {
+    return '上次同步：$time';
+  }
+
+  @override
+  String get syncNow => '立即同步';
+
+  @override
+  String get syncing => '同步中…';
+
+  @override
+  String get syncError => '同步失敗';
+
+  @override
+  String get signInFailed => '登入失敗，請稍後再試';
+
+  @override
+  String get signOutConfirmTitle => '確認登出';
+
+  @override
+  String get signOutConfirmMessage => '登出後將停止雲端同步，本地資料不會被刪除。';
+
+  @override
+  String get accountSection => '帳號';
+
+  @override
+  String daysAgo(int count) {
+    return '$count 天前';
+  }
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1947,5 +1990,48 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String notificationTaskCompleteBody(String taskTitle) {
     return '「$taskTitle」的所有番茄鐘已完成';
+  }
+
+  @override
+  String get signInToEnableSync => '登入以啟用雲端同步';
+
+  @override
+  String get signInWithGoogle => '使用 Google 登入';
+
+  @override
+  String get signInWithApple => '使用 Apple 登入';
+
+  @override
+  String get signOut => '登出';
+
+  @override
+  String lastSynced(String time) {
+    return '上次同步：$time';
+  }
+
+  @override
+  String get syncNow => '立即同步';
+
+  @override
+  String get syncing => '同步中…';
+
+  @override
+  String get syncError => '同步失敗';
+
+  @override
+  String get signInFailed => '登入失敗，請稍後再試';
+
+  @override
+  String get signOutConfirmTitle => '確認登出';
+
+  @override
+  String get signOutConfirmMessage => '登出後將停止雲端同步，本地資料不會被刪除。';
+
+  @override
+  String get accountSection => '帳號';
+
+  @override
+  String daysAgo(int count) {
+    return '$count 天前';
   }
 }

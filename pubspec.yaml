@@ -66,6 +66,14 @@ dependencies:
   add_2_calendar: ^3.0.1
   open_filex: ^4.7.0
 
+  # Firebase & Cloud Sync
+  firebase_core: ^3.12.1
+  firebase_auth: ^5.5.1
+  cloud_firestore: ^5.6.5
+  google_sign_in: ^6.2.2
+  sign_in_with_apple: ^6.1.4
+  crypto: ^3.0.6
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

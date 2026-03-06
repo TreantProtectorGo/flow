@@ -6,9 +6,8 @@ import '../providers/timer_provider.dart';
 import '../providers/statistics_provider.dart';
 import '../providers/locale_provider.dart';
 import '../providers/settings_provider.dart';
-import '../utils/snackbar_util.dart';
 import '../l10n/app_localizations.dart';
-import '../widgets/dialogs/confirmation_dialog.dart';
+import '../widgets/user_account_card.dart';
 import 'settings_selection_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -67,37 +66,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           children: [
-            // User information
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ListTile(
-                leading: CircleAvatar(
-                  radius: 24,
-                  backgroundColor: theme.colorScheme.primary,
-                  child: Text(
-                    '王',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: theme.colorScheme.onPrimary,
-                    ),
-                  ),
-                ),
-                title: Text(
-                  '王小明',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: const Text('wang@example.com'),
-                trailing: Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: theme.colorScheme.outline,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                tileColor: theme.colorScheme.primaryContainer,
-              ),
-            ),
+            // User account card (sign-in / sync status)
+            const UserAccountCard(),
 
             // Section: Pomodoro settings
             _buildSectionTitle(AppLocalizations.of(context)!.pomodoroSettings),
@@ -306,89 +276,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 },
               ),
             ),
-
-            // Section: Data and sync
-            _buildSectionTitle(AppLocalizations.of(context)!.dataAndSync),
-            _buildSettingTile(
-              icon: Icons.cloud,
-              iconColor: theme.colorScheme.primary,
-              title: AppLocalizations.of(context)!.cloudSync,
-              subtitle: AppLocalizations.of(context)!.cloudSyncSubtitle,
-              trailing: Switch(
-                value: appSettings.cloudSync,
-                onChanged: (value) {
-                  ref.read(settingsProvider.notifier).setCloudSync(value);
-                },
-              ),
-            ),
-            _buildSettingTile(
-              icon: Icons.download,
-              iconColor: theme.colorScheme.primary,
-              title: AppLocalizations.of(context)!.exportData,
-              subtitle: AppLocalizations.of(context)!.exportDataSubtitle,
-              trailing: FilledButton.tonal(
-                onPressed: () {},
-                child: Text(AppLocalizations.of(context)!.exportCSV),
-              ),
-            ),
-
-            // Section: Danger zone
-            _buildSectionTitle(AppLocalizations.of(context)!.dangerZone),
-            _buildSettingTile(
-              icon: Icons.delete_forever,
-              iconColor: theme.colorScheme.error,
-              title: AppLocalizations.of(context)!.clearAllData,
-              subtitle: AppLocalizations.of(context)!.clearAllDataSubtitle,
-              trailing: FilledButton(
-                onPressed: () =>
-                    _showConfirmDialog(AppLocalizations.of(context)!.clearData),
-                style: FilledButton.styleFrom(
-                  backgroundColor: theme.colorScheme.errorContainer,
-                  foregroundColor: theme.colorScheme.onErrorContainer,
-                ),
-                child: Text(AppLocalizations.of(context)!.clearData),
-              ),
-            ),
-            _buildSettingTile(
-              icon: Icons.person_off,
-              iconColor: theme.colorScheme.error,
-              title: AppLocalizations.of(context)!.deleteAccount,
-              subtitle: AppLocalizations.of(context)!.deleteAccountSubtitle,
-              trailing: FilledButton(
-                onPressed: () => _showConfirmDialog(
-                  AppLocalizations.of(context)!.deleteAccount,
-                ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: theme.colorScheme.errorContainer,
-                  foregroundColor: theme.colorScheme.onErrorContainer,
-                ),
-                child: Text(AppLocalizations.of(context)!.deleteAccount),
-              ),
-            ),
-
-            // Version information
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 32),
-              child: Center(
-                child: Column(
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.version,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      AppLocalizations.of(context)!.copyright,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -476,24 +363,5 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _showConfirmDialog(String action) async {
-    final l10n = AppLocalizations.of(context)!;
-    final confirmed = await ConfirmationDialog.show(
-      context,
-      title: l10n.confirmAction(action),
-      content: l10n.confirmActionMessage(action),
-      confirmText: l10n.confirm,
-      cancelText: l10n.cancel,
-      isDangerous: true,
-    );
-
-    if (confirmed == true && mounted) {
-      SnackBarUtil.showInfoSnackBar(
-        context,
-        message: l10n.featureComingSoon(action),
-      );
-    }
   }
 }

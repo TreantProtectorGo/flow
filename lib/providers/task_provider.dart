@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/task.dart';
 import '../services/database_helper.dart';
 import '../services/data_migration_helper.dart';
+import '../services/sync_service.dart';
 
 // Riverpod provider
 final taskProvider = ChangeNotifierProvider<TaskProvider>((ref) {
@@ -15,6 +16,9 @@ class TaskProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _currentTaskId; // 當前正在進行的任務ID
   final DatabaseHelper _db = DatabaseHelper.instance;
+
+  /// Optional sync service — set by AuthProvider when user is signed in.
+  SyncService? syncService;
 
   List<Task> get tasks => _tasks;
   bool get isLoading => _isLoading;
@@ -61,6 +65,11 @@ class TaskProvider with ChangeNotifier {
     await _loadTasks();
   }
 
+  /// Reload tasks from local DB. Called after remote sync applies changes.
+  Future<void> reloadTasks() async {
+    await _loadTasks();
+  }
+
   Future<void> _loadTasks() async {
     _isLoading = true;
     notifyListeners();
@@ -99,6 +108,11 @@ class TaskProvider with ChangeNotifier {
     }
   }
 
+  /// Push task to cloud if sync is active (fire-and-forget).
+  void _pushIfSyncing(Task task) {
+    syncService?.pushTask(task);
+  }
+
   Future<void> addTask({
     required String title,
     String? description,
@@ -109,14 +123,16 @@ class TaskProvider with ChangeNotifier {
     String? aiSessionId,
     String? aiSessionTitle,
   }) async {
+    final now = DateTime.now();
     final task = Task(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: now.millisecondsSinceEpoch.toString(),
       title: title,
       description: description,
       pomodoroCount: pomodoroCount,
       priority: priority,
       status: status,
-      createdAt: DateTime.now(),
+      createdAt: now,
+      updatedAt: now,
       isAIGenerated: isAIGenerated,
       aiSessionId: aiSessionId,
       aiSessionTitle: aiSessionTitle,
@@ -124,6 +140,7 @@ class TaskProvider with ChangeNotifier {
 
     // 保存到資料庫
     await _db.insertTask(task);
+    _pushIfSyncing(task);
 
     // 更新記憶體中的列表
     _tasks.insert(0, task);
@@ -138,19 +155,31 @@ class TaskProvider with ChangeNotifier {
   Future<void> updateTask(Task updatedTask) async {
     final index = _tasks.indexWhere((task) => task.id == updatedTask.id);
     if (index != -1) {
+      final taskWithTimestamp = updatedTask.copyWith(
+        updatedAt: DateTime.now(),
+      );
       // 更新資料庫
-      await _db.updateTask(updatedTask);
+      await _db.updateTask(taskWithTimestamp);
+      _pushIfSyncing(taskWithTimestamp);
 
       // 更新記憶體中的列表
-      _tasks[index] = updatedTask;
+      _tasks[index] = taskWithTimestamp;
       notifyListeners();
       await _saveTasks();
     }
   }
 
   Future<void> deleteTask(String taskId) async {
-    // 從資料庫刪除
-    await _db.deleteTask(taskId);
+    // 軟刪除（設置 deleted_at）以支援雲端同步
+    final now = DateTime.now();
+    final taskIndex = _tasks.indexWhere((t) => t.id == taskId);
+    await _db.softDeleteTask(taskId);
+    if (taskIndex != -1) {
+      _pushIfSyncing(_tasks[taskIndex].copyWith(
+        deletedAt: now,
+        updatedAt: now,
+      ));
+    }
 
     // 從記憶體中移除
     _tasks.removeWhere((task) => task.id == taskId);
@@ -182,10 +211,12 @@ class TaskProvider with ChangeNotifier {
       final updatedTask = task.copyWith(
         status: newStatus,
         completedAt: completedAt,
+        updatedAt: DateTime.now(),
       );
 
       // 更新資料庫
       await _db.updateTask(updatedTask);
+      _pushIfSyncing(updatedTask);
 
       // 更新記憶體
       _tasks[index] = updatedTask;
@@ -197,10 +228,14 @@ class TaskProvider with ChangeNotifier {
   Future<void> moveTaskToInProgress(String taskId) async {
     final index = _tasks.indexWhere((task) => task.id == taskId);
     if (index != -1) {
-      final updatedTask = _tasks[index].copyWith(status: TaskStatus.inProgress);
+final updatedTask = _tasks[index].copyWith(
+          status: TaskStatus.inProgress,
+          updatedAt: DateTime.now(),
+        );
 
       // 更新資料庫
       await _db.updateTask(updatedTask);
+      _pushIfSyncing(updatedTask);
 
       // 更新記憶體
       _tasks[index] = updatedTask;
@@ -215,10 +250,12 @@ class TaskProvider with ChangeNotifier {
       final updatedTask = _tasks[index].copyWith(
         status: TaskStatus.completed,
         completedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       // 更新資料庫
       await _db.updateTask(updatedTask);
+      _pushIfSyncing(updatedTask);
 
       // 更新記憶體
       _tasks[index] = updatedTask;
@@ -256,10 +293,12 @@ class TaskProvider with ChangeNotifier {
       final updatedTask = task.copyWith(
         status: TaskStatus.inProgress,
         completedPomodoros: task.completedPomodoros + 1,
+        updatedAt: DateTime.now(),
       );
 
       // 更新資料庫
       await _db.updateTask(updatedTask);
+      _pushIfSyncing(updatedTask);
 
       // 更新記憶體
       _tasks[index] = updatedTask;

@@ -568,5 +568,33 @@
         "type": "String"
       }
     }
+  },
+
+  "signInToEnableSync": "登入以啟用雲端同步",
+  "signInWithGoogle": "使用 Google 登入",
+  "signInWithApple": "使用 Apple 登入",
+  "signOut": "登出",
+  "lastSynced": "上次同步：{time}",
+  "@lastSynced": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNow": "立即同步",
+  "syncing": "同步中…",
+  "syncError": "同步失敗",
+  "signInFailed": "登入失敗，請稍後再試",
+  "signOutConfirmTitle": "確認登出",
+  "signOutConfirmMessage": "登出後將停止雲端同步，本地資料不會被刪除。",
+  "accountSection": "帳號",
+  "daysAgo": "{count} 天前",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

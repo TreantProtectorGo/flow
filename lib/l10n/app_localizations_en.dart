@@ -989,4 +989,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String notificationTaskCompleteBody(String taskTitle) {
     return 'All pomodoros for \"$taskTitle\" have been completed';
   }
+
+  @override
+  String get signInToEnableSync => 'Sign in to enable cloud sync';
+
+  @override
+  String get signInWithGoogle => 'Sign in with Google';
+
+  @override
+  String get signInWithApple => 'Sign in with Apple';
+
+  @override
+  String get signOut => 'Sign Out';
+
+  @override
+  String lastSynced(String time) {
+    return 'Last synced: $time';
+  }
+
+  @override
+  String get syncNow => 'Sync Now';
+
+  @override
+  String get syncing => 'Syncing…';
+
+  @override
+  String get syncError => 'Sync failed';
+
+  @override
+  String get signInFailed => 'Sign-in failed. Please try again.';
+
+  @override
+  String get signOutConfirmTitle => 'Confirm Sign Out';
+
+  @override
+  String get signOutConfirmMessage =>
+      'Cloud sync will stop after signing out. Local data will not be deleted.';
+
+  @override
+  String get accountSection => 'Account';
+
+  @override
+  String daysAgo(int count) {
+    return '$count days ago';
+  }
 }

@@ -13,9 +13,13 @@ import 'screens/stats_screen.dart';
 import 'screens/settings_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'services/notification_service.dart';
+import 'services/firebase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  await FirebaseService.instance.initialize();
 
   // Initialize notification service
   await NotificationService.instance.initialize();

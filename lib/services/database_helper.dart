@@ -43,7 +43,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -66,6 +66,12 @@ class DatabaseHelper {
     }
     if (!names.contains('ai_session_title')) {
       missing.add('ALTER TABLE tasks ADD COLUMN ai_session_title TEXT');
+    }
+    if (!names.contains('updated_at')) {
+      missing.add("ALTER TABLE tasks ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''");
+    }
+    if (!names.contains('deleted_at')) {
+      missing.add('ALTER TABLE tasks ADD COLUMN deleted_at TEXT');
     }
 
     for (final statement in missing) {
@@ -209,6 +215,25 @@ class DatabaseHelper {
         '📦 [DB] Migrated to version 6: added chat_sessions and chat_session_id',
       );
     }
+    if (oldVersion < 7) {
+      await db.execute(
+        "ALTER TABLE tasks ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''",
+      );
+      await db.execute('ALTER TABLE tasks ADD COLUMN deleted_at TEXT');
+      await db.execute(
+        "ALTER TABLE pomodoro_sessions ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''",
+      );
+      // Backfill: updated_at = created_at for tasks, start_time for sessions
+      await db.rawUpdate(
+        "UPDATE tasks SET updated_at = created_at WHERE updated_at = ''",
+      );
+      await db.rawUpdate(
+        "UPDATE pomodoro_sessions SET updated_at = start_time WHERE updated_at = ''",
+      );
+      debugPrint(
+        '📦 [DB] Migrated to version 7: added updated_at and deleted_at for sync',
+      );
+    }
   }
 
   /// Creates all database tables and indexes on first run
@@ -230,7 +255,9 @@ class DatabaseHelper {
         completed_at TEXT,
         is_ai_generated INTEGER NOT NULL DEFAULT 0,
         ai_session_id TEXT,
-        ai_session_title TEXT
+        ai_session_title TEXT,
+        updated_at TEXT NOT NULL DEFAULT '',
+        deleted_at TEXT
       )
     ''');
 
@@ -245,6 +272,7 @@ class DatabaseHelper {
         duration INTEGER NOT NULL,
         completed INTEGER NOT NULL,
         session_type TEXT NOT NULL,
+        updated_at TEXT NOT NULL DEFAULT '',
         FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE SET NULL
       )
     ''');
@@ -315,6 +343,8 @@ class DatabaseHelper {
       'is_ai_generated': task.isAIGenerated ? 1 : 0,
       'ai_session_id': task.aiSessionId,
       'ai_session_title': task.aiSessionTitle,
+      'updated_at': task.updatedAt.toIso8601String(),
+      'deleted_at': task.deletedAt?.toIso8601String(),
     }, conflictAlgorithm: ConflictAlgorithm.replace);
     debugPrint('✅ [DB] Task insertion successful');
     return result;
@@ -325,7 +355,11 @@ class DatabaseHelper {
   Future<List<Task>> getAllTasks() async {
     final db = await database;
     debugPrint('📚 [DB] Loading all tasks...');
-    final result = await db.query('tasks', orderBy: 'created_at DESC');
+    final result = await db.query(
+      'tasks',
+      where: 'deleted_at IS NULL',
+      orderBy: 'created_at DESC',
+    );
 
     debugPrint('✅ [DB] Load complete, total ${result.length} tasks');
     return result
@@ -343,6 +377,8 @@ class DatabaseHelper {
             'isAIGenerated': (json['is_ai_generated'] ?? 0) == 1,
             'aiSessionId': json['ai_session_id'],
             'aiSessionTitle': json['ai_session_title'],
+            'updatedAt': json['updated_at'],
+            'deletedAt': json['deleted_at'],
           }),
         )
         .toList();
@@ -376,6 +412,8 @@ class DatabaseHelper {
       'isAIGenerated': (json['is_ai_generated'] ?? 0) == 1,
       'aiSessionId': json['ai_session_id'],
       'aiSessionTitle': json['ai_session_title'],
+      'updatedAt': json['updated_at'],
+      'deletedAt': json['deleted_at'],
     });
   }
 
@@ -401,6 +439,8 @@ class DatabaseHelper {
         'is_ai_generated': task.isAIGenerated ? 1 : 0,
         'ai_session_id': task.aiSessionId,
         'ai_session_title': task.aiSessionTitle,
+        'updated_at': task.updatedAt.toIso8601String(),
+        'deleted_at': task.deletedAt?.toIso8601String(),
       },
       where: 'id = ?',
       whereArgs: [task.id],
@@ -421,6 +461,38 @@ class DatabaseHelper {
     return result;
   }
 
+  /// Soft deletes a task by setting deleted_at timestamp
+  /// Used for cloud sync — the task will be filtered from queries
+  /// but remains in DB until synced and cleaned up
+  Future<int> softDeleteTask(String id) async {
+    final db = await database;
+    final now = DateTime.now().toIso8601String();
+    debugPrint('🗑️ [DB] Soft-deleting task ID: $id');
+    final result = await db.update(
+      'tasks',
+      {'deleted_at': now, 'updated_at': now},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    debugPrint('✅ [DB] Task soft-delete successful');
+    return result;
+  }
+
+  /// Hard-deletes tasks whose deleted_at is older than [days] days
+  Future<int> cleanupDeletedTasks({int days = 30}) async {
+    final db = await database;
+    final cutoff = DateTime.now().subtract(Duration(days: days)).toIso8601String();
+    final result = await db.delete(
+      'tasks',
+      where: 'deleted_at IS NOT NULL AND deleted_at < ?',
+      whereArgs: [cutoff],
+    );
+    if (result > 0) {
+      debugPrint('🧹 [DB] Cleaned up $result soft-deleted tasks older than $days days');
+    }
+    return result;
+  }
+
   /// Retrieves tasks filtered by status and optional date range
   /// [status]: Task status to filter by (e.g., 'pending', 'completed')
   /// [startDate]: Optional start date for filtering (inclusive)
@@ -434,7 +506,7 @@ class DatabaseHelper {
   }) async {
     final db = await database;
 
-    String whereClause = 'status = ?';
+    String whereClause = 'status = ? AND deleted_at IS NULL';
     List<dynamic> whereArgs = [status];
 
     // Add date range filter if specified
@@ -475,6 +547,8 @@ class DatabaseHelper {
             'isAIGenerated': (json['is_ai_generated'] ?? 0) == 1,
             'aiSessionId': json['ai_session_id'],
             'aiSessionTitle': json['ai_session_title'],
+            'updatedAt': json['updated_at'],
+            'deletedAt': json['deleted_at'],
           }),
         )
         .toList();
@@ -640,6 +714,7 @@ class DatabaseHelper {
       'duration': duration,
       'completed': completed ? 1 : 0,
       'session_type': sessionType,
+      'updated_at': startTime.toIso8601String(),
     });
     debugPrint('✅ [DB] Pomodoro session insertion successful (ID: $result)');
     return result;

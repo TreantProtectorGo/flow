@@ -1898,6 +1898,84 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'「{taskTitle}」的所有番茄鐘已完成'**
   String notificationTaskCompleteBody(String taskTitle);
+
+  /// No description provided for @signInToEnableSync.
+  ///
+  /// In zh, this message translates to:
+  /// **'登入以啟用雲端同步'**
+  String get signInToEnableSync;
+
+  /// No description provided for @signInWithGoogle.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用 Google 登入'**
+  String get signInWithGoogle;
+
+  /// No description provided for @signInWithApple.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用 Apple 登入'**
+  String get signInWithApple;
+
+  /// No description provided for @signOut.
+  ///
+  /// In zh, this message translates to:
+  /// **'登出'**
+  String get signOut;
+
+  /// No description provided for @lastSynced.
+  ///
+  /// In zh, this message translates to:
+  /// **'上次同步：{time}'**
+  String lastSynced(String time);
+
+  /// No description provided for @syncNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'立即同步'**
+  String get syncNow;
+
+  /// No description provided for @syncing.
+  ///
+  /// In zh, this message translates to:
+  /// **'同步中…'**
+  String get syncing;
+
+  /// No description provided for @syncError.
+  ///
+  /// In zh, this message translates to:
+  /// **'同步失敗'**
+  String get syncError;
+
+  /// No description provided for @signInFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'登入失敗，請稍後再試'**
+  String get signInFailed;
+
+  /// No description provided for @signOutConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'確認登出'**
+  String get signOutConfirmTitle;
+
+  /// No description provided for @signOutConfirmMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'登出後將停止雲端同步，本地資料不會被刪除。'**
+  String get signOutConfirmMessage;
+
+  /// No description provided for @accountSection.
+  ///
+  /// In zh, this message translates to:
+  /// **'帳號'**
+  String get accountSection;
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 天前'**
+  String daysAgo(int count);
 }
 
 class _AppLocalizationsDelegate
