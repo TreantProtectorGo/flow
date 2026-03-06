@@ -68,7 +68,9 @@ class DatabaseHelper {
       missing.add('ALTER TABLE tasks ADD COLUMN ai_session_title TEXT');
     }
     if (!names.contains('updated_at')) {
-      missing.add("ALTER TABLE tasks ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''");
+      missing.add(
+        "ALTER TABLE tasks ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''",
+      );
     }
     if (!names.contains('deleted_at')) {
       missing.add('ALTER TABLE tasks ADD COLUMN deleted_at TEXT');
@@ -481,14 +483,18 @@ class DatabaseHelper {
   /// Hard-deletes tasks whose deleted_at is older than [days] days
   Future<int> cleanupDeletedTasks({int days = 30}) async {
     final db = await database;
-    final cutoff = DateTime.now().subtract(Duration(days: days)).toIso8601String();
+    final cutoff = DateTime.now()
+        .subtract(Duration(days: days))
+        .toIso8601String();
     final result = await db.delete(
       'tasks',
       where: 'deleted_at IS NOT NULL AND deleted_at < ?',
       whereArgs: [cutoff],
     );
     if (result > 0) {
-      debugPrint('🧹 [DB] Cleaned up $result soft-deleted tasks older than $days days');
+      debugPrint(
+        '🧹 [DB] Cleaned up $result soft-deleted tasks older than $days days',
+      );
     }
     return result;
   }

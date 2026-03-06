@@ -36,9 +36,9 @@ class SyncService {
     required String uid,
     DatabaseHelper? db,
     FirebaseFirestore? firestore,
-  })  : _uid = uid,
-        _db = db ?? DatabaseHelper.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+  }) : _uid = uid,
+       _db = db ?? DatabaseHelper.instance,
+       _firestore = firestore ?? FirebaseFirestore.instance;
 
   // ── Collection references ─────────────────────────────────────────
 
@@ -98,10 +98,9 @@ class SyncService {
   /// Push a task change to Firestore.
   Future<void> pushTask(Task task) async {
     try {
-      await _tasksRef.doc(task.id).set(
-        _taskToFirestore(task),
-        SetOptions(merge: true),
-      );
+      await _tasksRef
+          .doc(task.id)
+          .set(_taskToFirestore(task), SetOptions(merge: true));
       _lastSyncTime = DateTime.now();
       onSyncTimeUpdated?.call();
       debugPrint('☁️ [Sync] Pushed task ${task.id}');
@@ -313,14 +312,16 @@ class SyncService {
       'priority': task.priority.name,
       'status': task.status.name,
       'createdAt': Timestamp.fromDate(task.createdAt),
-      'completedAt':
-          task.completedAt != null ? Timestamp.fromDate(task.completedAt!) : null,
+      'completedAt': task.completedAt != null
+          ? Timestamp.fromDate(task.completedAt!)
+          : null,
       'isAIGenerated': task.isAIGenerated,
       'aiSessionId': task.aiSessionId,
       'aiSessionTitle': task.aiSessionTitle,
       'updatedAt': Timestamp.fromDate(task.updatedAt),
-      'deletedAt':
-          task.deletedAt != null ? Timestamp.fromDate(task.deletedAt!) : null,
+      'deletedAt': task.deletedAt != null
+          ? Timestamp.fromDate(task.deletedAt!)
+          : null,
     };
   }
 

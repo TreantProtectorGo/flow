@@ -63,8 +63,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   SyncService? get syncService => _syncService;
 
   AuthNotifier({FirebaseService? firebaseService})
-      : _firebase = firebaseService ?? FirebaseService.instance,
-        super(const AuthState()) {
+    : _firebase = firebaseService ?? FirebaseService.instance,
+      super(const AuthState()) {
     _init();
   }
 
@@ -116,17 +116,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
     debugPrint('🔐 [Auth] Signed in as $uid');
 
     // Run initial sync, then start listeners, then cleanup old deletes
-    _syncService!.initialSync().then((_) {
-      state = state.copyWith(
-        isSyncing: false,
-        lastSyncTime: _syncService!.lastSyncTime,
-      );
-      // Periodically clean up soft-deleted tasks older than 30 days
-      _syncService!.cleanupSyncedDeletes();
-    }).catchError((Object e) {
-      debugPrint('❌ [Auth] Initial sync error: $e');
-      state = state.copyWith(isSyncing: false, errorMessage: e.toString());
-    });
+    _syncService!
+        .initialSync()
+        .then((_) {
+          state = state.copyWith(
+            isSyncing: false,
+            lastSyncTime: _syncService!.lastSyncTime,
+          );
+          // Periodically clean up soft-deleted tasks older than 30 days
+          _syncService!.cleanupSyncedDeletes();
+        })
+        .catchError((Object e) {
+          debugPrint('❌ [Auth] Initial sync error: $e');
+          state = state.copyWith(isSyncing: false, errorMessage: e.toString());
+        });
   }
 
   void _onSignedOut() {

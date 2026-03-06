@@ -75,7 +75,8 @@ class FirebaseService {
 
   /// Sign in with Google.
   Future<void> signInWithGoogle() async {
-    if (!_initialized) throw Exception('Firebase 尚未設定，請先執行 flutterfire configure');
+    if (!_initialized)
+      throw Exception('Firebase 尚未設定，請先執行 flutterfire configure');
     final googleUser = await GoogleSignIn().signIn();
     if (googleUser == null) return; // User cancelled
 
@@ -91,7 +92,8 @@ class FirebaseService {
 
   /// Sign in with Apple.
   Future<void> signInWithApple() async {
-    if (!_initialized) throw Exception('Firebase 尚未設定，請先執行 flutterfire configure');
+    if (!_initialized)
+      throw Exception('Firebase 尚未設定，請先執行 flutterfire configure');
     // Generate nonce for security
     final rawNonce = _generateNonce();
     final nonce = _sha256ofString(rawNonce);
@@ -104,10 +106,9 @@ class FirebaseService {
       nonce: nonce,
     );
 
-    final oauthCredential = OAuthProvider('apple.com').credential(
-      idToken: appleCredential.identityToken,
-      rawNonce: rawNonce,
-    );
+    final oauthCredential = OAuthProvider(
+      'apple.com',
+    ).credential(idToken: appleCredential.identityToken, rawNonce: rawNonce);
 
     final userCredential = await _auth.signInWithCredential(oauthCredential);
 
@@ -138,8 +139,10 @@ class FirebaseService {
     const charset =
         '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
     final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
-        .join();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
   }
 
   /// SHA-256 hash of a string, returned as hex.

@@ -155,9 +155,7 @@ class TaskProvider with ChangeNotifier {
   Future<void> updateTask(Task updatedTask) async {
     final index = _tasks.indexWhere((task) => task.id == updatedTask.id);
     if (index != -1) {
-      final taskWithTimestamp = updatedTask.copyWith(
-        updatedAt: DateTime.now(),
-      );
+      final taskWithTimestamp = updatedTask.copyWith(updatedAt: DateTime.now());
       // 更新資料庫
       await _db.updateTask(taskWithTimestamp);
       _pushIfSyncing(taskWithTimestamp);
@@ -175,10 +173,9 @@ class TaskProvider with ChangeNotifier {
     final taskIndex = _tasks.indexWhere((t) => t.id == taskId);
     await _db.softDeleteTask(taskId);
     if (taskIndex != -1) {
-      _pushIfSyncing(_tasks[taskIndex].copyWith(
-        deletedAt: now,
-        updatedAt: now,
-      ));
+      _pushIfSyncing(
+        _tasks[taskIndex].copyWith(deletedAt: now, updatedAt: now),
+      );
     }
 
     // 從記憶體中移除
@@ -228,10 +225,10 @@ class TaskProvider with ChangeNotifier {
   Future<void> moveTaskToInProgress(String taskId) async {
     final index = _tasks.indexWhere((task) => task.id == taskId);
     if (index != -1) {
-final updatedTask = _tasks[index].copyWith(
-          status: TaskStatus.inProgress,
-          updatedAt: DateTime.now(),
-        );
+      final updatedTask = _tasks[index].copyWith(
+        status: TaskStatus.inProgress,
+        updatedAt: DateTime.now(),
+      );
 
       // 更新資料庫
       await _db.updateTask(updatedTask);

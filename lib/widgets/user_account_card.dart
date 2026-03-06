@@ -94,8 +94,8 @@ class _SignedOutCardState extends ConsumerState<_SignedOutCard> {
               onPressed: _isSigningIn
                   ? null
                   : () => _handleSignIn(
-                        ref.read(authProvider.notifier).signInWithGoogle,
-                      ),
+                      ref.read(authProvider.notifier).signInWithGoogle,
+                    ),
               icon: _isSigningIn
                   ? SizedBox(
                       width: 16,
@@ -222,10 +222,7 @@ class _SignedInCard extends ConsumerWidget {
       children: [
         Icon(icon, size: 14, color: color),
         const SizedBox(width: 4),
-        Text(
-          text,
-          style: theme.textTheme.bodySmall?.copyWith(color: color),
-        ),
+        Text(text, style: theme.textTheme.bodySmall?.copyWith(color: color)),
       ],
     );
   }
