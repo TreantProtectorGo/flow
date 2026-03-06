@@ -596,5 +596,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "clearDataSuccess": "所有資料已清除",
+  "clearDataFailed": "清除資料失敗，請稍後再試"
 }

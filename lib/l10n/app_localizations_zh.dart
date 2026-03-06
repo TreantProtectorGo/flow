@@ -1018,6 +1018,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String daysAgo(int count) {
     return '$count 天前';
   }
+
+  @override
+  String get clearDataSuccess => '所有資料已清除';
+
+  @override
+  String get clearDataFailed => '清除資料失敗，請稍後再試';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2034,4 +2040,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String daysAgo(int count) {
     return '$count 天前';
   }
+
+  @override
+  String get clearDataSuccess => '所有資料已清除';
+
+  @override
+  String get clearDataFailed => '清除資料失敗，請稍後再試';
 }

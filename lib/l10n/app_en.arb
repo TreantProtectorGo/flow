@@ -544,5 +544,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "clearDataSuccess": "All data cleared",
+  "clearDataFailed": "Failed to clear data. Please try again."
 }

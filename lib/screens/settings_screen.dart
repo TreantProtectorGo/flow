@@ -7,6 +7,9 @@ import '../providers/statistics_provider.dart';
 import '../providers/locale_provider.dart';
 import '../providers/settings_provider.dart';
 import '../l10n/app_localizations.dart';
+import '../providers/task_provider.dart';
+import '../utils/snackbar_util.dart';
+import '../widgets/dialogs/confirmation_dialog.dart';
 import '../widgets/user_account_card.dart';
 import 'settings_selection_screen.dart';
 
@@ -276,10 +279,50 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 },
               ),
             ),
+            // Section: Danger zone
+            _buildSectionTitle(AppLocalizations.of(context)!.dangerZone),
+            _buildSettingTile(
+              icon: Icons.delete_forever,
+              iconColor: theme.colorScheme.error,
+              title: AppLocalizations.of(context)!.clearAllData,
+              subtitle: AppLocalizations.of(context)!.clearAllDataSubtitle,
+              trailing: FilledButton(
+                onPressed: () => _confirmClearAllData(context, ref),
+                style: FilledButton.styleFrom(
+                  backgroundColor: theme.colorScheme.errorContainer,
+                  foregroundColor: theme.colorScheme.onErrorContainer,
+                ),
+                child: Text(AppLocalizations.of(context)!.clearData),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _confirmClearAllData(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: l10n.clearAllData,
+      content: l10n.clearAllDataSubtitle,
+      confirmText: l10n.clearData,
+      cancelText: l10n.cancel,
+      isDangerous: true,
+    );
+    if (confirmed == true && context.mounted) {
+      final success = await ref.read(taskProvider).clearAllData();
+      if (!context.mounted) return;
+      if (success) {
+        SnackBarUtil.showSuccessSnackBar(
+          context,
+          message: l10n.clearDataSuccess,
+        );
+      } else {
+        SnackBarUtil.showErrorSnackBar(context, message: l10n.clearDataFailed);
+      }
+    }
   }
 
   // Section title

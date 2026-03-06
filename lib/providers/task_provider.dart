@@ -280,6 +280,27 @@ class TaskProvider with ChangeNotifier {
     await _saveTasks();
   }
 
+  /// Clear all local data and Firestore data (if syncing).
+  /// Returns true on success, false on failure.
+  Future<bool> clearAllData() async {
+    try {
+      if (syncService != null) {
+        await syncService!.clearFirestoreData();
+      }
+      await _db.clearAllData();
+      _tasks = [];
+      _currentTaskId = null;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('currentTaskId');
+      debugPrint('🧹 [TASK] All data cleared');
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('🧹 [TASK] Failed to clear data: $e');
+      return false;
+    }
+  }
+
   // 完成番茄鐘後，為當前任務增加一個番茄鐘
   Future<void> completePomodoroForCurrentTask() async {
     if (_currentTaskId == null) return;

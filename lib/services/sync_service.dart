@@ -295,6 +295,39 @@ class SyncService {
 
   // ── Cleanup ───────────────────────────────────────────────────────
 
+  /// Delete all of this user's tasks and sessions from Firestore.
+  Future<void> clearFirestoreData() async {
+    stopListeners();
+    // Delete tasks in batches
+    final taskSnap = await _tasksRef.get();
+    var batch = _firestore.batch();
+    var count = 0;
+    for (final doc in taskSnap.docs) {
+      batch.delete(doc.reference);
+      count++;
+      if (count % 500 == 0) {
+        await batch.commit();
+        batch = _firestore.batch();
+      }
+    }
+    await batch.commit();
+
+    // Delete sessions in batches
+    final sessionSnap = await _sessionsRef.get();
+    batch = _firestore.batch();
+    count = 0;
+    for (final doc in sessionSnap.docs) {
+      batch.delete(doc.reference);
+      count++;
+      if (count % 500 == 0) {
+        await batch.commit();
+        batch = _firestore.batch();
+      }
+    }
+    await batch.commit();
+    debugPrint('☁️ [Sync] Cleared all Firestore data for user $_uid');
+  }
+
   /// Hard-delete soft-deleted tasks older than 30 days from local DB.
   Future<void> cleanupSyncedDeletes() async {
     await _db.cleanupDeletedTasks();

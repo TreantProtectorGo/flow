@@ -1976,6 +1976,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'{count} 天前'**
   String daysAgo(int count);
+
+  /// No description provided for @clearDataSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'所有資料已清除'**
+  String get clearDataSuccess;
+
+  /// No description provided for @clearDataFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除資料失敗，請稍後再試'**
+  String get clearDataFailed;
 }
 
 class _AppLocalizationsDelegate

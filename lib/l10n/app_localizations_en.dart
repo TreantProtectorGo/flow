@@ -1033,4 +1033,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String daysAgo(int count) {
     return '$count days ago';
   }
+
+  @override
+  String get clearDataSuccess => 'All data cleared';
+
+  @override
+  String get clearDataFailed => 'Failed to clear data. Please try again.';
 }

@@ -816,6 +816,16 @@ class DatabaseHelper {
     _chatSchemaEnsured = false;
   }
 
+  /// Hard-deletes all tasks and pomodoro sessions (user-triggered clear).
+  Future<void> clearAllData() async {
+    final db = await database;
+    await db.delete('tasks');
+    await db.delete('pomodoro_sessions');
+    await db.delete('chat_messages');
+    await db.delete('chat_sessions');
+    debugPrint('🧹 [DB] All user data cleared');
+  }
+
   /// Completely deletes the database file from device storage
   /// WARNING: This operation is irreversible and will delete all user data
   /// Use only for debugging, testing, or explicit user-requested data deletion
