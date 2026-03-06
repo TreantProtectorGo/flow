@@ -20,7 +20,7 @@ firebase-debug.*.log
 .firebase/
 functions/node_modules/
 functions/.runtimeconfig.json
-ios/GoogleService-Info.plist
+ios/Runner/GoogleService-Info.plist
 android/app/google-services.json
 lib/firebase_options.dart
 
