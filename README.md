@@ -56,13 +56,6 @@ flutter run --dart-define=API_BASE_URL=http://localhost:3000
 
 If `API_BASE_URL` is not provided, the app defaults to `http://localhost:3000`.
 
-## Resume / CV Talking Points
-
-- Built a full-stack productivity product (Flutter + Node.js) with real-time AI chat streaming (SSE)
-- Designed an AI workflow that transforms natural-language goals into actionable Pomodoro task plans
-- Implemented analytics features (streaks, completion trends, and goal tracking) to improve user feedback loops
-- Delivered cross-platform UI with localization and adaptive navigation patterns
-
 ## Related Project
 
 - Backend API: `focus-backend/` (Express + AI provider integration)
