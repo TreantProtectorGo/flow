@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/database_helper.dart';
 import '../services/firebase_service.dart';
 import '../services/sync_service.dart';
 import 'task_provider.dart';
@@ -86,7 +88,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  void _onSignedIn(String uid) {
+  void _onSignedIn(String uid) async {
+    // Clear local data if a different account was previously signed in
+    const _lastUidKey = 'last_signed_in_uid';
+    final prefs = await SharedPreferences.getInstance();
+    final lastUid = prefs.getString(_lastUidKey);
+    if (lastUid != null && lastUid != uid) {
+      debugPrint(
+        '🔐 [Auth] Account switch detected ($lastUid → $uid), clearing local data',
+      );
+      await DatabaseHelper.instance.clearAllData();
+    }
+    await prefs.setString(_lastUidKey, uid);
+
     _syncService = SyncService(uid: uid);
 
     // Set up the remote change callback to reload tasks
