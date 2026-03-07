@@ -276,7 +276,9 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
               ),
         actions: [
           TextButton.icon(
-            onPressed: chatState.isLoading ? null : () => _showManualAddDialog(),
+            onPressed: chatState.isLoading
+                ? null
+                : () => _showManualAddDialog(),
             icon: const Icon(Icons.edit_note),
             label: Text(l10n.manualAdd),
           ),

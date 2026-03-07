@@ -7,11 +7,7 @@ class TaskFormDialog extends StatefulWidget {
   final Task? task; // null表示新增，不為null表示編輯
   final bool aiPlanningMode;
 
-  const TaskFormDialog({
-    super.key,
-    this.task,
-    this.aiPlanningMode = false,
-  });
+  const TaskFormDialog({super.key, this.task, this.aiPlanningMode = false});
 
   @override
   State<TaskFormDialog> createState() => _TaskFormDialogState();
@@ -149,7 +145,10 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                         label = l10n.lowPriority;
                         break;
                     }
-                    return DropdownMenuItem(value: priority, child: Text(label));
+                    return DropdownMenuItem(
+                      value: priority,
+                      child: Text(label),
+                    );
                   }).toList(),
                   onChanged: (value) {
                     if (value != null) {
@@ -168,10 +167,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
             onPressed: () => Navigator.of(context).pop(),
             child: Text(l10n.cancel),
           ),
-          FilledButton(
-            onPressed: _submitForm,
-            child: Text(l10n.generatePlan),
-          ),
+          FilledButton(onPressed: _submitForm, child: Text(l10n.generatePlan)),
         ],
       );
     }
