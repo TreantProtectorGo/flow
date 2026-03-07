@@ -74,13 +74,29 @@ class ChatNotifier extends StateNotifier<ChatState> {
         );
         return;
       }
-      final currentSession = sessions.first;
-      final messages = await _db.getChatMessages(currentSession.id);
-      state = state.copyWith(
-        sessions: sessions,
-        currentSessionId: currentSession.id,
-        messages: messages,
-      );
+
+      // If we already have a valid current session, keep it
+      final currentId = state.currentSessionId;
+      final hasValid = currentId != null &&
+          sessions.any((s) => s.id == currentId);
+
+      if (hasValid) {
+        // Reload messages for the current session
+        final messages = await _db.getChatMessages(currentId);
+        state = state.copyWith(
+          sessions: sessions,
+          messages: messages,
+        );
+      } else {
+        // Fall back to the most recent session
+        final currentSession = sessions.first;
+        final messages = await _db.getChatMessages(currentSession.id);
+        state = state.copyWith(
+          sessions: sessions,
+          currentSessionId: currentSession.id,
+          messages: messages,
+        );
+      }
     } catch (e) {
       debugPrint('Failed to initialize chat: $e');
     }
@@ -106,8 +122,15 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   Future<void> createNewSession() async {
     try {
-      await _reloadSessions(currentSessionId: null);
-      state = state.copyWith(messages: const [], error: null);
+      // Set to blank state — a DB session will be created on first message
+      state = state.copyWith(
+        currentSessionId: null,
+        messages: const [],
+        error: null,
+      );
+      // Refresh session list (keeps sidebar up to date)
+      final sessions = await _db.getChatSessions();
+      state = state.copyWith(sessions: sessions);
     } catch (e) {
       debugPrint('Failed to create chat session: $e');
     }
@@ -315,16 +338,16 @@ class ChatNotifier extends StateNotifier<ChatState> {
         debugPrint('Failed to persist assistant message: $e');
       }
     } catch (e) {
-      state = state.copyWith(
-        error: '[AI_RESPONSE_FAILED]: $e',
-        isLoading: false,
-      );
-
+      // Remove only the placeholder AI message, keep user messages
       final updatedMessages = state.messages
           .where((msg) => msg.id != aiMessageId)
           .toList();
 
-      state = state.copyWith(messages: updatedMessages);
+      state = state.copyWith(
+        messages: updatedMessages,
+        error: '[AI_RESPONSE_FAILED]: $e',
+        isLoading: false,
+      );
     }
   }
 
@@ -346,6 +369,19 @@ class ChatNotifier extends StateNotifier<ChatState> {
     } catch (e) {
       debugPrint('Failed to clear chat history: $e');
     }
+  }
+
+  /// Reload sessions and current messages from DB.
+  /// Call when returning to the chat screen or after external data changes.
+  /// Skips reload while a response is being generated.
+  Future<void> reload() async {
+    if (state.isLoading) return;
+    await _initializeChat();
+  }
+
+  /// Reset all in-memory chat state (e.g. after clearAllData).
+  void resetState() {
+    state = ChatState();
   }
 
   // 清除錯誤訊息

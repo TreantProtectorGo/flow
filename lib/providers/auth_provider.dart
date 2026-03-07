@@ -6,6 +6,7 @@ import '../services/database_helper.dart';
 import '../services/firebase_service.dart';
 import '../services/sync_service.dart';
 import 'task_provider.dart';
+import 'chat_provider.dart';
 
 /// Auth state exposed via Riverpod.
 enum AuthStatus { unknown, signedOut, signedIn }
@@ -61,6 +62,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   SyncService? _syncService;
   StreamSubscription<String?>? _authSub;
 
+  /// Called when local data is cleared (e.g. account switch).
+  void Function()? onDataCleared;
+
   /// Exposed so other providers can push changes when user is signed in.
   SyncService? get syncService => _syncService;
 
@@ -98,6 +102,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         '🔐 [Auth] Account switch detected ($lastUid → $uid), clearing local data',
       );
       await DatabaseHelper.instance.clearAllData();
+      onDataCleared?.call();
     }
     await prefs.setString(lastUidKey, uid);
 
@@ -194,6 +199,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final notifier = AuthNotifier();
+
+  // Reset chat state when local data is cleared (account switch)
+  notifier.onDataCleared = () {
+    ref.read(chatProvider.notifier).resetState();
+  };
 
   // Wire SyncService into TaskProvider when auth state changes
   notifier.addListener((authState) {

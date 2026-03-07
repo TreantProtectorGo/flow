@@ -308,10 +308,14 @@ class TimerProvider with ChangeNotifier {
 
     try {
       final endTime = DateTime.now();
-      final durationSeconds = endTime.difference(_currentSessionStartTime!).inSeconds;
+      final durationSeconds = endTime
+          .difference(_currentSessionStartTime!)
+          .inSeconds;
       // Round to nearest minute, with minimum 1 minute for completed sessions
       final duration = completed
-          ? durationSeconds < 60 ? 1 : (durationSeconds / 60).round()
+          ? durationSeconds < 60
+                ? 1
+                : (durationSeconds / 60).round()
           : (durationSeconds / 60).round();
       final currentTask = _ref.read(taskProvider.notifier).currentTask;
 

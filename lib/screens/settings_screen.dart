@@ -8,6 +8,7 @@ import '../providers/locale_provider.dart';
 import '../providers/settings_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/task_provider.dart';
+import '../providers/chat_provider.dart';
 import '../utils/snackbar_util.dart';
 import '../widgets/dialogs/confirmation_dialog.dart';
 import '../widgets/user_account_card.dart';
@@ -313,6 +314,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
     if (confirmed == true && context.mounted) {
       final success = await ref.read(taskProvider).clearAllData();
+      if (success) {
+        ref.read(chatProvider.notifier).resetState();
+        ref.read(statisticsProvider.notifier).loadStatistics();
+      }
       if (!context.mounted) return;
       if (success) {
         SnackBarUtil.showSuccessSnackBar(

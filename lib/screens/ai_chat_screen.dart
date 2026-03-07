@@ -29,10 +29,14 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 每次開啟聊天畫面時重新載入歷史
+      await ref.read(chatProvider.notifier).reload();
       if (widget.initialMessage != null && !_initialMessageSent) {
         _initialMessageSent = true;
-        _handleSubmit(widget.initialMessage!);
+        // 有初始訊息時自動開新對話
+        await ref.read(chatProvider.notifier).createNewSession();
+        await _handleSubmit(widget.initialMessage!);
       }
     });
   }
@@ -275,17 +279,17 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
         actions: [
-          TextButton.icon(
+          IconButton(
             onPressed: chatState.isLoading
                 ? null
                 : () => _showManualAddDialog(),
             icon: const Icon(Icons.edit_note),
-            label: Text(l10n.manualAdd),
+            tooltip: l10n.manualAdd,
           ),
-          TextButton.icon(
+          IconButton(
             onPressed: chatState.isLoading ? null : _startNewChat,
             icon: const Icon(Icons.add),
-            label: Text(l10n.newChat),
+            tooltip: l10n.newChat,
           ),
           if (chatState.sessions.isNotEmpty)
             IconButton(
