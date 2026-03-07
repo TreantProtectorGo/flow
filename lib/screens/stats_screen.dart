@@ -23,6 +23,10 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    // 每次進入統計頁面時重新載入最新資料
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(statisticsProvider.notifier).loadStatistics();
+    });
   }
 
   @override

@@ -38,7 +38,7 @@ class TimerProvider with ChangeNotifier {
 
   // Debug mode: use short timers for testing (only in debug builds)
   static const bool _useDebugTimers =
-      kDebugMode && true; // Set to true to enable
+      kDebugMode && false; // Set to true to enable
 
   // Timer settings (debug: 10s/5s/8s, release: 25m/5m/15m)
   int _focusTimeInMinutes = _useDebugTimers
@@ -308,7 +308,11 @@ class TimerProvider with ChangeNotifier {
 
     try {
       final endTime = DateTime.now();
-      final duration = endTime.difference(_currentSessionStartTime!).inMinutes;
+      final durationSeconds = endTime.difference(_currentSessionStartTime!).inSeconds;
+      // Round to nearest minute, with minimum 1 minute for completed sessions
+      final duration = completed
+          ? durationSeconds < 60 ? 1 : (durationSeconds / 60).round()
+          : (durationSeconds / 60).round();
       final currentTask = _ref.read(taskProvider.notifier).currentTask;
 
       await _db.insertPomodoroSession(
