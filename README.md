@@ -1,36 +1,51 @@
 # Flow
 
-Flow is a cross-platform productivity app built with Flutter. It combines Pomodoro timeboxing, task management, and AI-assisted task planning in one clean workflow.
+Flow is a cross-platform productivity app built with Flutter. It combines Pomodoro timeboxing, task management, AI-assisted task planning, and optional cloud sync in one clean workflow.
 
-This project is designed as a production-style portfolio app that demonstrates end-to-end product thinking across mobile UX, local persistence, and backend AI streaming.
+This project is designed as a production-style portfolio app that demonstrates end-to-end product thinking across mobile UX, local persistence, backend AI streaming, and Firebase cloud infrastructure.
 
 ## Highlights
 
 - Pomodoro timer with focus, short break, and long break modes
 - Task management with priority, status tracking, and estimated pomodoro counts
-- AI planning chat that turns user goals into structured task plans
-- Calendar planning support for AI-generated plans
+- AI planning chat that turns user goals into structured task breakdowns (SSE streaming)
+- Persistent AI chat history with multi-session support
+- Calendar export for AI-generated task plans
 - Statistics dashboard (today/week/month trends, streaks, goal progress, heatmap)
-- Persistent local storage with SQLite (`sqflite`)
+- Offline-first local storage with SQLite (`sqflite`), schema migrations to v7
+- **Firebase Cloud Sync** — Google Sign-In, Firestore mirror, per-account data isolation
 - Adaptive navigation for phone, tablet, and desktop layouts
 - Localization support (English and Traditional Chinese)
+- Material 3 + dynamic color theming with M3 Expressive motion
 
 ## Tech Stack
 
 - Flutter 3.8+ / Dart 3.8+
-- `flutter_riverpod` for state management
-- `go_router` for navigation
-- `sqflite` + `shared_preferences` for persistence
-- Material 3 + dynamic color
+- `flutter_riverpod` for state management (`ChangeNotifierProvider` + `StateNotifierProvider`)
+- `go_router` for navigation (ShellRoute)
+- `sqflite` + `shared_preferences` for local persistence
+- `firebase_core`, `firebase_auth`, `cloud_firestore`, `google_sign_in` for cloud sync
+- `http` for AI backend SSE streaming
+- Material 3 + `dynamic_color`
 - `fl_chart` for analytics visualizations
+- `flutter_svg` for vector assets
+- `flutter_markdown` for rendering AI responses
+- `flutter_local_notifications` + `audioplayers` for timer alerts
 
-## Architecture (App)
+## Architecture
 
-- `lib/screens`: main UI screens (timer, tasks, stats, settings, AI chat)
-- `lib/widgets`: reusable UI components and dialogs
-- `lib/providers`: state and business logic
-- `lib/services`: persistence, notifications, calendar utilities
-- `lib/models`: domain models (tasks, chat messages, plans)
+```
+lib/
+├── config/          # ApiConfig (--dart-define overrides)
+├── l10n/            # ARB files + generated localizations
+├── models/          # Task, ChatMessage, TaskPlan, ChatSession
+├── providers/       # Riverpod providers (timer, tasks, AI chat, auth, sync, settings)
+├── screens/         # TimerScreen, TasksScreen, StatsScreen, SettingsScreen, AIChatScreen
+├── services/        # DatabaseHelper, SyncService, FirebaseService, NotificationService, CalendarService
+├── theme/           # AppTheme, M3 Expressive
+├── utils/           # AdaptiveNavigation, PriorityUtils, SnackbarUtil
+└── widgets/         # Reusable components and dialogs
+```
 
 ## Getting Started
 
@@ -39,6 +54,7 @@ This project is designed as a production-style portfolio app that demonstrates e
 - Flutter SDK 3.8.1 or newer
 - Dart SDK 3.8.1 or newer
 - A running backend server for AI chat (see `focus-backend` project)
+- (Optional) A Firebase project configured via `flutterfire configure`
 
 ### Installation
 
@@ -56,10 +72,22 @@ flutter run --dart-define=API_BASE_URL=http://localhost:3000
 
 If `API_BASE_URL` is not provided, the app defaults to `http://localhost:3000`.
 
+### Testing
+
+```bash
+flutter test          # Run all tests
+flutter analyze       # Lint check (must pass with zero issues)
+flutter format lib/ test/
+```
+
+## Cloud Sync
+
+Cloud sync is optional. When a user signs in with Google, tasks are mirrored to Firestore under their UID. Data is isolated per account — signing out or switching accounts clears the local state. The app works fully offline without a Firebase project configured.
+
 ## Related Project
 
-- Backend API: `focus-backend/` (Express + AI provider integration)
+- Backend API: `focus-backend/` (Express + AI provider integration with SSE streaming)
 
 ## Status
 
-Active personal project, continuously improving UX and planning intelligence.
+Active personal project — core features complete, cloud sync live, AI chat history persistent.
