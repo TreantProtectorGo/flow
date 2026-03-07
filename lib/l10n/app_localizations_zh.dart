@@ -1024,6 +1024,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get clearDataFailed => '清除資料失敗，請稍後再試';
+
+  @override
+  String get manualAdd => '手動新增';
+
+  @override
+  String get describeTaskForAI => '描述任務給 AI';
+
+  @override
+  String get aiGoal => '目標（你想完成什麼）';
+
+  @override
+  String get aiGoalRequired => '請輸入目標';
+
+  @override
+  String get aiDeadline => '時限 / 截止時間（選填）';
+
+  @override
+  String get aiConstraints => '限制條件（選填）';
+
+  @override
+  String get generatePlan => '產生計劃';
+
+  @override
+  String get chatWithAI => '直接和 AI 對話';
+
+  @override
+  String get aiPromptIntro => '請幫我把以下任務拆解成可執行的步驟：';
+
+  @override
+  String get aiPromptOutputStyle => '請輸出具體步驟、每步預估番茄鐘、建議優先順序。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2046,4 +2076,34 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get clearDataFailed => '清除資料失敗，請稍後再試';
+
+  @override
+  String get manualAdd => '手動新增';
+
+  @override
+  String get describeTaskForAI => '描述任務給 AI';
+
+  @override
+  String get aiGoal => '目標（你想完成什麼）';
+
+  @override
+  String get aiGoalRequired => '請輸入目標';
+
+  @override
+  String get aiDeadline => '時限 / 截止時間（選填）';
+
+  @override
+  String get aiConstraints => '限制條件（選填）';
+
+  @override
+  String get generatePlan => '產生計劃';
+
+  @override
+  String get chatWithAI => '直接和 AI 對話';
+
+  @override
+  String get aiPromptIntro => '請幫我把以下任務拆解成可執行的步驟：';
+
+  @override
+  String get aiPromptOutputStyle => '請輸出具體步驟、每步預估番茄鐘、建議優先順序。';
 }

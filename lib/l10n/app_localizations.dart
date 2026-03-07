@@ -1988,6 +1988,66 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'清除資料失敗，請稍後再試'**
   String get clearDataFailed;
+
+  /// No description provided for @manualAdd.
+  ///
+  /// In zh, this message translates to:
+  /// **'手動新增'**
+  String get manualAdd;
+
+  /// No description provided for @describeTaskForAI.
+  ///
+  /// In zh, this message translates to:
+  /// **'描述任務給 AI'**
+  String get describeTaskForAI;
+
+  /// No description provided for @aiGoal.
+  ///
+  /// In zh, this message translates to:
+  /// **'目標（你想完成什麼）'**
+  String get aiGoal;
+
+  /// No description provided for @aiGoalRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'請輸入目標'**
+  String get aiGoalRequired;
+
+  /// No description provided for @aiDeadline.
+  ///
+  /// In zh, this message translates to:
+  /// **'時限 / 截止時間（選填）'**
+  String get aiDeadline;
+
+  /// No description provided for @aiConstraints.
+  ///
+  /// In zh, this message translates to:
+  /// **'限制條件（選填）'**
+  String get aiConstraints;
+
+  /// No description provided for @generatePlan.
+  ///
+  /// In zh, this message translates to:
+  /// **'產生計劃'**
+  String get generatePlan;
+
+  /// No description provided for @chatWithAI.
+  ///
+  /// In zh, this message translates to:
+  /// **'直接和 AI 對話'**
+  String get chatWithAI;
+
+  /// No description provided for @aiPromptIntro.
+  ///
+  /// In zh, this message translates to:
+  /// **'請幫我把以下任務拆解成可執行的步驟：'**
+  String get aiPromptIntro;
+
+  /// No description provided for @aiPromptOutputStyle.
+  ///
+  /// In zh, this message translates to:
+  /// **'請輸出具體步驟、每步預估番茄鐘、建議優先順序。'**
+  String get aiPromptOutputStyle;
 }
 
 class _AppLocalizationsDelegate

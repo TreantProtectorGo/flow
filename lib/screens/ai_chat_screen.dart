@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/task.dart';
 import '../providers/chat_provider.dart';
 import '../theme/m3_expressive.dart';
 import '../widgets/chat_message_bubble.dart';
 import '../widgets/dialogs/confirmation_dialog.dart';
 import '../widgets/task_breakdown_card.dart';
+import '../widgets/task_form_dialog.dart';
 
 class AIChatScreen extends ConsumerStatefulWidget {
   final String? initialMessage;
@@ -175,6 +177,51 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
     _scrollToBottom();
   }
 
+  Future<void> _showManualAddDialog() async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => const TaskFormDialog(aiPlanningMode: true),
+    );
+    if (result != null && mounted) {
+      final title = result['title'] as String;
+      final goal = result['goal'] as String;
+      final description = result['description'] as String?;
+      final deadline = result['deadline'] as String?;
+      final constraints = result['constraints'] as String?;
+      final priority = result['priority'] as TaskPriority;
+      final l10n = AppLocalizations.of(context)!;
+
+      final buffer = StringBuffer();
+      buffer.writeln(l10n.aiPromptIntro);
+      buffer.writeln('${l10n.taskTitle}：$title');
+      buffer.writeln('${l10n.aiGoal}：$goal');
+      if (description != null && description.isNotEmpty) {
+        buffer.writeln('${l10n.taskDescription}：$description');
+      }
+      if (deadline != null && deadline.isNotEmpty) {
+        buffer.writeln('${l10n.aiDeadline}：$deadline');
+      }
+      if (constraints != null && constraints.isNotEmpty) {
+        buffer.writeln('${l10n.aiConstraints}：$constraints');
+      }
+      buffer.writeln('${l10n.priority}：${_priorityText(priority, l10n)}');
+      buffer.writeln(l10n.aiPromptOutputStyle);
+
+      await _handleSubmit(buffer.toString());
+    }
+  }
+
+  String _priorityText(TaskPriority priority, AppLocalizations l10n) {
+    switch (priority) {
+      case TaskPriority.high:
+        return l10n.highPriority;
+      case TaskPriority.medium:
+        return l10n.mediumPriority;
+      case TaskPriority.low:
+        return l10n.lowPriority;
+    }
+  }
+
   Future<void> _startNewChat() async {
     await ref.read(chatProvider.notifier).createNewSession();
     if (!mounted) {
@@ -228,6 +275,11 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
         actions: [
+          TextButton.icon(
+            onPressed: chatState.isLoading ? null : () => _showManualAddDialog(),
+            icon: const Icon(Icons.edit_note),
+            label: Text(l10n.manualAdd),
+          ),
           TextButton.icon(
             onPressed: chatState.isLoading ? null : _startNewChat,
             icon: const Icon(Icons.add),

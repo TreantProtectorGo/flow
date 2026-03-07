@@ -1039,4 +1039,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearDataFailed => 'Failed to clear data. Please try again.';
+
+  @override
+  String get manualAdd => 'Manual Add';
+
+  @override
+  String get describeTaskForAI => 'Describe Task for AI';
+
+  @override
+  String get aiGoal => 'Goal (what you want to achieve)';
+
+  @override
+  String get aiGoalRequired => 'Please enter a goal';
+
+  @override
+  String get aiDeadline => 'Deadline / Time limit (optional)';
+
+  @override
+  String get aiConstraints => 'Constraints (optional)';
+
+  @override
+  String get generatePlan => 'Generate Plan';
+
+  @override
+  String get chatWithAI => 'Chat with AI';
+
+  @override
+  String get aiPromptIntro =>
+      'Please break down this task into actionable steps:';
+
+  @override
+  String get aiPromptOutputStyle =>
+      'Please return concrete steps, estimated pomodoros for each step, and suggested priority order.';
 }

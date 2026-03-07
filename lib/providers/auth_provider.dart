@@ -90,16 +90,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   void _onSignedIn(String uid) async {
     // Clear local data if a different account was previously signed in
-    const _lastUidKey = 'last_signed_in_uid';
+    const lastUidKey = 'last_signed_in_uid';
     final prefs = await SharedPreferences.getInstance();
-    final lastUid = prefs.getString(_lastUidKey);
+    final lastUid = prefs.getString(lastUidKey);
     if (lastUid != null && lastUid != uid) {
       debugPrint(
         '🔐 [Auth] Account switch detected ($lastUid → $uid), clearing local data',
       );
       await DatabaseHelper.instance.clearAllData();
     }
-    await prefs.setString(_lastUidKey, uid);
+    await prefs.setString(lastUidKey, uid);
 
     _syncService = SyncService(uid: uid);
 

@@ -139,56 +139,12 @@ class TasksScreen extends ConsumerWidget {
         ),
       ),
 
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // AI Chat FAB - always visible
-          FloatingActionButton(
-            onPressed: () => _openAIChatScreen(context),
-            heroTag: "aiChatButton",
-            backgroundColor: theme.colorScheme.secondaryContainer,
-            foregroundColor: theme.colorScheme.onSecondaryContainer,
-            shape: const CircleBorder(),
-            child: const Icon(Icons.auto_awesome),
-          ),
-          const SizedBox(height: 15),
-          // Add Task FAB
-          FloatingActionButton.extended(
-            onPressed: () => _showAddTaskDialog(context, ref),
-            heroTag: "addTaskButton",
-            icon: const Icon(Icons.add),
-            label: Text(l10n.add),
-          ),
-          const SizedBox(height: 10),
-        ],
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _openAIChatScreen(context),
+        icon: const Icon(Icons.auto_awesome),
+        label: Text(l10n.addTask),
       ),
     );
-  }
-
-  void _showAddTaskDialog(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context)!;
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (context) => const TaskFormDialog(),
-    );
-
-    if (result != null) {
-      await ref
-          .read(taskProvider.notifier)
-          .addTask(
-            title: result['title'],
-            description: result['description'],
-            pomodoroCount: result['pomodoroCount'],
-            priority: result['priority'],
-          );
-
-      if (context.mounted) {
-        SnackBarUtil.showSuccessSnackBar(
-          context,
-          message: l10n.taskAdded(result['title']),
-        );
-      }
-    }
   }
 
   void _openAIChatScreen(BuildContext context) {

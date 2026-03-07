@@ -546,5 +546,15 @@
     }
   },
   "clearDataSuccess": "All data cleared",
-  "clearDataFailed": "Failed to clear data. Please try again."
+  "clearDataFailed": "Failed to clear data. Please try again.",
+  "manualAdd": "Manual Add",
+  "describeTaskForAI": "Describe Task for AI",
+  "aiGoal": "Goal (what you want to achieve)",
+  "aiGoalRequired": "Please enter a goal",
+  "aiDeadline": "Deadline / Time limit (optional)",
+  "aiConstraints": "Constraints (optional)",
+  "generatePlan": "Generate Plan",
+  "chatWithAI": "Chat with AI",
+  "aiPromptIntro": "Please break down this task into actionable steps:",
+  "aiPromptOutputStyle": "Please return concrete steps, estimated pomodoros for each step, and suggested priority order."
 }

@@ -598,5 +598,15 @@
     }
   },
   "clearDataSuccess": "所有資料已清除",
-  "clearDataFailed": "清除資料失敗，請稍後再試"
+  "clearDataFailed": "清除資料失敗，請稍後再試",
+  "manualAdd": "手動新增",
+  "describeTaskForAI": "描述任務給 AI",
+  "aiGoal": "目標（你想完成什麼）",
+  "aiGoalRequired": "請輸入目標",
+  "aiDeadline": "時限 / 截止時間（選填）",
+  "aiConstraints": "限制條件（選填）",
+  "generatePlan": "產生計劃",
+  "chatWithAI": "直接和 AI 對話",
+  "aiPromptIntro": "請幫我把以下任務拆解成可執行的步驟：",
+  "aiPromptOutputStyle": "請輸出具體步驟、每步預估番茄鐘、建議優先順序。"
 }

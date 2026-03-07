@@ -5,8 +5,13 @@ import '../l10n/app_localizations.dart';
 
 class TaskFormDialog extends StatefulWidget {
   final Task? task; // null表示新增，不為null表示編輯
+  final bool aiPlanningMode;
 
-  const TaskFormDialog({super.key, this.task});
+  const TaskFormDialog({
+    super.key,
+    this.task,
+    this.aiPlanningMode = false,
+  });
 
   @override
   State<TaskFormDialog> createState() => _TaskFormDialogState();
@@ -17,6 +22,9 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _pomodoroCountController = TextEditingController();
+  final _goalController = TextEditingController();
+  final _deadlineController = TextEditingController();
+  final _constraintsController = TextEditingController();
 
   TaskPriority _selectedPriority = TaskPriority.medium;
   TaskStatus _selectedStatus = TaskStatus.pending;
@@ -43,6 +51,9 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
     _titleController.dispose();
     _descriptionController.dispose();
     _pomodoroCountController.dispose();
+    _goalController.dispose();
+    _deadlineController.dispose();
+    _constraintsController.dispose();
     super.dispose();
   }
 
@@ -50,6 +61,120 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+
+    if (widget.aiPlanningMode) {
+      return AlertDialog(
+        title: Text(l10n.describeTaskForAI),
+        content: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                    labelText: l10n.taskTitle,
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return l10n.enterTaskTitle;
+                    }
+                    return null;
+                  },
+                  maxLength: 100,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _goalController,
+                  decoration: InputDecoration(
+                    labelText: l10n.aiGoal,
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return l10n.aiGoalRequired;
+                    }
+                    return null;
+                  },
+                  maxLength: 200,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(
+                    labelText: l10n.taskDescriptionOptional,
+                    border: const OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                  maxLength: 500,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _deadlineController,
+                  decoration: InputDecoration(
+                    labelText: l10n.aiDeadline,
+                    border: const OutlineInputBorder(),
+                  ),
+                  maxLength: 80,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _constraintsController,
+                  decoration: InputDecoration(
+                    labelText: l10n.aiConstraints,
+                    border: const OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                  maxLength: 300,
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<TaskPriority>(
+                  initialValue: _selectedPriority,
+                  decoration: InputDecoration(
+                    labelText: l10n.priority,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: TaskPriority.values.map((priority) {
+                    String label;
+                    switch (priority) {
+                      case TaskPriority.high:
+                        label = l10n.highPriority;
+                        break;
+                      case TaskPriority.medium:
+                        label = l10n.mediumPriority;
+                        break;
+                      case TaskPriority.low:
+                        label = l10n.lowPriority;
+                        break;
+                    }
+                    return DropdownMenuItem(value: priority, child: Text(label));
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedPriority = value;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: _submitForm,
+            child: Text(l10n.generatePlan),
+          ),
+        ],
+      );
+    }
 
     return AlertDialog(
       title: Text(isEditing ? l10n.editTask : l10n.addTask),
@@ -246,6 +371,26 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
+      if (widget.aiPlanningMode) {
+        final result = {
+          'title': _titleController.text.trim(),
+          'goal': _goalController.text.trim(),
+          'description': _descriptionController.text.trim().isEmpty
+              ? null
+              : _descriptionController.text.trim(),
+          'deadline': _deadlineController.text.trim().isEmpty
+              ? null
+              : _deadlineController.text.trim(),
+          'constraints': _constraintsController.text.trim().isEmpty
+              ? null
+              : _constraintsController.text.trim(),
+          'priority': _selectedPriority,
+        };
+
+        Navigator.of(context).pop(result);
+        return;
+      }
+
       final result = {
         'title': _titleController.text.trim(),
         'description': _descriptionController.text.trim().isEmpty
