@@ -77,16 +77,13 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
       // If we already have a valid current session, keep it
       final currentId = state.currentSessionId;
-      final hasValid = currentId != null &&
-          sessions.any((s) => s.id == currentId);
+      final hasValid =
+          currentId != null && sessions.any((s) => s.id == currentId);
 
       if (hasValid) {
         // Reload messages for the current session
         final messages = await _db.getChatMessages(currentId);
-        state = state.copyWith(
-          sessions: sessions,
-          messages: messages,
-        );
+        state = state.copyWith(sessions: sessions, messages: messages);
       } else {
         // Fall back to the most recent session
         final currentSession = sessions.first;
