@@ -525,6 +525,7 @@
   "signInToEnableSync": "Sign in to enable cloud sync",
   "signInWithGoogle": "Sign in with Google",
   "signInWithApple": "Sign in with Apple",
+  "defaultAccountName": "Flow User",
   "signOut": "Sign Out",
   "lastSynced": "Last synced: {time}",
   "@lastSynced": {

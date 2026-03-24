@@ -173,6 +173,14 @@ class _SignedInCard extends ConsumerWidget {
     required this.l10n,
   });
 
+  String? get _displayName {
+    final userName = auth.userName?.trim();
+    if (userName != null && userName.isNotEmpty) {
+      return userName;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card.filled(
@@ -188,12 +196,13 @@ class _SignedInCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    auth.userName ?? '',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  if (_displayName != null)
+                    Text(
+                      _displayName!,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
                   if (auth.userEmail != null)
                     Text(
                       auth.userEmail!,
@@ -226,12 +235,18 @@ class _SignedInCard extends ConsumerWidget {
     return CircleAvatar(
       radius: 24,
       backgroundColor: theme.colorScheme.primary,
-      child: Text(
-        (auth.userName ?? '?').characters.first,
-        style: theme.textTheme.titleLarge?.copyWith(
-          color: theme.colorScheme.onPrimary,
-        ),
-      ),
+      child: _displayName != null
+          ? Text(
+              _displayName!.characters.first,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: theme.colorScheme.onPrimary,
+              ),
+            )
+          : Icon(
+              Icons.apple,
+              color: theme.colorScheme.onPrimary,
+              size: 22,
+            ),
     );
   }
 

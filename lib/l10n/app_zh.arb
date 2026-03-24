@@ -612,6 +612,7 @@
   "signInToEnableSync": "登入以啟用雲端同步",
   "signInWithGoogle": "使用 Google 登入",
   "signInWithApple": "使用 Apple 登入",
+  "defaultAccountName": "Flow 使用者",
   "signOut": "登出",
   "lastSynced": "上次同步：{time}",
   "@lastSynced": {

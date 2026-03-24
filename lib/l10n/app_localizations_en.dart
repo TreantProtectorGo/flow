@@ -1013,6 +1013,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInWithApple => 'Sign in with Apple';
 
   @override
+  String get defaultAccountName => 'Flow User';
+
+  @override
   String get signOut => 'Sign Out';
 
   @override

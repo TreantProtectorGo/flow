@@ -1941,6 +1941,12 @@ abstract class AppLocalizations {
   /// **'使用 Apple 登入'**
   String get signInWithApple;
 
+  /// No description provided for @defaultAccountName.
+  ///
+  /// In zh, this message translates to:
+  /// **'Flow 使用者'**
+  String get defaultAccountName;
+
   /// No description provided for @signOut.
   ///
   /// In zh, this message translates to:

@@ -998,6 +998,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get signInWithApple => '使用 Apple 登入';
 
   @override
+  String get defaultAccountName => 'Flow 使用者';
+
+  @override
   String get signOut => '登出';
 
   @override
@@ -2060,6 +2063,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get signInWithApple => '使用 Apple 登入';
+
+  @override
+  String get defaultAccountName => 'Flow 使用者';
 
   @override
   String get signOut => '登出';
