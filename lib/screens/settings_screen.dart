@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../config/app_links.dart';
 import '../providers/theme_provider.dart';
 import '../providers/timer_provider.dart';
 import '../providers/statistics_provider.dart';
@@ -280,6 +282,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 },
               ),
             ),
+            _buildSectionTitle(AppLocalizations.of(context)!.legalInformation),
+            _buildSettingTile(
+              icon: Icons.privacy_tip_outlined,
+              iconColor: theme.colorScheme.tertiary,
+              title: AppLocalizations.of(context)!.privacyPolicy,
+              subtitle: AppLocalizations.of(context)!.privacyPolicySubtitle,
+              onTap: () {
+                _openPrivacyPolicy();
+              },
+              trailing: Icon(
+                Icons.open_in_new,
+                size: 20,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             // Section: Danger zone
             _buildSectionTitle(AppLocalizations.of(context)!.dangerZone),
             _buildSettingTile(
@@ -300,6 +317,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _openPrivacyPolicy() async {
+    final l10n = AppLocalizations.of(context)!;
+    bool opened = false;
+
+    try {
+      opened = await launchUrl(
+        AppLinks.privacyPolicy,
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (_) {
+      opened = false;
+    }
+
+    if (!opened && mounted) {
+      SnackBarUtil.showErrorSnackBar(
+        context,
+        message: l10n.privacyPolicyOpenFailed,
+      );
+    }
   }
 
   Future<void> _confirmClearAllData(BuildContext context, WidgetRef ref) async {
@@ -383,6 +421,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ],
+                )
+              : onTap != null
+              ? Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: theme.colorScheme.onSurfaceVariant,
                 )
               : null),
       onTap: onTap,

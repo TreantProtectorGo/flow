@@ -562,6 +562,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get languageSubtitle => '選擇應用程式語言';
 
   @override
+  String get legalInformation => '法律資訊';
+
+  @override
+  String get privacyPolicy => '隱私權政策';
+
+  @override
+  String get privacyPolicySubtitle => '查看 Flow 如何蒐集與使用您的資料';
+
+  @override
+  String get privacyPolicyOpenFailed => '無法開啟隱私權政策';
+
+  @override
   String get aiTaskBreakdown => 'AI 任務拆解';
 
   @override
@@ -1612,6 +1624,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get languageSubtitle => '選擇應用程式語言';
+
+  @override
+  String get legalInformation => '法律資訊';
+
+  @override
+  String get privacyPolicy => '隱私權政策';
+
+  @override
+  String get privacyPolicySubtitle => '查看 Flow 如何蒐集與使用您的資料';
+
+  @override
+  String get privacyPolicyOpenFailed => '無法開啟隱私權政策';
 
   @override
   String get aiTaskBreakdown => 'AI 任務拆解';

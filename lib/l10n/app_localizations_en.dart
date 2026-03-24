@@ -567,6 +567,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageSubtitle => 'Choose app language';
 
   @override
+  String get legalInformation => 'Legal';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get privacyPolicySubtitle =>
+      'View how Flow collects and uses your data';
+
+  @override
+  String get privacyPolicyOpenFailed => 'Could not open the privacy policy';
+
+  @override
   String get aiTaskBreakdown => 'AI Task Breakdown';
 
   @override

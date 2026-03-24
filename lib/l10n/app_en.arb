@@ -379,6 +379,10 @@
 
   "language": "Language",
   "languageSubtitle": "Choose app language",
+  "legalInformation": "Legal",
+  "privacyPolicy": "Privacy Policy",
+  "privacyPolicySubtitle": "View how Flow collects and uses your data",
+  "privacyPolicyOpenFailed": "Could not open the privacy policy",
 
   "aiTaskBreakdown": "AI Task Breakdown",
   "aiTaskBreakdownSubtitle": "Allow AI to help break down complex tasks",

@@ -31,6 +31,10 @@ class UserAccountCard extends ConsumerWidget {
   }
 }
 
+bool supportsAppleSignIn(TargetPlatform platform) {
+  return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+}
+
 class _SignedOutCard extends ConsumerStatefulWidget {
   final AuthState auth;
   final ThemeData theme;
@@ -47,12 +51,19 @@ class _SignedOutCard extends ConsumerStatefulWidget {
 }
 
 class _SignedOutCardState extends ConsumerState<_SignedOutCard> {
-  bool _isSigningIn = false;
+  _SignInProvider? _activeSignInProvider;
 
-  Future<void> _handleSignIn(Future<void> Function() signIn) async {
-    setState(() => _isSigningIn = true);
+  bool get _isSigningIn => _activeSignInProvider != null;
+
+  Future<void> _handleSignIn(
+    _SignInProvider provider,
+    Future<void> Function() signIn,
+  ) async {
+    setState(() => _activeSignInProvider = provider);
     await signIn();
-    if (mounted) setState(() => _isSigningIn = false);
+    if (mounted) {
+      setState(() => _activeSignInProvider = null);
+    }
   }
 
   @override
@@ -60,6 +71,7 @@ class _SignedOutCardState extends ConsumerState<_SignedOutCard> {
     final theme = widget.theme;
     final l10n = widget.l10n;
     final auth = ref.watch(authProvider);
+    final showAppleSignIn = supportsAppleSignIn(theme.platform);
 
     return Card.filled(
       color: theme.colorScheme.surfaceContainerLow,
@@ -94,9 +106,10 @@ class _SignedOutCardState extends ConsumerState<_SignedOutCard> {
               onPressed: _isSigningIn
                   ? null
                   : () => _handleSignIn(
+                      _SignInProvider.google,
                       ref.read(authProvider.notifier).signInWithGoogle,
                     ),
-              icon: _isSigningIn
+              icon: _activeSignInProvider == _SignInProvider.google
                   ? SizedBox(
                       width: 16,
                       height: 16,
@@ -113,12 +126,41 @@ class _SignedOutCardState extends ConsumerState<_SignedOutCard> {
                 side: BorderSide(color: theme.colorScheme.outline),
               ),
             ),
+            if (showAppleSignIn) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _isSigningIn
+                    ? null
+                    : () => _handleSignIn(
+                        _SignInProvider.apple,
+                        ref.read(authProvider.notifier).signInWithApple,
+                      ),
+                icon: _activeSignInProvider == _SignInProvider.apple
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      )
+                    : const Icon(Icons.apple, size: 20),
+                label: Text(l10n.signInWithApple),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.surface,
+                  foregroundColor: theme.colorScheme.onSurface,
+                  side: BorderSide(color: theme.colorScheme.outline),
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 }
+
+enum _SignInProvider { google, apple }
 
 class _SignedInCard extends ConsumerWidget {
   final AuthState auth;

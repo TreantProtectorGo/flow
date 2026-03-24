@@ -1137,6 +1137,30 @@ abstract class AppLocalizations {
   /// **'選擇應用程式語言'**
   String get languageSubtitle;
 
+  /// No description provided for @legalInformation.
+  ///
+  /// In zh, this message translates to:
+  /// **'法律資訊'**
+  String get legalInformation;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In zh, this message translates to:
+  /// **'隱私權政策'**
+  String get privacyPolicy;
+
+  /// No description provided for @privacyPolicySubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看 Flow 如何蒐集與使用您的資料'**
+  String get privacyPolicySubtitle;
+
+  /// No description provided for @privacyPolicyOpenFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'無法開啟隱私權政策'**
+  String get privacyPolicyOpenFailed;
+
   /// No description provided for @aiTaskBreakdown.
   ///
   /// In zh, this message translates to:
