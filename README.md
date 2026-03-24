@@ -70,7 +70,12 @@ flutter pub get
 flutter run --dart-define=API_BASE_URL=http://localhost:3000
 ```
 
-If `API_BASE_URL` is not provided, the app defaults to `http://localhost:3000`.
+If `API_BASE_URL` is not provided, debug builds default to `http://localhost:3000`.
+Release builds must provide a real backend URL:
+
+```bash
+flutter build ipa --release --dart-define=API_BASE_URL=https://your-api-domain.com
+```
 
 ### Testing
 
