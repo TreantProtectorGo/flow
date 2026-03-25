@@ -561,7 +561,7 @@
   "pleaseAddTasksFirst": "請先在任務頁面添加一些任務",
   "clearSelection": "清除選擇",
   "items": "個",
-  "pomodoroProgress": "{completed}/{total} 🍅",
+  "pomodoroProgress": "{completed}/{total}",
   "@pomodoroProgress": {
     "placeholders": {
       "completed": {

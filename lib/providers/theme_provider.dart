@@ -3,12 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Theme color enum
-enum ThemeColorOption {
-  blue,
-  green,
-  purple,
-  orange,
-}
+enum ThemeColorOption { blue, green, purple, orange }
 
 // Theme color notifier
 class ThemeColorNotifier extends StateNotifier<ThemeColorOption> {
@@ -22,7 +17,7 @@ class ThemeColorNotifier extends StateNotifier<ThemeColorOption> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final colorString = prefs.getString(_colorKey);
-      
+
       if (colorString != null) {
         state = ThemeColorOption.values.firstWhere(
           (e) => e.name == colorString,
@@ -76,9 +71,10 @@ class ThemeColorNotifier extends StateNotifier<ThemeColorOption> {
 }
 
 // Provider for theme color
-final themeColorProvider = StateNotifierProvider<ThemeColorNotifier, ThemeColorOption>(
-  (ref) => ThemeColorNotifier(),
-);
+final themeColorProvider =
+    StateNotifierProvider<ThemeColorNotifier, ThemeColorOption>(
+      (ref) => ThemeColorNotifier(),
+    );
 
 // Theme mode notifier
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
@@ -93,7 +89,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final themeModeString = prefs.getString(_themeKey);
-      
+
       if (themeModeString != null) {
         switch (themeModeString) {
           case 'light':
@@ -119,7 +115,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     try {
       final prefs = await SharedPreferences.getInstance();
       String themeModeString;
-      
+
       switch (mode) {
         case ThemeMode.light:
           themeModeString = 'light';
@@ -131,7 +127,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
           themeModeString = 'system';
           break;
       }
-      
+
       await prefs.setString(_themeKey, themeModeString);
     } catch (e) {
       // Handle error silently - theme will still work for this session

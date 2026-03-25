@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 
 /// A reusable confirmation dialog for various actions
-/// 
+///
 /// This dialog follows Material 3 design guidelines and provides
 /// a consistent confirmation experience across the app.
-/// 
+///
 /// Usage:
 /// ```dart
 /// final confirmed = await ConfirmationDialog.show(
@@ -23,7 +23,7 @@ class ConfirmationDialog {
   ConfirmationDialog._(); // Private constructor
 
   /// Shows a confirmation dialog
-  /// 
+  ///
   /// Returns `true` if user confirms, `false` if cancelled, or `null` if dismissed
   static Future<bool?> show(
     BuildContext context, {
@@ -35,7 +35,7 @@ class ConfirmationDialog {
   }) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    
+
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -48,7 +48,7 @@ class ConfirmationDialog {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            style: isDangerous 
+            style: isDangerous
                 ? FilledButton.styleFrom(
                     backgroundColor: theme.colorScheme.error,
                     foregroundColor: theme.colorScheme.onError,

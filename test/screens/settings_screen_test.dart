@@ -13,35 +13,34 @@ class _FakeStatisticsNotifier extends StatisticsNotifier {
 }
 
 void main() {
-  testWidgets(
-    'Settings screen shows privacy policy entry',
-    (WidgetTester tester) async {
-      SharedPreferences.setMockInitialValues(<String, Object>{});
+  testWidgets('Settings screen shows privacy policy entry', (
+    WidgetTester tester,
+  ) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: <Override>[
-            statisticsProvider.overrideWith(
-              (Ref ref) => _FakeStatisticsNotifier(),
-            ),
-          ],
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: const SettingsScreen(),
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          statisticsProvider.overrideWith(
+            (Ref ref) => _FakeStatisticsNotifier(),
           ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const SettingsScreen(),
         ),
-      );
+      ),
+    );
 
-      await tester.pumpAndSettle();
+    await tester.pumpAndSettle();
 
-      expect(find.text('Privacy Policy'), findsOneWidget);
-    },
-  );
+    expect(find.text('Privacy Policy'), findsOneWidget);
+  });
 }

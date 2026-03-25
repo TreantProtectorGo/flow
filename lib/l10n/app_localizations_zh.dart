@@ -940,7 +940,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String pomodoroProgress(int completed, int total) {
-    return '$completed/$total 🍅';
+    return '$completed/$total';
   }
 
   @override
@@ -2007,7 +2007,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String pomodoroProgress(int completed, int total) {
-    return '$completed/$total 🍅';
+    return '$completed/$total';
   }
 
   @override

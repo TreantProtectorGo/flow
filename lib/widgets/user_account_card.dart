@@ -144,7 +144,7 @@ class _SignedOutCardState extends ConsumerState<_SignedOutCard> {
                           color: theme.colorScheme.onSurface,
                         ),
                       )
-                    : const Icon(Icons.apple, size: 20),
+                    : const Icon(Icons.apple, size: 28),
                 label: Text(l10n.signInWithApple),
                 style: OutlinedButton.styleFrom(
                   backgroundColor: theme.colorScheme.surface,
@@ -242,11 +242,7 @@ class _SignedInCard extends ConsumerWidget {
                 color: theme.colorScheme.onPrimary,
               ),
             )
-          : Icon(
-              Icons.apple,
-              color: theme.colorScheme.onPrimary,
-              size: 22,
-            ),
+          : Icon(Icons.apple, color: theme.colorScheme.onPrimary, size: 22),
     );
   }
 

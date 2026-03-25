@@ -7,8 +7,7 @@ import 'package:focus/providers/auth_provider.dart';
 import 'package:focus/widgets/user_account_card.dart';
 
 class _FakeSignedInAuthNotifier extends AuthNotifier {
-  _FakeSignedInAuthNotifier()
-    : super() {
+  _FakeSignedInAuthNotifier() : super() {
     state = const AuthState(
       status: AuthStatus.signedIn,
       userEmail: 'test@privaterelay.appleid.com',
@@ -39,42 +38,37 @@ Widget _buildApp({
 }
 
 void main() {
-  testWidgets(
-    'shows Apple sign-in button on iOS',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(_buildApp(platform: TargetPlatform.iOS));
-      await tester.pumpAndSettle();
+  testWidgets('shows Apple sign-in button on iOS', (WidgetTester tester) async {
+    await tester.pumpWidget(_buildApp(platform: TargetPlatform.iOS));
+    await tester.pumpAndSettle();
 
-      expect(find.text('Sign in with Apple'), findsOneWidget);
-    },
-  );
+    expect(find.text('Sign in with Apple'), findsOneWidget);
+  });
 
-  testWidgets(
-    'does not show Apple sign-in button on Android',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(_buildApp(platform: TargetPlatform.android));
-      await tester.pumpAndSettle();
+  testWidgets('does not show Apple sign-in button on Android', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_buildApp(platform: TargetPlatform.android));
+    await tester.pumpAndSettle();
 
-      expect(find.text('Sign in with Apple'), findsNothing);
-    },
-  );
+    expect(find.text('Sign in with Apple'), findsNothing);
+  });
 
-  testWidgets(
-    'hides missing account name and shows Apple icon avatar',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(
-        _buildApp(
-          platform: TargetPlatform.iOS,
-          overrides: <Override>[
-            authProvider.overrideWith((Ref ref) => _FakeSignedInAuthNotifier()),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+  testWidgets('hides missing account name and shows Apple icon avatar', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildApp(
+        platform: TargetPlatform.iOS,
+        overrides: <Override>[
+          authProvider.overrideWith((Ref ref) => _FakeSignedInAuthNotifier()),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      expect(find.text('Flow User'), findsNothing);
-      expect(find.text('?'), findsNothing);
-      expect(find.byIcon(Icons.apple), findsOneWidget);
-    },
-  );
+    expect(find.text('Flow User'), findsNothing);
+    expect(find.text('?'), findsNothing);
+    expect(find.byIcon(Icons.apple), findsOneWidget);
+  });
 }

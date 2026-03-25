@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// App settings model
-/// 
+///
 /// Contains all user preferences that need to be persisted.
 class AppSettings {
   final bool notifications;
@@ -68,7 +68,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> _loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       state = AppSettings(
         notifications: prefs.getBool(_notificationsKey) ?? true,
         vibration: prefs.getBool(_vibrationKey) ?? false,
@@ -88,7 +88,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> _saveSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       await prefs.setBool(_notificationsKey, state.notifications);
       await prefs.setBool(_vibrationKey, state.vibration);
       await prefs.setString(_soundEffectKey, state.soundEffect);

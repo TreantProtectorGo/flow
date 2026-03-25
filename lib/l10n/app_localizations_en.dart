@@ -953,7 +953,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pomodoroProgress(int completed, int total) {
-    return '$completed/$total 🍅';
+    return '$completed/$total';
   }
 
   @override

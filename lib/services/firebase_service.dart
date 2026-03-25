@@ -106,9 +106,7 @@ class FirebaseService {
       nonce: nonce,
     );
 
-    final oauthCredential = OAuthProvider(
-      'apple.com',
-    ).credential(
+    final oauthCredential = OAuthProvider('apple.com').credential(
       idToken: appleCredential.identityToken,
       rawNonce: rawNonce,
       accessToken: appleCredential.authorizationCode,

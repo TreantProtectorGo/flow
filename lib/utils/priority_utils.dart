@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Utility class for task priority-related styling
-/// 
+///
 /// Centralizes priority color logic to avoid repetition across the app.
 /// Follows Material 3 semantic color guidelines:
 /// - High priority → Error container (red tones)

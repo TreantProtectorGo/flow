@@ -1842,7 +1842,7 @@ abstract class AppLocalizations {
   /// No description provided for @pomodoroProgress.
   ///
   /// In zh, this message translates to:
-  /// **'{completed}/{total} 🍅'**
+  /// **'{completed}/{total}'**
   String pomodoroProgress(int completed, int total);
 
   /// No description provided for @breakdownWithAI.

@@ -635,6 +635,12 @@ class TasksScreen extends ConsumerWidget {
                     Expanded(
                       child: Row(
                         children: [
+                          Icon(
+                            Icons.timer_outlined,
+                            size: 14,
+                            color: progressColor,
+                          ),
+                          const SizedBox(width: 4),
                           Text(
                             l10n.pomodoroProgress(
                               task.completedPomodoros,

@@ -19,13 +19,12 @@ class StatsStreakCard extends StatelessWidget {
     final accent = theme.colorScheme.tertiary;
     final onAccent = theme.colorScheme.onTertiary;
 
-    // 根據連續天數顯示不同的火焰
-    String getFlameEmoji() {
-      if (streakDays == 0) return '🌱';
-      if (streakDays < 3) return '🔥';
-      if (streakDays < 7) return '🔥🔥';
-      if (streakDays < 30) return '🔥🔥🔥';
-      return '🔥🔥🔥🔥';
+    IconData getStreakIcon() {
+      if (streakDays == 0) {
+        return Icons.spa_rounded;
+      }
+
+      return Icons.local_fire_department_rounded;
     }
 
     String getStreakMessage() {
@@ -67,8 +66,12 @@ class StatsStreakCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // 左側：火焰 Emoji 和連續天數
-          Text(getFlameEmoji(), style: const TextStyle(fontSize: 48)),
+          // 左側：連續天數圖示
+          Icon(
+            getStreakIcon(),
+            size: 46,
+            color: streakDays > 0 ? accent : theme.colorScheme.primary,
+          ),
           const SizedBox(width: 16),
           // 中間：數字和標題
           Expanded(
