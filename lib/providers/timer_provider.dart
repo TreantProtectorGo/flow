@@ -2,16 +2,21 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'task_provider.dart';
-import 'statistics_provider.dart';
-import 'settings_provider.dart';
+
+import '../services/focus_repository.dart';
+import '../services/notification_client.dart';
 import 'notification_strings_provider.dart';
-import '../services/database_helper.dart';
-import '../services/notification_service.dart';
+import 'settings_provider.dart';
+import 'statistics_provider.dart';
+import 'task_provider.dart';
 
 // Riverpod provider
 final timerProvider = ChangeNotifierProvider<TimerProvider>((ref) {
-  return TimerProvider(ref);
+  return TimerProvider(
+    ref,
+    repository: ref.watch(focusRepositoryProvider),
+    notificationClient: ref.watch(notificationClientProvider),
+  );
 });
 
 enum TimerState { stopped, running, paused }
@@ -32,9 +37,9 @@ bool shouldTakeLongBreak({
 
 class TimerProvider with ChangeNotifier {
   final Ref _ref;
+  final FocusRepository _repository;
+  final NotificationClient _notificationClient;
   Timer? _timer;
-  final DatabaseHelper _db = DatabaseHelper.instance;
-  final NotificationService _notificationService = NotificationService.instance;
 
   // Debug mode: use short timers for testing (only in debug builds)
   static const bool _useDebugTimers =
@@ -70,7 +75,12 @@ class TimerProvider with ChangeNotifier {
   DateTime? _currentSessionStartTime;
   String? _currentSessionId;
 
-  TimerProvider(this._ref) {
+  TimerProvider(
+    this._ref, {
+    required FocusRepository repository,
+    required NotificationClient notificationClient,
+  }) : _repository = repository,
+       _notificationClient = notificationClient {
     _loadSettings();
   }
 
@@ -231,7 +241,7 @@ class TimerProvider with ChangeNotifier {
 
       if (willCompleteTask) {
         // Task has completed all its pomodoros - show task complete notification and stop
-        await _notificationService.showTaskCompleteNotification(
+        await _notificationClient.showTaskCompleteNotification(
           title: notificationStrings.taskCompleteTitle,
           body: notificationStrings.taskCompleteBody(currentTask.title),
           channelName: notificationStrings.channelName,
@@ -256,7 +266,7 @@ class TimerProvider with ChangeNotifier {
       }
 
       // Show notification for focus session complete
-      await _notificationService.showFocusCompleteNotification(
+      await _notificationClient.showFocusCompleteNotification(
         title: notificationStrings.focusCompleteTitle,
         body: currentTask != null
             ? notificationStrings.focusCompleteWithTask(currentTask.title)
@@ -277,7 +287,7 @@ class TimerProvider with ChangeNotifier {
       }
     } else {
       // Show notification for break session complete
-      await _notificationService.showBreakCompleteNotification(
+      await _notificationClient.showBreakCompleteNotification(
         title: isLongBreak
             ? notificationStrings.longBreakCompleteTitle
             : notificationStrings.breakCompleteTitle,
@@ -319,7 +329,7 @@ class TimerProvider with ChangeNotifier {
           : (durationSeconds / 60).round();
       final currentTask = _ref.read(taskProvider.notifier).currentTask;
 
-      await _db.insertPomodoroSession(
+      await _repository.insertPomodoroSession(
         taskId: currentTask?.id,
         startTime: _currentSessionStartTime!,
         endTime: endTime,

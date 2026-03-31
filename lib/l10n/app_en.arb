@@ -30,9 +30,14 @@
   "estimatedPomodoros": "Estimated Pomodoros",
   "estimated": "Estimated",
   "enterPomodoroCount": "Please enter pomodoro count",
+  "pomodoroCountRange": "Please enter a number between 1 and 20",
   "pomodoroCount": "Pomodoro Count",
   "priority": "Priority",
   "status": "Status",
+  "dailyReminder": "Daily Reminder",
+  "dailyReminderTime": "Reminder Time",
+  "dailyReminderHelper": "Remind me every day until this task is completed",
+  "dailyReminderDisabledHelper": "Turn on push notifications to use task reminders",
 
   "priorityHigh": "High",
   "priorityMedium": "Medium",
@@ -515,6 +520,25 @@
   "notificationTaskCompleteTitle": "Task Complete!",
   "notificationTaskCompleteBody": "All pomodoros for \"{taskTitle}\" have been completed",
   "@notificationTaskCompleteBody": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationTaskReminderTitle": "Time to work",
+  "notificationTaskReminderBody": "Reminder: \"{taskTitle}\" is waiting for you",
+  "@notificationTaskReminderBody": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationTaskReminderChannelName": "Task Reminders",
+  "notificationTaskReminderChannelDescription": "Daily reminders for pending tasks",
+  "taskCelebrationMessage": "\"{taskTitle}\" completed. Nice work.",
+  "@taskCelebrationMessage": {
     "placeholders": {
       "taskTitle": {
         "type": "String"

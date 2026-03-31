@@ -68,6 +68,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterPomodoroCount => 'Please enter pomodoro count';
 
   @override
+  String get pomodoroCountRange => 'Please enter a number between 1 and 20';
+
+  @override
   String pomodoroCount(int count) {
     return '$count pomodoros';
   }
@@ -77,6 +80,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get status => 'Status';
+
+  @override
+  String get dailyReminder => 'Daily Reminder';
+
+  @override
+  String get dailyReminderTime => 'Reminder Time';
+
+  @override
+  String get dailyReminderHelper =>
+      'Remind me every day until this task is completed';
+
+  @override
+  String get dailyReminderDisabledHelper =>
+      'Turn on push notifications to use task reminders';
 
   @override
   String get priorityHigh => 'High';
@@ -1001,6 +1018,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String notificationTaskCompleteBody(String taskTitle) {
     return 'All pomodoros for \"$taskTitle\" have been completed';
+  }
+
+  @override
+  String get notificationTaskReminderTitle => 'Time to work';
+
+  @override
+  String notificationTaskReminderBody(String taskTitle) {
+    return 'Reminder: \"$taskTitle\" is waiting for you';
+  }
+
+  @override
+  String get notificationTaskReminderChannelName => 'Task Reminders';
+
+  @override
+  String get notificationTaskReminderChannelDescription =>
+      'Daily reminders for pending tasks';
+
+  @override
+  String taskCelebrationMessage(String taskTitle) {
+    return '\"$taskTitle\" completed. Nice work.';
   }
 
   @override

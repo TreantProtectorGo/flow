@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   dynamic_color
   firebase_auth
   firebase_core
+  flutter_timezone
   url_launcher_windows
 )
 

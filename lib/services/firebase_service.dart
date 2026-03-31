@@ -75,8 +75,9 @@ class FirebaseService {
 
   /// Sign in with Google.
   Future<void> signInWithGoogle() async {
-    if (!_initialized)
+    if (!_initialized) {
       throw Exception('Firebase 尚未設定，請先執行 flutterfire configure');
+    }
     final googleUser = await GoogleSignIn().signIn();
     if (googleUser == null) return; // User cancelled
 
@@ -92,8 +93,9 @@ class FirebaseService {
 
   /// Sign in with Apple.
   Future<void> signInWithApple() async {
-    if (!_initialized)
+    if (!_initialized) {
       throw Exception('Firebase 尚未設定，請先執行 flutterfire configure');
+    }
     // Generate nonce for security
     final rawNonce = _generateNonce();
     final nonce = _sha256ofString(rawNonce);

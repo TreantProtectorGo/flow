@@ -4,15 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+
 import '../models/task.dart';
+import '../providers/task_completion_event_provider.dart';
 import '../providers/task_provider.dart';
 import '../providers/timer_provider.dart';
-import '../widgets/task_form_dialog.dart';
-import '../widgets/dialogs/delete_confirmation_dialog.dart';
-import '../utils/snackbar_util.dart';
 import '../l10n/app_localizations.dart';
 import '../services/calendar_quick_add_planner.dart';
 import '../services/calendar_service.dart';
+import '../utils/snackbar_util.dart';
+import '../widgets/dialogs/delete_confirmation_dialog.dart';
+import '../widgets/task_form_dialog.dart';
 import 'ai_chat_screen.dart';
 
 class TasksScreen extends ConsumerWidget {
@@ -24,6 +26,19 @@ class TasksScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+
+    ref.listen<TaskCompletionEvent?>(taskCompletionEventProvider, (
+      TaskCompletionEvent? previous,
+      TaskCompletionEvent? next,
+    ) {
+      if (next != null && next.eventId != previous?.eventId) {
+        SnackBarUtil.showSuccessSnackBar(
+          context,
+          message: l10n.taskCelebrationMessage(next.taskTitle),
+        );
+      }
+    });
+
     final taskNotifier = ref.watch(taskProvider);
     final timerNotifier = ref.watch(timerProvider);
     final currentTask = taskNotifier.currentTask;
@@ -180,6 +195,7 @@ class TasksScreen extends ConsumerWidget {
         pomodoroCount: result['pomodoroCount'],
         priority: result['priority'],
         status: result['status'],
+        dailyReminderTime: result['dailyReminderTime'],
       );
 
       await ref.read(taskProvider.notifier).updateTask(updatedTask);
@@ -327,6 +343,20 @@ class TasksScreen extends ConsumerWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (task.dailyReminderTime != null &&
+                    task.status != TaskStatus.completed) ...[
+                  const SizedBox(height: 8),
+                  _buildReminderBadge(
+                    context: context,
+                    theme: theme,
+                    l10n: l10n,
+                    reminderTime: task.dailyReminderTime!,
+                    backgroundColor: theme.colorScheme.surface.withValues(
+                      alpha: 0.28,
+                    ),
+                    foregroundColor: theme.colorScheme.onPrimaryContainer,
+                  ),
+                ],
                 const SizedBox(height: 8),
                 // Pomodoro progress display
                 Row(
@@ -542,6 +572,19 @@ class TasksScreen extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
+                if (task.dailyReminderTime != null &&
+                    task.status != TaskStatus.completed) ...[
+                  const SizedBox(height: 8),
+                  _buildReminderBadge(
+                    context: context,
+                    theme: theme,
+                    l10n: l10n,
+                    reminderTime: task.dailyReminderTime!,
+                    backgroundColor: theme.colorScheme.secondaryContainer
+                        .withValues(alpha: 0.7),
+                    foregroundColor: theme.colorScheme.onSecondaryContainer,
+                  ),
+                ],
                 if (isTimerRunning ||
                     (task.status != TaskStatus.completed &&
                         (!task.isAIGenerated || showCalendarButton))) ...[
@@ -705,6 +748,53 @@ class TasksScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildReminderBadge({
+    required BuildContext context,
+    required ThemeData theme,
+    required AppLocalizations l10n,
+    required String reminderTime,
+    required Color backgroundColor,
+    required Color foregroundColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(
+            Icons.notifications_active_outlined,
+            size: 14,
+            color: foregroundColor,
+          ),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              '${l10n.dailyReminder}: ${_formatReminderTime(context, reminderTime)}',
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: foregroundColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatReminderTime(BuildContext context, String reminderTime) {
+    final List<String> parts = reminderTime.split(':');
+    final TimeOfDay timeOfDay = TimeOfDay(
+      hour: int.parse(parts.first),
+      minute: int.parse(parts.last),
+    );
+    return MaterialLocalizations.of(context).formatTimeOfDay(timeOfDay);
   }
 
   void _openAIChatWithTask(BuildContext context, Task task) {

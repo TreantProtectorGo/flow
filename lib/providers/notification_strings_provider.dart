@@ -42,4 +42,11 @@ class NotificationStrings {
   String get taskCompleteTitle => _l10n.notificationTaskCompleteTitle;
   String taskCompleteBody(String taskTitle) =>
       _l10n.notificationTaskCompleteBody(taskTitle);
+  String get taskReminderTitle => _l10n.notificationTaskReminderTitle;
+  String taskReminderBody(String taskTitle) =>
+      _l10n.notificationTaskReminderBody(taskTitle);
+  String get taskReminderChannelName =>
+      _l10n.notificationTaskReminderChannelName;
+  String get taskReminderChannelDescription =>
+      _l10n.notificationTaskReminderChannelDescription;
 }

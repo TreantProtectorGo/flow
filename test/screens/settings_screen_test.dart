@@ -40,6 +40,12 @@ void main() {
     );
 
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Privacy Policy'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
 
     expect(find.text('Privacy Policy'), findsOneWidget);
   });

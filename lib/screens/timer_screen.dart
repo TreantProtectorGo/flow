@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math' as math;
 import '../providers/timer_provider.dart';
+import '../providers/task_completion_event_provider.dart';
 import '../providers/task_provider.dart';
+import '../utils/snackbar_util.dart';
 import '../widgets/task_selection_dialog.dart';
 import '../models/task.dart';
 import '../l10n/app_localizations.dart';
@@ -42,6 +44,19 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+
+    ref.listen<TaskCompletionEvent?>(taskCompletionEventProvider, (
+      TaskCompletionEvent? previous,
+      TaskCompletionEvent? next,
+    ) {
+      if (next != null && next.eventId != previous?.eventId) {
+        SnackBarUtil.showSuccessSnackBar(
+          context,
+          message: l10n.taskCelebrationMessage(next.taskTitle),
+        );
+      }
+    });
+
     final timerNotifier = ref.watch(timerProvider);
     final taskNotifier = ref.watch(taskProvider);
     final currentTask = taskNotifier.currentTask;
@@ -192,6 +207,38 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            if (currentTask.dailyReminderTime != null &&
+                currentTask.status != TaskStatus.completed) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.notifications_active_outlined,
+                      size: 16,
+                      color: theme.colorScheme.onSecondaryContainer,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${l10n.dailyReminder}: ${_formatReminderTime(context, currentTask.dailyReminderTime!)}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSecondaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
             const SizedBox(height: 12),
@@ -543,6 +590,15 @@ class CircularProgressPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
+}
+
+String _formatReminderTime(BuildContext context, String reminderTime) {
+  final List<String> parts = reminderTime.split(':');
+  final TimeOfDay timeOfDay = TimeOfDay(
+    hour: int.parse(parts.first),
+    minute: int.parse(parts.last),
+  );
+  return MaterialLocalizations.of(context).formatTimeOfDay(timeOfDay);
 }
 
 String _getModeDisplay(TimerMode mode, AppLocalizations l10n) {

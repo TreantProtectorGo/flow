@@ -213,6 +213,12 @@ abstract class AppLocalizations {
   /// **'請輸入番茄鐘數量'**
   String get enterPomodoroCount;
 
+  /// No description provided for @pomodoroCountRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'請輸入 1 到 20 之間的數字'**
+  String get pomodoroCountRange;
+
   /// No description provided for @pomodoroCount.
   ///
   /// In zh, this message translates to:
@@ -230,6 +236,30 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'狀態'**
   String get status;
+
+  /// No description provided for @dailyReminder.
+  ///
+  /// In zh, this message translates to:
+  /// **'每日提醒'**
+  String get dailyReminder;
+
+  /// No description provided for @dailyReminderTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'提醒時間'**
+  String get dailyReminderTime;
+
+  /// No description provided for @dailyReminderHelper.
+  ///
+  /// In zh, this message translates to:
+  /// **'在任務完成前，每天於指定時間提醒我'**
+  String get dailyReminderHelper;
+
+  /// No description provided for @dailyReminderDisabledHelper.
+  ///
+  /// In zh, this message translates to:
+  /// **'請先開啟推播通知，才能使用任務提醒'**
+  String get dailyReminderDisabledHelper;
 
   /// No description provided for @priorityHigh.
   ///
@@ -1922,6 +1952,36 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'「{taskTitle}」的所有番茄鐘已完成'**
   String notificationTaskCompleteBody(String taskTitle);
+
+  /// No description provided for @notificationTaskReminderTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'該開始做事了'**
+  String get notificationTaskReminderTitle;
+
+  /// No description provided for @notificationTaskReminderBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'提醒你：「{taskTitle}」仲等緊你完成'**
+  String notificationTaskReminderBody(String taskTitle);
+
+  /// No description provided for @notificationTaskReminderChannelName.
+  ///
+  /// In zh, this message translates to:
+  /// **'任務提醒'**
+  String get notificationTaskReminderChannelName;
+
+  /// No description provided for @notificationTaskReminderChannelDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'待辦任務的每日提醒通知'**
+  String get notificationTaskReminderChannelDescription;
+
+  /// No description provided for @taskCelebrationMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'「{taskTitle}」已完成，做得好！'**
+  String taskCelebrationMessage(String taskTitle);
 
   /// No description provided for @signInToEnableSync.
   ///

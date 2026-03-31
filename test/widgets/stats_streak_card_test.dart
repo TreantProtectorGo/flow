@@ -5,10 +5,7 @@ import 'package:focus/l10n/app_localizations.dart';
 import 'package:focus/widgets/stats_streak_card.dart';
 
 void main() {
-  Widget buildSubject({
-    required int streakDays,
-    required int todayCompleted,
-  }) {
+  Widget buildSubject({required int streakDays, required int todayCompleted}) {
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

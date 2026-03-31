@@ -1,71 +1,101 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/task.dart';
-import '../services/database_helper.dart';
-import '../services/data_migration_helper.dart';
-import '../services/sync_service.dart';
 
-// Riverpod provider
-final taskProvider = ChangeNotifierProvider<TaskProvider>((ref) {
-  return TaskProvider();
-});
+import '../models/task.dart';
+import '../services/data_migration_helper.dart';
+import '../services/focus_repository.dart';
+import '../services/notification_client.dart';
+import '../services/sync_service.dart';
+import 'notification_strings_provider.dart';
+import 'settings_provider.dart';
+import 'task_completion_event_provider.dart';
+
+final ChangeNotifierProvider<TaskProvider> taskProvider =
+    ChangeNotifierProvider<TaskProvider>((Ref ref) {
+      final TaskProvider notifier = TaskProvider(
+        ref,
+        repository: ref.watch(focusRepositoryProvider),
+        notificationClient: ref.watch(notificationClientProvider),
+      );
+
+      ref.listen<AppSettings>(settingsProvider, (
+        AppSettings? previous,
+        AppSettings next,
+      ) {
+        if (previous?.notifications != next.notifications) {
+          notifier.handleNotificationsSettingChanged(next.notifications);
+        }
+      });
+
+      return notifier;
+    });
 
 class TaskProvider with ChangeNotifier {
-  List<Task> _tasks = [];
+  final Ref _ref;
+  final FocusRepository _repository;
+  final NotificationClient _notificationClient;
+
+  List<Task> _tasks = <Task>[];
   bool _isLoading = false;
-  String? _currentTaskId; // 當前正在進行的任務ID
-  final DatabaseHelper _db = DatabaseHelper.instance;
+  String? _currentTaskId;
 
   /// Optional sync service — set by AuthProvider when user is signed in.
   SyncService? syncService;
+
+  TaskProvider(
+    this._ref, {
+    required FocusRepository repository,
+    required NotificationClient notificationClient,
+  }) : _repository = repository,
+       _notificationClient = notificationClient {
+    _initializeAndLoadTasks();
+  }
 
   List<Task> get tasks => _tasks;
   bool get isLoading => _isLoading;
   String? get currentTaskId => _currentTaskId;
 
-  // 獲取當前正在進行的任務
   Task? get currentTask {
-    if (_currentTaskId == null) return null;
+    if (_currentTaskId == null) {
+      return null;
+    }
 
     try {
-      return _tasks.firstWhere((task) => task.id == _currentTaskId);
+      return _tasks.firstWhere((Task task) => task.id == _currentTaskId);
     } catch (e) {
-      // 如果找不到指定的任務，清除當前任務ID並返回null
       _currentTaskId = null;
       return null;
     }
   }
 
   List<Task> get pendingTasks =>
-      _tasks.where((task) => task.status == TaskStatus.pending).toList();
+      _tasks.where((Task task) => task.status == TaskStatus.pending).toList();
 
-  List<Task> get inProgressTasks =>
-      _tasks.where((task) => task.status == TaskStatus.inProgress).toList();
+  List<Task> get inProgressTasks => _tasks
+      .where((Task task) => task.status == TaskStatus.inProgress)
+      .toList();
 
   List<Task> get completedTasks =>
-      _tasks.where((task) => task.status == TaskStatus.completed).toList();
-
-  TaskProvider() {
-    _initializeAndLoadTasks();
-  }
+      _tasks.where((Task task) => task.status == TaskStatus.completed).toList();
 
   Future<void> _initializeAndLoadTasks() async {
-    // 檢查是否需要資料遷移
-    if (await DataMigrationHelper.needsMigration()) {
-      debugPrint('🔄 需要執行資料遷移');
-      try {
-        await DataMigrationHelper.migrate();
-      } catch (e) {
-        debugPrint('❌ 資料遷移失敗，將繼續載入: $e');
+    try {
+      if (await DataMigrationHelper.needsMigration()) {
+        debugPrint('🔄 需要執行資料遷移');
+        try {
+          await DataMigrationHelper.migrate();
+        } catch (e) {
+          debugPrint('❌ 資料遷移失敗，將繼續載入: $e');
+        }
       }
+    } catch (e) {
+      debugPrint('⚠️ 跳過資料遷移檢查: $e');
     }
 
-    // 載入任務
     await _loadTasks();
   }
 
-  /// Reload tasks from local DB. Called after remote sync applies changes.
   Future<void> reloadTasks() async {
     await _loadTasks();
   }
@@ -75,18 +105,14 @@ class TaskProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // 從 SQLite 資料庫載入任務
-      _tasks = await _db.getAllTasks();
-
-      // 從 SharedPreferences 載入當前任務ID
-      final prefs = await SharedPreferences.getInstance();
+      _tasks = await _repository.getAllTasks();
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
       _currentTaskId = prefs.getString('currentTaskId');
-
-      // 按創建時間排序（資料庫查詢已排序，但保留以防萬一）
-      _tasks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      _sortTasks();
+      await _reconcileTaskReminders();
     } catch (e) {
       debugPrint('載入任務時發生錯誤: $e');
-      _tasks = [];
+      _tasks = <Task>[];
     }
 
     _isLoading = false;
@@ -95,8 +121,7 @@ class TaskProvider with ChangeNotifier {
 
   Future<void> _saveTasks() async {
     try {
-      // SQLite 會自動保存，這裡只需保存當前任務ID
-      final prefs = await SharedPreferences.getInstance();
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
 
       if (_currentTaskId != null) {
         await prefs.setString('currentTaskId', _currentTaskId!);
@@ -108,9 +133,21 @@ class TaskProvider with ChangeNotifier {
     }
   }
 
-  /// Push task to cloud if sync is active (fire-and-forget).
+  void _sortTasks() {
+    _tasks.sort((Task a, Task b) => b.createdAt.compareTo(a.createdAt));
+  }
+
   void _pushIfSyncing(Task task) {
     syncService?.pushTask(task);
+  }
+
+  Future<void> handleNotificationsSettingChanged(bool enabled) async {
+    if (!enabled) {
+      await _notificationClient.cancelAllTaskReminders();
+      return;
+    }
+
+    await _reconcileTaskReminders();
   }
 
   Future<void> addTask({
@@ -122,9 +159,10 @@ class TaskProvider with ChangeNotifier {
     bool isAIGenerated = false,
     String? aiSessionId,
     String? aiSessionTitle,
+    String? reminderTime,
   }) async {
-    final now = DateTime.now();
-    final task = Task(
+    final DateTime now = DateTime.now();
+    final Task task = Task(
       id: now.millisecondsSinceEpoch.toString(),
       title: title,
       description: description,
@@ -136,142 +174,162 @@ class TaskProvider with ChangeNotifier {
       isAIGenerated: isAIGenerated,
       aiSessionId: aiSessionId,
       aiSessionTitle: aiSessionTitle,
+      dailyReminderTime: reminderTime,
     );
 
-    // 保存到資料庫
-    await _db.insertTask(task);
+    await _repository.insertTask(task);
     _pushIfSyncing(task);
 
-    // 更新記憶體中的列表
     _tasks.insert(0, task);
-
-    // 重新排序以確保一致性
-    _tasks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    _sortTasks();
+    await _syncReminderForTask(task);
 
     notifyListeners();
     await _saveTasks();
   }
 
   Future<void> updateTask(Task updatedTask) async {
-    final index = _tasks.indexWhere((task) => task.id == updatedTask.id);
-    if (index != -1) {
-      final taskWithTimestamp = updatedTask.copyWith(updatedAt: DateTime.now());
-      // 更新資料庫
-      await _db.updateTask(taskWithTimestamp);
-      _pushIfSyncing(taskWithTimestamp);
-
-      // 更新記憶體中的列表
-      _tasks[index] = taskWithTimestamp;
-      notifyListeners();
-      await _saveTasks();
+    final int index = _tasks.indexWhere(
+      (Task task) => task.id == updatedTask.id,
+    );
+    if (index == -1) {
+      return;
     }
+
+    final Task previousTask = _tasks[index];
+    final Task taskWithTimestamp = updatedTask.copyWith(
+      updatedAt: DateTime.now(),
+    );
+
+    await _repository.updateTask(taskWithTimestamp);
+    _pushIfSyncing(taskWithTimestamp);
+
+    _tasks[index] = taskWithTimestamp;
+    _sortTasks();
+    _handleCurrentTaskCompletion(taskWithTimestamp);
+    _emitCompletionEventIfNeeded(previousTask, taskWithTimestamp);
+    await _syncReminderForTask(taskWithTimestamp);
+
+    notifyListeners();
+    await _saveTasks();
   }
 
   Future<void> deleteTask(String taskId) async {
-    // 軟刪除（設置 deleted_at）以支援雲端同步
-    final now = DateTime.now();
-    final taskIndex = _tasks.indexWhere((t) => t.id == taskId);
-    await _db.softDeleteTask(taskId);
+    final DateTime now = DateTime.now();
+    final int taskIndex = _tasks.indexWhere((Task task) => task.id == taskId);
+
+    await _repository.softDeleteTask(taskId);
+    await _notificationClient.cancelTaskReminder(taskId);
+
     if (taskIndex != -1) {
       _pushIfSyncing(
         _tasks[taskIndex].copyWith(deletedAt: now, updatedAt: now),
       );
     }
 
-    // 從記憶體中移除
-    _tasks.removeWhere((task) => task.id == taskId);
+    _tasks.removeWhere((Task task) => task.id == taskId);
+    if (_currentTaskId == taskId) {
+      _currentTaskId = null;
+    }
+
     notifyListeners();
     await _saveTasks();
   }
 
   Future<void> toggleTaskStatus(String taskId) async {
-    final index = _tasks.indexWhere((task) => task.id == taskId);
-    if (index != -1) {
-      final task = _tasks[index];
-      TaskStatus newStatus;
-      DateTime? completedAt;
-
-      switch (task.status) {
-        case TaskStatus.pending:
-          newStatus = TaskStatus.inProgress;
-          break;
-        case TaskStatus.inProgress:
-          newStatus = TaskStatus.completed;
-          completedAt = DateTime.now();
-          break;
-        case TaskStatus.completed:
-          newStatus = TaskStatus.pending;
-          completedAt = null;
-          break;
-      }
-
-      final updatedTask = task.copyWith(
-        status: newStatus,
-        completedAt: completedAt,
-        updatedAt: DateTime.now(),
-      );
-
-      // 更新資料庫
-      await _db.updateTask(updatedTask);
-      _pushIfSyncing(updatedTask);
-
-      // 更新記憶體
-      _tasks[index] = updatedTask;
-      notifyListeners();
-      await _saveTasks();
+    final int index = _tasks.indexWhere((Task task) => task.id == taskId);
+    if (index == -1) {
+      return;
     }
+
+    final Task task = _tasks[index];
+    late final TaskStatus newStatus;
+    DateTime? completedAt;
+
+    switch (task.status) {
+      case TaskStatus.pending:
+        newStatus = TaskStatus.inProgress;
+        break;
+      case TaskStatus.inProgress:
+        newStatus = TaskStatus.completed;
+        completedAt = DateTime.now();
+        break;
+      case TaskStatus.completed:
+        newStatus = TaskStatus.pending;
+        completedAt = null;
+        break;
+    }
+
+    final Task updatedTask = task.copyWith(
+      status: newStatus,
+      completedAt: completedAt,
+      updatedAt: DateTime.now(),
+    );
+
+    await _repository.updateTask(updatedTask);
+    _pushIfSyncing(updatedTask);
+
+    _tasks[index] = updatedTask;
+    _sortTasks();
+    _handleCurrentTaskCompletion(updatedTask);
+    _emitCompletionEventIfNeeded(task, updatedTask);
+    await _syncReminderForTask(updatedTask);
+
+    notifyListeners();
+    await _saveTasks();
   }
 
   Future<void> moveTaskToInProgress(String taskId) async {
-    final index = _tasks.indexWhere((task) => task.id == taskId);
-    if (index != -1) {
-      final updatedTask = _tasks[index].copyWith(
-        status: TaskStatus.inProgress,
-        updatedAt: DateTime.now(),
-      );
-
-      // 更新資料庫
-      await _db.updateTask(updatedTask);
-      _pushIfSyncing(updatedTask);
-
-      // 更新記憶體
-      _tasks[index] = updatedTask;
-      notifyListeners();
-      await _saveTasks();
+    final int index = _tasks.indexWhere((Task task) => task.id == taskId);
+    if (index == -1) {
+      return;
     }
+
+    final Task previousTask = _tasks[index];
+    final Task updatedTask = previousTask.copyWith(
+      status: TaskStatus.inProgress,
+      updatedAt: DateTime.now(),
+    );
+
+    await _repository.updateTask(updatedTask);
+    _pushIfSyncing(updatedTask);
+
+    _tasks[index] = updatedTask;
+    _sortTasks();
+    await _syncReminderForTask(updatedTask);
+
+    notifyListeners();
+    await _saveTasks();
   }
 
   Future<void> markTaskAsCompleted(String taskId) async {
-    final index = _tasks.indexWhere((task) => task.id == taskId);
-    if (index != -1) {
-      final updatedTask = _tasks[index].copyWith(
-        status: TaskStatus.completed,
-        completedAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
-      // 更新資料庫
-      await _db.updateTask(updatedTask);
-      _pushIfSyncing(updatedTask);
-
-      // 更新記憶體
-      _tasks[index] = updatedTask;
-
-      // 如果完成的是當前任務，清除當前任務
-      if (_currentTaskId == taskId) {
-        _currentTaskId = null;
-      }
-
-      notifyListeners();
-      await _saveTasks();
+    final int index = _tasks.indexWhere((Task task) => task.id == taskId);
+    if (index == -1) {
+      return;
     }
+
+    final Task previousTask = _tasks[index];
+    final Task updatedTask = previousTask.copyWith(
+      status: TaskStatus.completed,
+      completedAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    await _repository.updateTask(updatedTask);
+    _pushIfSyncing(updatedTask);
+
+    _tasks[index] = updatedTask;
+    _handleCurrentTaskCompletion(updatedTask);
+    _emitCompletionEventIfNeeded(previousTask, updatedTask);
+    await _syncReminderForTask(updatedTask);
+
+    notifyListeners();
+    await _saveTasks();
   }
 
-  // 設置當前正在進行的任務
   Future<void> setCurrentTask(String? taskId) async {
     _currentTaskId = taskId;
 
-    // 如果設置了新的當前任務，自動將其狀態設為進行中
     if (taskId != null) {
       await moveTaskToInProgress(taskId);
     }
@@ -280,17 +338,16 @@ class TaskProvider with ChangeNotifier {
     await _saveTasks();
   }
 
-  /// Clear all local data and Firestore data (if syncing).
-  /// Returns true on success, false on failure.
   Future<bool> clearAllData() async {
     try {
       if (syncService != null) {
         await syncService!.clearFirestoreData();
       }
-      await _db.clearAllData();
-      _tasks = [];
+      await _repository.clearAllData();
+      await _notificationClient.cancelAllTaskReminders();
+      _tasks = <Task>[];
       _currentTaskId = null;
-      final prefs = await SharedPreferences.getInstance();
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.remove('currentTaskId');
       debugPrint('🧹 [TASK] All data cleared');
       notifyListeners();
@@ -301,32 +358,90 @@ class TaskProvider with ChangeNotifier {
     }
   }
 
-  // 完成番茄鐘後，為當前任務增加一個番茄鐘
   Future<void> completePomodoroForCurrentTask() async {
-    if (_currentTaskId == null) return;
-
-    final index = _tasks.indexWhere((task) => task.id == _currentTaskId);
-    if (index != -1) {
-      final task = _tasks[index];
-      final updatedTask = task.copyWith(
-        status: TaskStatus.inProgress,
-        completedPomodoros: task.completedPomodoros + 1,
-        updatedAt: DateTime.now(),
-      );
-
-      // 更新資料庫
-      await _db.updateTask(updatedTask);
-      _pushIfSyncing(updatedTask);
-
-      // 更新記憶體
-      _tasks[index] = updatedTask;
-
-      debugPrint(
-        '🍅 [TASK] Pomodoro completed for "${task.title}" (${updatedTask.completedPomodoros}/${task.pomodoroCount})',
-      );
-
-      notifyListeners();
-      await _saveTasks();
+    if (_currentTaskId == null) {
+      return;
     }
+
+    final int index = _tasks.indexWhere(
+      (Task task) => task.id == _currentTaskId,
+    );
+    if (index == -1) {
+      return;
+    }
+
+    final Task task = _tasks[index];
+    final Task updatedTask = task.copyWith(
+      status: TaskStatus.inProgress,
+      completedPomodoros: task.completedPomodoros + 1,
+      updatedAt: DateTime.now(),
+    );
+
+    await _repository.updateTask(updatedTask);
+    _pushIfSyncing(updatedTask);
+
+    _tasks[index] = updatedTask;
+
+    debugPrint(
+      '🍅 [TASK] Pomodoro completed for "${task.title}" (${updatedTask.completedPomodoros}/${task.pomodoroCount})',
+    );
+
+    notifyListeners();
+    await _saveTasks();
+  }
+
+  Future<void> _syncReminderForTask(Task task) async {
+    if (task.status == TaskStatus.completed ||
+        task.deletedAt != null ||
+        task.dailyReminderTime == null ||
+        !_ref.read(settingsProvider).notifications) {
+      await _notificationClient.cancelTaskReminder(task.id);
+      return;
+    }
+
+    final NotificationStrings strings = _ref.read(notificationStringsProvider);
+    await _notificationClient.scheduleDailyTaskReminder(
+      task: task,
+      title: strings.taskReminderTitle,
+      body: strings.taskReminderBody(task.title),
+      channelName: strings.taskReminderChannelName,
+      channelDescription: strings.taskReminderChannelDescription,
+    );
+  }
+
+  Future<void> _reconcileTaskReminders() async {
+    final NotificationStrings strings = _ref.read(notificationStringsProvider);
+    await _notificationClient.reconcileTaskReminders(
+      tasks: _tasks.where(
+        (Task task) =>
+            task.dailyReminderTime != null &&
+            task.status != TaskStatus.completed &&
+            task.deletedAt == null,
+      ),
+      notificationsEnabled: _ref.read(settingsProvider).notifications,
+      title: strings.taskReminderTitle,
+      bodyBuilder: (Task task) => strings.taskReminderBody(task.title),
+      channelName: strings.taskReminderChannelName,
+      channelDescription: strings.taskReminderChannelDescription,
+    );
+  }
+
+  void _handleCurrentTaskCompletion(Task task) {
+    if (task.status == TaskStatus.completed && _currentTaskId == task.id) {
+      _currentTaskId = null;
+    }
+  }
+
+  void _emitCompletionEventIfNeeded(Task previousTask, Task updatedTask) {
+    if (previousTask.status == TaskStatus.completed ||
+        updatedTask.status != TaskStatus.completed) {
+      return;
+    }
+
+    _ref.read(taskCompletionEventProvider.notifier).state = TaskCompletionEvent(
+      eventId: DateTime.now().microsecondsSinceEpoch.toString(),
+      taskId: updatedTask.id,
+      taskTitle: updatedTask.title,
+    );
   }
 }

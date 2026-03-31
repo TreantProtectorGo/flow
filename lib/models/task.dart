@@ -19,6 +19,7 @@ class Task {
   final String? aiSessionTitle;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final String? dailyReminderTime;
 
   Task({
     required this.id,
@@ -35,6 +36,7 @@ class Task {
     this.aiSessionTitle,
     DateTime? updatedAt,
     this.deletedAt,
+    this.dailyReminderTime,
   }) : updatedAt = updatedAt ?? createdAt;
 
   Task copyWith({
@@ -52,6 +54,7 @@ class Task {
     String? aiSessionTitle,
     DateTime? updatedAt,
     DateTime? deletedAt,
+    String? dailyReminderTime,
   }) {
     return Task(
       id: id ?? this.id,
@@ -68,6 +71,7 @@ class Task {
       aiSessionTitle: aiSessionTitle ?? this.aiSessionTitle,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      dailyReminderTime: dailyReminderTime ?? this.dailyReminderTime,
     );
   }
 
@@ -87,6 +91,7 @@ class Task {
       'aiSessionTitle': aiSessionTitle,
       'updatedAt': updatedAt.toIso8601String(),
       'deletedAt': deletedAt?.toIso8601String(),
+      'dailyReminderTime': dailyReminderTime,
     };
   }
 
@@ -114,6 +119,7 @@ class Task {
       deletedAt: json['deletedAt'] != null
           ? DateTime.parse(json['deletedAt'])
           : null,
+      dailyReminderTime: json['dailyReminderTime'] as String?,
     );
   }
 

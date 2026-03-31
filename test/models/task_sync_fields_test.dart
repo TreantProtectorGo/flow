@@ -116,6 +116,7 @@ void main() {
         aiSessionTitle: 'AI Plan',
         updatedAt: later,
         deletedAt: later,
+        dailyReminderTime: '09:30',
       );
       final restored = Task.fromJson(original.toJson());
       expect(restored.id, original.id);
@@ -132,6 +133,22 @@ void main() {
       expect(restored.aiSessionTitle, original.aiSessionTitle);
       expect(restored.updatedAt, original.updatedAt);
       expect(restored.deletedAt, original.deletedAt);
+      expect(restored.dailyReminderTime, original.dailyReminderTime);
+    });
+
+    test('toJson and fromJson preserve daily reminder time', () {
+      final task = makeTask().copyWith(dailyReminderTime: '18:45');
+      final json = task.toJson();
+
+      expect(json['dailyReminderTime'], equals('18:45'));
+
+      final restored = Task.fromJson(json);
+      expect(restored.dailyReminderTime, equals('18:45'));
+    });
+
+    test('daily reminder time defaults to null when not provided', () {
+      final task = makeTask();
+      expect(task.dailyReminderTime, isNull);
     });
   });
 }

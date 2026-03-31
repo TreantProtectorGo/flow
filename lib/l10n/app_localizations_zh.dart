@@ -68,6 +68,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enterPomodoroCount => '請輸入番茄鐘數量';
 
   @override
+  String get pomodoroCountRange => '請輸入 1 到 20 之間的數字';
+
+  @override
   String pomodoroCount(int count) {
     return '$count 個番茄鐘';
   }
@@ -77,6 +80,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get status => '狀態';
+
+  @override
+  String get dailyReminder => '每日提醒';
+
+  @override
+  String get dailyReminderTime => '提醒時間';
+
+  @override
+  String get dailyReminderHelper => '在任務完成前，每天於指定時間提醒我';
+
+  @override
+  String get dailyReminderDisabledHelper => '請先開啟推播通知，才能使用任務提醒';
 
   @override
   String get priorityHigh => '高';
@@ -989,6 +1004,25 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get notificationTaskReminderTitle => '該開始做事了';
+
+  @override
+  String notificationTaskReminderBody(String taskTitle) {
+    return '提醒你：「$taskTitle」仲等緊你完成';
+  }
+
+  @override
+  String get notificationTaskReminderChannelName => '任務提醒';
+
+  @override
+  String get notificationTaskReminderChannelDescription => '待辦任務的每日提醒通知';
+
+  @override
+  String taskCelebrationMessage(String taskTitle) {
+    return '「$taskTitle」已完成，做得好！';
+  }
+
+  @override
   String get signInToEnableSync => '登入以啟用雲端同步';
 
   @override
@@ -1135,6 +1169,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get enterPomodoroCount => '請輸入番茄鐘數量';
 
   @override
+  String get pomodoroCountRange => '請輸入 1 到 20 之間的數字';
+
+  @override
   String pomodoroCount(int count) {
     return '$count 個番茄鐘';
   }
@@ -1144,6 +1181,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get status => '狀態';
+
+  @override
+  String get dailyReminder => '每日提醒';
+
+  @override
+  String get dailyReminderTime => '提醒時間';
+
+  @override
+  String get dailyReminderHelper => '在任務完成前，每天於指定時間提醒我';
+
+  @override
+  String get dailyReminderDisabledHelper => '請先開啟推播通知，才能使用任務提醒';
 
   @override
   String get priorityHigh => '高';
@@ -2053,6 +2102,25 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String notificationTaskCompleteBody(String taskTitle) {
     return '「$taskTitle」的所有番茄鐘已完成';
+  }
+
+  @override
+  String get notificationTaskReminderTitle => '該開始做事了';
+
+  @override
+  String notificationTaskReminderBody(String taskTitle) {
+    return '提醒你：「$taskTitle」還在等你完成';
+  }
+
+  @override
+  String get notificationTaskReminderChannelName => '任務提醒';
+
+  @override
+  String get notificationTaskReminderChannelDescription => '待辦任務的每日提醒通知';
+
+  @override
+  String taskCelebrationMessage(String taskTitle) {
+    return '「$taskTitle」已完成，做得好！';
   }
 
   @override

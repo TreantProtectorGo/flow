@@ -34,6 +34,7 @@ dependencies:
   
   # Background Services & Notifications
   flutter_local_notifications: ^18.0.1
+  flutter_timezone: ^4.1.1
   flutter_background_service: ^5.0.10
   # workmanager: ^0.5.2  # 暫時移除，待後續修復
   
@@ -48,6 +49,7 @@ dependencies:
   
   # Date & Time
   intl: ^0.20.2
+  timezone: ^0.10.1
   
   # UI Components
   smooth_page_indicator: ^1.2.0
@@ -76,11 +78,6 @@ dependencies:
   crypto: ^3.0.6
 
 dev_dependencies:
-
-flutter_launcher_icons:
-  ios: true
-  android: true
-  image_path: "appstore.png"
   flutter_test:
     sdk: flutter
 
@@ -90,6 +87,11 @@ flutter_launcher_icons:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+
+flutter_launcher_icons:
+  ios: true
+  android: true
+  image_path: "appstore.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

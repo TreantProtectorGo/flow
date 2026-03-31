@@ -33,9 +33,14 @@
   "estimatedPomodoros": "預估番茄鐘數量",
   "estimated": "預估",
   "enterPomodoroCount": "請輸入番茄鐘數量",
+  "pomodoroCountRange": "請輸入 1 到 20 之間的數字",
   "pomodoroCount": "番茄鐘數量",
   "priority": "優先級",
   "status": "狀態",
+  "dailyReminder": "每日提醒",
+  "dailyReminderTime": "提醒時間",
+  "dailyReminderHelper": "在任務完成前，每天於指定時間提醒我",
+  "dailyReminderDisabledHelper": "請先開啟推播通知，才能使用任務提醒",
 
   "priorityHigh": "高",
   "priorityMedium": "中",
@@ -567,6 +572,25 @@
   "notificationTaskCompleteTitle": "任務完成！",
   "notificationTaskCompleteBody": "「{taskTitle}」的所有番茄鐘已完成",
   "@notificationTaskCompleteBody": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationTaskReminderTitle": "該開始做事了",
+  "notificationTaskReminderBody": "提醒你：「{taskTitle}」還在等你完成",
+  "@notificationTaskReminderBody": {
+    "placeholders": {
+      "taskTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationTaskReminderChannelName": "任務提醒",
+  "notificationTaskReminderChannelDescription": "待辦任務的每日提醒通知",
+  "taskCelebrationMessage": "「{taskTitle}」已完成，做得好！",
+  "@taskCelebrationMessage": {
     "placeholders": {
       "taskTitle": {
         "type": "String"

@@ -5,6 +5,30 @@ import 'dart:convert';
 import '../models/chat_message.dart';
 import '../models/task.dart';
 
+List<String> buildMissingTaskSchemaStatements(Set<String> columnNames) {
+  final List<String> missing = <String>[];
+
+  if (!columnNames.contains('ai_session_id')) {
+    missing.add('ALTER TABLE tasks ADD COLUMN ai_session_id TEXT');
+  }
+  if (!columnNames.contains('ai_session_title')) {
+    missing.add('ALTER TABLE tasks ADD COLUMN ai_session_title TEXT');
+  }
+  if (!columnNames.contains('updated_at')) {
+    missing.add(
+      "ALTER TABLE tasks ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''",
+    );
+  }
+  if (!columnNames.contains('deleted_at')) {
+    missing.add('ALTER TABLE tasks ADD COLUMN deleted_at TEXT');
+  }
+  if (!columnNames.contains('reminder_time')) {
+    missing.add('ALTER TABLE tasks ADD COLUMN reminder_time TEXT');
+  }
+
+  return missing;
+}
+
 /// DatabaseHelper - SQLite database access layer using singleton pattern
 /// Manages all database operations for tasks, pomodoro sessions, and chat messages
 /// Uses lazy initialization to ensure single database instance across the app
@@ -43,7 +67,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 7,
+      version: 8,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -60,21 +84,7 @@ class DatabaseHelper {
         .whereType<String>()
         .toSet();
 
-    final missing = <String>[];
-    if (!names.contains('ai_session_id')) {
-      missing.add('ALTER TABLE tasks ADD COLUMN ai_session_id TEXT');
-    }
-    if (!names.contains('ai_session_title')) {
-      missing.add('ALTER TABLE tasks ADD COLUMN ai_session_title TEXT');
-    }
-    if (!names.contains('updated_at')) {
-      missing.add(
-        "ALTER TABLE tasks ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''",
-      );
-    }
-    if (!names.contains('deleted_at')) {
-      missing.add('ALTER TABLE tasks ADD COLUMN deleted_at TEXT');
-    }
+    final List<String> missing = buildMissingTaskSchemaStatements(names);
 
     for (final statement in missing) {
       await db.execute(statement);
@@ -236,6 +246,10 @@ class DatabaseHelper {
         '📦 [DB] Migrated to version 7: added updated_at and deleted_at for sync',
       );
     }
+    if (oldVersion < 8) {
+      await db.execute('ALTER TABLE tasks ADD COLUMN reminder_time TEXT');
+      debugPrint('📦 [DB] Migrated to version 8: added reminder_time');
+    }
   }
 
   /// Creates all database tables and indexes on first run
@@ -259,7 +273,8 @@ class DatabaseHelper {
         ai_session_id TEXT,
         ai_session_title TEXT,
         updated_at TEXT NOT NULL DEFAULT '',
-        deleted_at TEXT
+        deleted_at TEXT,
+        reminder_time TEXT
       )
     ''');
 
@@ -347,6 +362,7 @@ class DatabaseHelper {
       'ai_session_title': task.aiSessionTitle,
       'updated_at': task.updatedAt.toIso8601String(),
       'deleted_at': task.deletedAt?.toIso8601String(),
+      'reminder_time': task.dailyReminderTime,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
     debugPrint('✅ [DB] Task insertion successful');
     return result;
@@ -381,6 +397,7 @@ class DatabaseHelper {
             'aiSessionTitle': json['ai_session_title'],
             'updatedAt': json['updated_at'],
             'deletedAt': json['deleted_at'],
+            'dailyReminderTime': json['reminder_time'],
           }),
         )
         .toList();
@@ -416,6 +433,7 @@ class DatabaseHelper {
       'aiSessionTitle': json['ai_session_title'],
       'updatedAt': json['updated_at'],
       'deletedAt': json['deleted_at'],
+      'dailyReminderTime': json['reminder_time'],
     });
   }
 
@@ -443,6 +461,7 @@ class DatabaseHelper {
         'ai_session_title': task.aiSessionTitle,
         'updated_at': task.updatedAt.toIso8601String(),
         'deleted_at': task.deletedAt?.toIso8601String(),
+        'reminder_time': task.dailyReminderTime,
       },
       where: 'id = ?',
       whereArgs: [task.id],
@@ -555,6 +574,7 @@ class DatabaseHelper {
             'aiSessionTitle': json['ai_session_title'],
             'updatedAt': json['updated_at'],
             'deletedAt': json['deleted_at'],
+            'dailyReminderTime': json['reminder_time'],
           }),
         )
         .toList();
