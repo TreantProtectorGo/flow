@@ -1,4 +1,6 @@
-docs/
+docs/*
+!docs/images/
+!docs/images/*.png
 # Miscellaneous
 *.class
 *.log

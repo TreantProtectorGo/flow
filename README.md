@@ -1,7 +1,7 @@
 # Flow
 
 <p align="center">
-  <img src="../appstore.png" alt="Flow app icon" width="160" />
+  <img src="docs/images/appstore.png" alt="Flow app icon" width="160" />
 </p>
 
 <p align="center">
@@ -17,9 +17,9 @@ Flow is publicly available on iOS via the App Store.
 ## Preview
 
 <p align="center">
-  <img src="../time.png" alt="Flow timer screen" width="30%" />
-  <img src="../task.png" alt="Flow tasks screen" width="30%" />
-  <img src="../ai_chat_planning.png" alt="Flow AI chat planning screen" width="30%" />
+  <img src="docs/images/time.png" alt="Flow timer screen" width="30%" />
+  <img src="docs/images/task.png" alt="Flow tasks screen" width="30%" />
+  <img src="docs/images/ai_chat_planning.png" alt="Flow AI chat planning screen" width="30%" />
 </p>
 
 ## Highlights
