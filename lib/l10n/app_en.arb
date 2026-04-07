@@ -370,6 +370,10 @@
   "soundEffectSubtitle": "Choose sound when timer ends",
   "vibration": "Vibration",
   "vibrationSubtitle": "Vibrate when timer ends",
+  "defaultTaskReminder": "Default Task Reminder",
+  "defaultTaskReminderSubtitle": "Automatically turn on the daily reminder for the current session task",
+  "defaultTaskReminderTime": "Default Task Reminder Time",
+  "defaultTaskReminderTimeSubtitle": "Moves to the next unfinished task after the current one is completed",
 
   "soundBell": "Bell",
   "soundBird": "Bird",

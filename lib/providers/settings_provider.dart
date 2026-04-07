@@ -9,6 +9,8 @@ class AppSettings {
   final bool vibration;
   final String soundEffect;
   final int longBreakFrequency;
+  final bool defaultTaskReminderEnabled;
+  final String defaultTaskReminderTime;
   final bool aiTaskBreakdown;
   final bool smartSuggestions;
   final bool dataAnalysis;
@@ -16,9 +18,11 @@ class AppSettings {
 
   const AppSettings({
     this.notifications = true,
-    this.vibration = false,
+    this.vibration = true,
     this.soundEffect = 'bell',
     this.longBreakFrequency = 4,
+    this.defaultTaskReminderEnabled = true,
+    this.defaultTaskReminderTime = '09:00',
     this.aiTaskBreakdown = true,
     this.smartSuggestions = true,
     this.dataAnalysis = false,
@@ -30,6 +34,8 @@ class AppSettings {
     bool? vibration,
     String? soundEffect,
     int? longBreakFrequency,
+    bool? defaultTaskReminderEnabled,
+    String? defaultTaskReminderTime,
     bool? aiTaskBreakdown,
     bool? smartSuggestions,
     bool? dataAnalysis,
@@ -40,6 +46,10 @@ class AppSettings {
       vibration: vibration ?? this.vibration,
       soundEffect: soundEffect ?? this.soundEffect,
       longBreakFrequency: longBreakFrequency ?? this.longBreakFrequency,
+      defaultTaskReminderEnabled:
+          defaultTaskReminderEnabled ?? this.defaultTaskReminderEnabled,
+      defaultTaskReminderTime:
+          defaultTaskReminderTime ?? this.defaultTaskReminderTime,
       aiTaskBreakdown: aiTaskBreakdown ?? this.aiTaskBreakdown,
       smartSuggestions: smartSuggestions ?? this.smartSuggestions,
       dataAnalysis: dataAnalysis ?? this.dataAnalysis,
@@ -59,6 +69,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   static const String _vibrationKey = 'settings_vibration';
   static const String _soundEffectKey = 'settings_sound_effect';
   static const String _longBreakFrequencyKey = 'settings_long_break_frequency';
+  static const String _defaultTaskReminderEnabledKey =
+      'settings_default_task_reminder_enabled';
+  static const String _defaultTaskReminderTimeKey =
+      'settings_default_task_reminder_time';
   static const String _aiTaskBreakdownKey = 'settings_ai_task_breakdown';
   static const String _smartSuggestionsKey = 'settings_smart_suggestions';
   static const String _dataAnalysisKey = 'settings_data_analysis';
@@ -71,9 +85,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
       state = AppSettings(
         notifications: prefs.getBool(_notificationsKey) ?? true,
-        vibration: prefs.getBool(_vibrationKey) ?? false,
+        vibration: prefs.getBool(_vibrationKey) ?? true,
         soundEffect: prefs.getString(_soundEffectKey) ?? 'bell',
         longBreakFrequency: prefs.getInt(_longBreakFrequencyKey) ?? 4,
+        defaultTaskReminderEnabled:
+            prefs.getBool(_defaultTaskReminderEnabledKey) ?? true,
+        defaultTaskReminderTime:
+            prefs.getString(_defaultTaskReminderTimeKey) ?? '09:00',
         aiTaskBreakdown: prefs.getBool(_aiTaskBreakdownKey) ?? true,
         smartSuggestions: prefs.getBool(_smartSuggestionsKey) ?? true,
         dataAnalysis: prefs.getBool(_dataAnalysisKey) ?? false,
@@ -93,6 +111,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       await prefs.setBool(_vibrationKey, state.vibration);
       await prefs.setString(_soundEffectKey, state.soundEffect);
       await prefs.setInt(_longBreakFrequencyKey, state.longBreakFrequency);
+      await prefs.setBool(
+        _defaultTaskReminderEnabledKey,
+        state.defaultTaskReminderEnabled,
+      );
+      await prefs.setString(
+        _defaultTaskReminderTimeKey,
+        state.defaultTaskReminderTime,
+      );
       await prefs.setBool(_aiTaskBreakdownKey, state.aiTaskBreakdown);
       await prefs.setBool(_smartSuggestionsKey, state.smartSuggestions);
       await prefs.setBool(_dataAnalysisKey, state.dataAnalysis);
@@ -121,6 +147,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   void setLongBreakFrequency(int value) {
     state = state.copyWith(longBreakFrequency: value);
+    _saveSettings();
+  }
+
+  void setDefaultTaskReminderEnabled(bool value) {
+    state = state.copyWith(defaultTaskReminderEnabled: value);
+    _saveSettings();
+  }
+
+  void setDefaultTaskReminderTime(String value) {
+    state = state.copyWith(defaultTaskReminderTime: value);
     _saveSettings();
   }
 

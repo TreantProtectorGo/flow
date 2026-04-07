@@ -197,6 +197,7 @@ class TaskProvider with ChangeNotifier {
     }
 
     final Task previousTask = _tasks[index];
+    final bool wasCurrentTask = _currentTaskId == previousTask.id;
     final Task taskWithTimestamp = updatedTask.copyWith(
       updatedAt: DateTime.now(),
     );
@@ -206,6 +207,12 @@ class TaskProvider with ChangeNotifier {
 
     _tasks[index] = taskWithTimestamp;
     _sortTasks();
+    if (taskWithTimestamp.status == TaskStatus.completed) {
+      await _transferSessionReminderToNextTaskIfNeeded(
+        previousTask: previousTask,
+        wasCurrentTask: wasCurrentTask,
+      );
+    }
     _handleCurrentTaskCompletion(taskWithTimestamp);
     _emitCompletionEventIfNeeded(previousTask, taskWithTimestamp);
     await _syncReminderForTask(taskWithTimestamp);
@@ -243,6 +250,7 @@ class TaskProvider with ChangeNotifier {
     }
 
     final Task task = _tasks[index];
+    final bool wasCurrentTask = _currentTaskId == task.id;
     late final TaskStatus newStatus;
     DateTime? completedAt;
 
@@ -271,6 +279,12 @@ class TaskProvider with ChangeNotifier {
 
     _tasks[index] = updatedTask;
     _sortTasks();
+    if (updatedTask.status == TaskStatus.completed) {
+      await _transferSessionReminderToNextTaskIfNeeded(
+        previousTask: task,
+        wasCurrentTask: wasCurrentTask,
+      );
+    }
     _handleCurrentTaskCompletion(updatedTask);
     _emitCompletionEventIfNeeded(task, updatedTask);
     await _syncReminderForTask(updatedTask);
@@ -309,6 +323,7 @@ class TaskProvider with ChangeNotifier {
     }
 
     final Task previousTask = _tasks[index];
+    final bool wasCurrentTask = _currentTaskId == previousTask.id;
     final Task updatedTask = previousTask.copyWith(
       status: TaskStatus.completed,
       completedAt: DateTime.now(),
@@ -319,6 +334,10 @@ class TaskProvider with ChangeNotifier {
     _pushIfSyncing(updatedTask);
 
     _tasks[index] = updatedTask;
+    await _transferSessionReminderToNextTaskIfNeeded(
+      previousTask: previousTask,
+      wasCurrentTask: wasCurrentTask,
+    );
     _handleCurrentTaskCompletion(updatedTask);
     _emitCompletionEventIfNeeded(previousTask, updatedTask);
     await _syncReminderForTask(updatedTask);
@@ -332,6 +351,7 @@ class TaskProvider with ChangeNotifier {
 
     if (taskId != null) {
       await moveTaskToInProgress(taskId);
+      await _ensureSessionReminderOnCurrentTask(taskId);
     }
 
     notifyListeners();
@@ -424,6 +444,125 @@ class TaskProvider with ChangeNotifier {
       channelName: strings.taskReminderChannelName,
       channelDescription: strings.taskReminderChannelDescription,
     );
+  }
+
+  Future<void> _ensureSessionReminderOnCurrentTask(String taskId) async {
+    final AppSettings settings = _ref.read(settingsProvider);
+    if (!settings.notifications || !settings.defaultTaskReminderEnabled) {
+      return;
+    }
+
+    final int index = _tasks.indexWhere((Task task) => task.id == taskId);
+    if (index == -1) {
+      return;
+    }
+
+    final Task task = _tasks[index];
+    if (task.deletedAt != null ||
+        task.status == TaskStatus.completed ||
+        task.dailyReminderTime != null) {
+      return;
+    }
+
+    final bool anotherActiveReminderExists = _tasks.any(
+      (Task otherTask) =>
+          otherTask.id != task.id &&
+          otherTask.deletedAt == null &&
+          otherTask.status != TaskStatus.completed &&
+          otherTask.dailyReminderTime != null,
+    );
+    if (anotherActiveReminderExists) {
+      return;
+    }
+
+    final Task updatedTask = task.copyWith(
+      dailyReminderTime: settings.defaultTaskReminderTime,
+      updatedAt: DateTime.now(),
+    );
+
+    await _repository.updateTask(updatedTask);
+    _pushIfSyncing(updatedTask);
+    _tasks[index] = updatedTask;
+    await _syncReminderForTask(updatedTask);
+  }
+
+  Future<void> _transferSessionReminderToNextTaskIfNeeded({
+    required Task previousTask,
+    required bool wasCurrentTask,
+  }) async {
+    if (!wasCurrentTask || previousTask.dailyReminderTime == null) {
+      return;
+    }
+
+    final AppSettings settings = _ref.read(settingsProvider);
+    if (!settings.defaultTaskReminderEnabled) {
+      return;
+    }
+
+    final String? sessionId = previousTask.aiSessionId;
+    if (sessionId == null || sessionId.isEmpty) {
+      return;
+    }
+
+    final bool anotherActiveReminderExists = _tasks.any(
+      (Task task) =>
+          task.id != previousTask.id &&
+          task.deletedAt == null &&
+          task.status != TaskStatus.completed &&
+          task.aiSessionId == sessionId &&
+          task.dailyReminderTime != null,
+    );
+    if (anotherActiveReminderExists) {
+      return;
+    }
+
+    final Task? nextTask = _findNextIncompleteTaskAfter(previousTask.id);
+    if (nextTask == null || nextTask.dailyReminderTime != null) {
+      return;
+    }
+
+    final Task updatedNextTask = nextTask.copyWith(
+      dailyReminderTime: previousTask.dailyReminderTime,
+      updatedAt: DateTime.now(),
+    );
+    final int nextIndex = _tasks.indexWhere(
+      (Task task) => task.id == updatedNextTask.id,
+    );
+    if (nextIndex == -1) {
+      return;
+    }
+
+    await _repository.updateTask(updatedNextTask);
+    _pushIfSyncing(updatedNextTask);
+    _tasks[nextIndex] = updatedNextTask;
+    await _syncReminderForTask(updatedNextTask);
+  }
+
+  Task? _findNextIncompleteTaskAfter(String taskId) {
+    final int currentIndex = _tasks.indexWhere(
+      (Task task) => task.id == taskId,
+    );
+    if (currentIndex == -1) {
+      return null;
+    }
+
+    final String? sessionId = _tasks[currentIndex].aiSessionId;
+    if (sessionId == null || sessionId.isEmpty) {
+      return null;
+    }
+
+    for (int offset = 1; offset < _tasks.length; offset++) {
+      final Task candidate = _tasks[(currentIndex + offset) % _tasks.length];
+      if (candidate.aiSessionId != sessionId) {
+        continue;
+      }
+      if (candidate.deletedAt == null &&
+          candidate.status != TaskStatus.completed) {
+        return candidate;
+      }
+    }
+
+    return null;
   }
 
   void _handleCurrentTaskCompletion(Task task) {

@@ -142,6 +142,47 @@ Future<void> _flushMicrotasks() async {
 
 void main() {
   group('Task reminders', () {
+    test(
+      'selecting current task applies the default session reminder',
+      () async {
+        SharedPreferences.setMockInitialValues(<String, Object>{
+          'settings_notifications': true,
+          'settings_default_task_reminder_enabled': true,
+          'settings_default_task_reminder_time': '09:00',
+        });
+        final _FakeFocusRepository repository = _FakeFocusRepository(
+          tasks: <Task>[
+            Task(
+              id: 'task-1',
+              title: 'Plan day',
+              pomodoroCount: 1,
+              priority: TaskPriority.medium,
+              status: TaskStatus.pending,
+              createdAt: DateTime(2026, 3, 31, 9, 0),
+            ),
+          ],
+        );
+        final _FakeNotificationClient notifications = _FakeNotificationClient();
+        final ProviderContainer container = ProviderContainer(
+          overrides: <Override>[
+            focusRepositoryProvider.overrideWithValue(repository),
+            notificationClientProvider.overrideWithValue(notifications),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await container.read(taskProvider.notifier).reloadTasks();
+        await _flushMicrotasks();
+        await container.read(taskProvider.notifier).setCurrentTask('task-1');
+
+        expect(
+          container.read(taskProvider).currentTask?.dailyReminderTime,
+          '09:00',
+        );
+        expect(notifications.scheduledTaskIds, contains('task-1'));
+      },
+    );
+
     test('adding a task with daily reminder schedules a reminder', () async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final _FakeFocusRepository repository = _FakeFocusRepository();
@@ -215,6 +256,120 @@ void main() {
         expect(notifications.canceledTaskIds, contains('task-1'));
         expect(event?.taskId, equals('task-1'));
         expect(event?.taskTitle, equals('Ship release'));
+      },
+    );
+
+    test(
+      'completing the current reminded task moves reminder to the next unfinished task',
+      () async {
+        SharedPreferences.setMockInitialValues(<String, Object>{
+          'currentTaskId': 'task-1',
+          'settings_notifications': true,
+          'settings_default_task_reminder_enabled': true,
+        });
+        final _FakeFocusRepository repository = _FakeFocusRepository(
+          tasks: <Task>[
+            Task(
+              id: 'task-1',
+              title: 'Task 1',
+              pomodoroCount: 1,
+              priority: TaskPriority.high,
+              status: TaskStatus.inProgress,
+              createdAt: DateTime(2026, 3, 31, 11, 0),
+              isAIGenerated: true,
+              aiSessionId: 'session-a',
+              dailyReminderTime: '09:00',
+            ),
+            Task(
+              id: 'task-2',
+              title: 'Task 2',
+              pomodoroCount: 1,
+              priority: TaskPriority.medium,
+              status: TaskStatus.pending,
+              createdAt: DateTime(2026, 3, 31, 10, 0),
+              isAIGenerated: true,
+              aiSessionId: 'session-a',
+            ),
+          ],
+        );
+        final _FakeNotificationClient notifications = _FakeNotificationClient();
+        final ProviderContainer container = ProviderContainer(
+          overrides: <Override>[
+            focusRepositoryProvider.overrideWithValue(repository),
+            notificationClientProvider.overrideWithValue(notifications),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await container.read(taskProvider.notifier).reloadTasks();
+        await _flushMicrotasks();
+        await container
+            .read(taskProvider.notifier)
+            .markTaskAsCompleted('task-1');
+
+        final Task nextTask = container.read(taskProvider).pendingTasks.single;
+
+        expect(nextTask.id, equals('task-2'));
+        expect(nextTask.dailyReminderTime, equals('09:00'));
+        expect(notifications.canceledTaskIds, contains('task-1'));
+        expect(notifications.scheduledTaskIds, contains('task-2'));
+      },
+    );
+
+    test(
+      'reminder does not jump to another section after the section is completed',
+      () async {
+        SharedPreferences.setMockInitialValues(<String, Object>{
+          'currentTaskId': 'task-2',
+          'settings_notifications': true,
+          'settings_default_task_reminder_enabled': true,
+        });
+        final _FakeFocusRepository repository = _FakeFocusRepository(
+          tasks: <Task>[
+            Task(
+              id: 'task-3',
+              title: 'Other section task',
+              pomodoroCount: 1,
+              priority: TaskPriority.medium,
+              status: TaskStatus.pending,
+              createdAt: DateTime(2026, 3, 31, 12, 0),
+              isAIGenerated: true,
+              aiSessionId: 'session-b',
+            ),
+            Task(
+              id: 'task-2',
+              title: 'Last task in section',
+              pomodoroCount: 1,
+              priority: TaskPriority.high,
+              status: TaskStatus.inProgress,
+              createdAt: DateTime(2026, 3, 31, 11, 0),
+              isAIGenerated: true,
+              aiSessionId: 'session-a',
+              dailyReminderTime: '09:00',
+            ),
+          ],
+        );
+        final _FakeNotificationClient notifications = _FakeNotificationClient();
+        final ProviderContainer container = ProviderContainer(
+          overrides: <Override>[
+            focusRepositoryProvider.overrideWithValue(repository),
+            notificationClientProvider.overrideWithValue(notifications),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await container.read(taskProvider.notifier).reloadTasks();
+        await _flushMicrotasks();
+        await container
+            .read(taskProvider.notifier)
+            .markTaskAsCompleted('task-2');
+
+        final Task remainingTask = repository.tasks.firstWhere(
+          (Task task) => task.id == 'task-3',
+        );
+        expect(remainingTask.dailyReminderTime, isNull);
+        expect(notifications.scheduledTaskIds, isNot(contains('task-3')));
+        expect(notifications.canceledTaskIds, contains('task-2'));
       },
     );
 

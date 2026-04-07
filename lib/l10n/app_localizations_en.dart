@@ -551,6 +551,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vibrationSubtitle => 'Vibrate when timer ends';
 
   @override
+  String get defaultTaskReminder => 'Default Task Reminder';
+
+  @override
+  String get defaultTaskReminderSubtitle =>
+      'Automatically turn on the daily reminder for the current session task';
+
+  @override
+  String get defaultTaskReminderTime => 'Default Task Reminder Time';
+
+  @override
+  String get defaultTaskReminderTimeSubtitle =>
+      'Moves to the next unfinished task after the current one is completed';
+
+  @override
   String get soundBell => 'Bell';
 
   @override

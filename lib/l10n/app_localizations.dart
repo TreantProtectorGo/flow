@@ -1101,6 +1101,30 @@ abstract class AppLocalizations {
   /// **'時間結束時震動提醒'**
   String get vibrationSubtitle;
 
+  /// No description provided for @defaultTaskReminder.
+  ///
+  /// In zh, this message translates to:
+  /// **'預設任務提醒'**
+  String get defaultTaskReminder;
+
+  /// No description provided for @defaultTaskReminderSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'自動為目前 session 任務開啟每日提醒'**
+  String get defaultTaskReminderSubtitle;
+
+  /// No description provided for @defaultTaskReminderTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'預設任務提醒時間'**
+  String get defaultTaskReminderTime;
+
+  /// No description provided for @defaultTaskReminderTimeSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成目前任務後，會自動移到下一個未完成任務'**
+  String get defaultTaskReminderTimeSubtitle;
+
   /// No description provided for @soundBell.
   ///
   /// In zh, this message translates to:

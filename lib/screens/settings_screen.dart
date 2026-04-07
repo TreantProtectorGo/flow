@@ -66,6 +66,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     }
 
+    String getReminderTimeString(String value) {
+      final List<String> parts = value.split(':');
+      final TimeOfDay time = TimeOfDay(
+        hour: int.tryParse(parts.first) ?? 9,
+        minute: parts.length > 1 ? int.tryParse(parts.last) ?? 0 : 0,
+      );
+      return MaterialLocalizations.of(context).formatTimeOfDay(time);
+    }
+
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
@@ -232,6 +241,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onChanged: (value) {
                   ref.read(settingsProvider.notifier).setVibration(value);
                 },
+              ),
+            ),
+            _buildSettingTile(
+              icon: Icons.notifications_active_outlined,
+              iconColor: theme.colorScheme.secondary,
+              title: AppLocalizations.of(context)!.defaultTaskReminder,
+              subtitle: AppLocalizations.of(
+                context,
+              )!.defaultTaskReminderSubtitle,
+              trailing: Switch(
+                value: appSettings.defaultTaskReminderEnabled,
+                onChanged: (value) {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setDefaultTaskReminderEnabled(value);
+                },
+              ),
+            ),
+            _buildSettingTile(
+              icon: Icons.schedule,
+              iconColor: theme.colorScheme.secondary,
+              title: AppLocalizations.of(context)!.defaultTaskReminderTime,
+              subtitle: AppLocalizations.of(
+                context,
+              )!.defaultTaskReminderTimeSubtitle,
+              valueText: getReminderTimeString(
+                appSettings.defaultTaskReminderTime,
+              ),
+              onTap: () => _pickDefaultTaskReminderTime(
+                context,
+                ref,
+                appSettings.defaultTaskReminderTime,
               ),
             ),
 
@@ -455,5 +496,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _pickDefaultTaskReminderTime(
+    BuildContext context,
+    WidgetRef ref,
+    String currentValue,
+  ) async {
+    final List<String> parts = currentValue.split(':');
+    final TimeOfDay initialTime = TimeOfDay(
+      hour: int.tryParse(parts.first) ?? 9,
+      minute: parts.length > 1 ? int.tryParse(parts.last) ?? 0 : 0,
+    );
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+    if (selectedTime == null) {
+      return;
+    }
+
+    final String encodedTime =
+        '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}';
+    ref.read(settingsProvider.notifier).setDefaultTaskReminderTime(encodedTime);
   }
 }

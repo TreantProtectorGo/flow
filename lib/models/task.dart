@@ -4,6 +4,8 @@ enum TaskPriority { low, medium, high }
 
 enum TaskStatus { pending, inProgress, completed }
 
+const Object _noTaskFieldChange = Object();
+
 class Task {
   final String id;
   final String title;
@@ -42,36 +44,48 @@ class Task {
   Task copyWith({
     String? id,
     String? title,
-    String? description,
+    Object? description = _noTaskFieldChange,
     int? pomodoroCount,
     int? completedPomodoros,
     TaskPriority? priority,
     TaskStatus? status,
     DateTime? createdAt,
-    DateTime? completedAt,
+    Object? completedAt = _noTaskFieldChange,
     bool? isAIGenerated,
-    String? aiSessionId,
-    String? aiSessionTitle,
+    Object? aiSessionId = _noTaskFieldChange,
+    Object? aiSessionTitle = _noTaskFieldChange,
     DateTime? updatedAt,
-    DateTime? deletedAt,
-    String? dailyReminderTime,
+    Object? deletedAt = _noTaskFieldChange,
+    Object? dailyReminderTime = _noTaskFieldChange,
   }) {
     return Task(
       id: id ?? this.id,
       title: title ?? this.title,
-      description: description ?? this.description,
+      description: identical(description, _noTaskFieldChange)
+          ? this.description
+          : description as String?,
       pomodoroCount: pomodoroCount ?? this.pomodoroCount,
       completedPomodoros: completedPomodoros ?? this.completedPomodoros,
       priority: priority ?? this.priority,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
-      completedAt: completedAt ?? this.completedAt,
+      completedAt: identical(completedAt, _noTaskFieldChange)
+          ? this.completedAt
+          : completedAt as DateTime?,
       isAIGenerated: isAIGenerated ?? this.isAIGenerated,
-      aiSessionId: aiSessionId ?? this.aiSessionId,
-      aiSessionTitle: aiSessionTitle ?? this.aiSessionTitle,
+      aiSessionId: identical(aiSessionId, _noTaskFieldChange)
+          ? this.aiSessionId
+          : aiSessionId as String?,
+      aiSessionTitle: identical(aiSessionTitle, _noTaskFieldChange)
+          ? this.aiSessionTitle
+          : aiSessionTitle as String?,
       updatedAt: updatedAt ?? this.updatedAt,
-      deletedAt: deletedAt ?? this.deletedAt,
-      dailyReminderTime: dailyReminderTime ?? this.dailyReminderTime,
+      deletedAt: identical(deletedAt, _noTaskFieldChange)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
+      dailyReminderTime: identical(dailyReminderTime, _noTaskFieldChange)
+          ? this.dailyReminderTime
+          : dailyReminderTime as String?,
     );
   }
 

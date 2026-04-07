@@ -544,6 +544,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get vibrationSubtitle => '時間結束時震動提醒';
 
   @override
+  String get defaultTaskReminder => '預設任務提醒';
+
+  @override
+  String get defaultTaskReminderSubtitle => '自動為目前 session 任務開啟每日提醒';
+
+  @override
+  String get defaultTaskReminderTime => '預設任務提醒時間';
+
+  @override
+  String get defaultTaskReminderTimeSubtitle => '完成目前任務後，會自動移到下一個未完成任務';
+
+  @override
   String get soundBell => '鈴鐺';
 
   @override
@@ -1643,6 +1655,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get vibrationSubtitle => '時間結束時震動提醒';
+
+  @override
+  String get defaultTaskReminder => '預設任務提醒';
+
+  @override
+  String get defaultTaskReminderSubtitle => '自動為目前 session 任務開啟每日提醒';
+
+  @override
+  String get defaultTaskReminderTime => '預設任務提醒時間';
+
+  @override
+  String get defaultTaskReminderTimeSubtitle => '完成目前任務後，會自動移到下一個未完成任務';
 
   @override
   String get soundBell => '鈴鐺';

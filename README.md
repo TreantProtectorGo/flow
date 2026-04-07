@@ -1,8 +1,26 @@
 # Flow
 
+<p align="center">
+  <img src="../appstore.png" alt="Flow app icon" width="160" />
+</p>
+
+<p align="center">
+  <a href="https://apps.apple.com/us/app/flow-ai-focus-planner/id6761019011">Download on the App Store</a>
+</p>
+
 Flow is a cross-platform productivity app built with Flutter. It combines Pomodoro timeboxing, task management, AI-assisted task planning, and optional cloud sync in one clean workflow.
 
 This project is designed as a production-style portfolio app that demonstrates end-to-end product thinking across mobile UX, local persistence, backend AI streaming, and Firebase cloud infrastructure.
+
+Flow is publicly available on iOS via the App Store.
+
+## Preview
+
+<p align="center">
+  <img src="../time.png" alt="Flow timer screen" width="30%" />
+  <img src="../task.png" alt="Flow tasks screen" width="30%" />
+  <img src="../ai_chat_planning.png" alt="Flow AI chat planning screen" width="30%" />
+</p>
 
 ## Highlights
 
@@ -95,4 +113,4 @@ Cloud sync is optional. When a user signs in with Google, tasks are mirrored to 
 
 ## Status
 
-Active personal project — core features complete, cloud sync live, AI chat history persistent.
+Active personal project — publicly available on the App Store, core features complete, cloud sync live, AI chat history persistent.

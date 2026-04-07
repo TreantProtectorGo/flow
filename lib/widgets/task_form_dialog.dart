@@ -30,6 +30,7 @@ class _TaskFormDialogState extends ConsumerState<TaskFormDialog> {
   TaskStatus _selectedStatus = TaskStatus.pending;
   bool _reminderEnabled = false;
   TimeOfDay _selectedReminderTime = const TimeOfDay(hour: 9, minute: 0);
+  bool _hasCustomizedReminderSettings = false;
 
   bool get isEditing => widget.task != null;
 
@@ -49,6 +50,7 @@ class _TaskFormDialogState extends ConsumerState<TaskFormDialog> {
       }
     } else {
       _pomodoroCountController.text = '1';
+      _applyReminderDefaults(ref.read(settingsProvider));
     }
   }
 
@@ -73,6 +75,30 @@ class _TaskFormDialogState extends ConsumerState<TaskFormDialog> {
     }
 
     final bool notificationsEnabled = ref.watch(settingsProvider).notifications;
+    final settings = ref.watch(settingsProvider);
+
+    if (!isEditing && !_hasCustomizedReminderSettings) {
+      final bool expectedReminderEnabled =
+          settings.notifications && settings.defaultTaskReminderEnabled;
+      final TimeOfDay expectedReminderTime = _parseReminderTime(
+        settings.defaultTaskReminderTime,
+      );
+      final bool reminderChanged = _reminderEnabled != expectedReminderEnabled;
+      final bool timeChanged =
+          _selectedReminderTime.hour != expectedReminderTime.hour ||
+          _selectedReminderTime.minute != expectedReminderTime.minute;
+
+      if (reminderChanged || timeChanged) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || isEditing || _hasCustomizedReminderSettings) {
+            return;
+          }
+          setState(() {
+            _applyReminderDefaults(settings);
+          });
+        });
+      }
+    }
 
     return AlertDialog(
       title: Text(isEditing ? l10n.editTask : l10n.addTask),
@@ -424,6 +450,7 @@ class _TaskFormDialogState extends ConsumerState<TaskFormDialog> {
                 onChanged: notificationsEnabled
                     ? (bool value) {
                         setState(() {
+                          _hasCustomizedReminderSettings = true;
                           _reminderEnabled = value;
                         });
                       }
@@ -463,9 +490,18 @@ class _TaskFormDialogState extends ConsumerState<TaskFormDialog> {
 
     if (selectedTime != null) {
       setState(() {
+        _hasCustomizedReminderSettings = true;
         _selectedReminderTime = selectedTime;
       });
     }
+  }
+
+  void _applyReminderDefaults(AppSettings settings) {
+    _reminderEnabled =
+        settings.notifications && settings.defaultTaskReminderEnabled;
+    _selectedReminderTime = _parseReminderTime(
+      settings.defaultTaskReminderTime,
+    );
   }
 
   void _submitForm() {
@@ -511,9 +547,12 @@ class _TaskFormDialogState extends ConsumerState<TaskFormDialog> {
 
   TimeOfDay _parseReminderTime(String value) {
     final List<String> parts = value.split(':');
+    if (parts.length != 2) {
+      return const TimeOfDay(hour: 9, minute: 0);
+    }
     return TimeOfDay(
-      hour: int.parse(parts.first),
-      minute: int.parse(parts.last),
+      hour: int.tryParse(parts.first) ?? 9,
+      minute: int.tryParse(parts.last) ?? 0,
     );
   }
 
