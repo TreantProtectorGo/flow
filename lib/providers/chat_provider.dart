@@ -41,16 +41,18 @@ class ChatState {
     List<ChatSession>? sessions,
     Object? currentSessionId = _chatStateNoValue,
     bool? isLoading,
-    String? error,
+    Object? error = _chatStateNoValue,
   }) {
     return ChatState(
       messages: messages ?? this.messages,
       sessions: sessions ?? this.sessions,
-      currentSessionId: currentSessionId == _chatStateNoValue
+      currentSessionId: identical(currentSessionId, _chatStateNoValue)
           ? this.currentSessionId
           : currentSessionId as String?,
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
+      error: identical(error, _chatStateNoValue)
+          ? this.error
+          : error as String?,
     );
   }
 }
@@ -62,6 +64,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   final _uuid = const Uuid();
   final DatabaseHelper _db = DatabaseHelper.instance;
+  static const int _maxAIResponseAttempts = 2;
 
   Future<void> _initializeChat() async {
     try {
@@ -191,57 +194,113 @@ class ChatNotifier extends StateNotifier<ChatState> {
       error: null,
     );
 
-    try {
-      // 準備歷史記錄
-      final history = state.messages
-          .where((msg) => msg.id != aiMessageId)
-          .map(
-            (msg) => {
-              'role': msg.role == MessageRole.user ? 'user' : 'assistant',
-              'content': msg.content,
-            },
-          )
-          .toList();
+    Object? lastError;
+    for (int attempt = 1; attempt <= _maxAIResponseAttempts; attempt++) {
+      try {
+        await _generateAIResponseAttempt(
+          userMessage: userMessage,
+          aiMessageId: aiMessageId,
+        );
+        return;
+      } catch (e) {
+        lastError = e;
+        debugPrint(
+          'AI response attempt $attempt/$_maxAIResponseAttempts failed: $e',
+        );
 
-      // 發送請求到後端
-      final request = http.Request('POST', Uri.parse(ApiConfig.chatEndpoint));
-      request.headers['Content-Type'] = 'application/json';
-      request.body = jsonEncode({'message': userMessage, 'history': history});
-
-      final response = await request.send();
-
-      if (response.statusCode != 200) {
-        throw Exception('Backend error: ${response.statusCode}');
+        if (attempt < _maxAIResponseAttempts) {
+          _resetStreamingMessage(aiMessageId);
+          await Future<void>.delayed(const Duration(seconds: 1));
+          continue;
+        }
       }
+    }
 
-      String fullContent = '';
-      bool detectedTaskPlan = false;
-      String displayContent = '';
+    // Remove only the placeholder AI message, keep user messages
+    final updatedMessages = state.messages
+        .where((msg) => msg.id != aiMessageId)
+        .toList();
 
-      // 讀取 SSE 流
-      await for (final chunk in response.stream.transform(utf8.decoder)) {
-        final lines = chunk.split('\n');
+    state = state.copyWith(
+      messages: updatedMessages,
+      error: '[AI_RESPONSE_FAILED]: $lastError',
+      isLoading: false,
+    );
+  }
 
-        for (final line in lines) {
-          if (line.startsWith('data: ')) {
-            final data = line.substring(6);
+  Future<void> _generateAIResponseAttempt({
+    required String userMessage,
+    required String aiMessageId,
+  }) async {
+    // 準備歷史記錄
+    final history = state.messages
+        .where((msg) => msg.id != aiMessageId)
+        .map(
+          (msg) => {
+            'role': msg.role == MessageRole.user ? 'user' : 'assistant',
+            'content': msg.content,
+          },
+        )
+        .toList();
 
-            if (data == '[DONE]') {
+    // 發送請求到後端
+    final request = http.Request('POST', Uri.parse(ApiConfig.chatEndpoint));
+    request.headers['Content-Type'] = 'application/json';
+    request.body = jsonEncode({'message': userMessage, 'history': history});
+
+    final response = await request.send();
+
+    if (response.statusCode != 200) {
+      throw Exception('Backend error: ${response.statusCode}');
+    }
+
+    String fullContent = '';
+    bool detectedTaskPlan = false;
+    String displayContent = '';
+
+    // 讀取 SSE 流
+    await for (final chunk in response.stream.transform(utf8.decoder)) {
+      final lines = chunk.split('\n');
+
+      for (final line in lines) {
+        if (line.startsWith('data: ')) {
+          final data = line.substring(6);
+
+          if (data == '[DONE]') {
+            continue;
+          }
+
+          try {
+            final json = jsonDecode(data);
+            final chunkText = json['text'] as String? ?? '';
+            fullContent += chunkText;
+
+            // 檢查是否遇到任務計劃標記
+            if (!detectedTaskPlan &&
+                fullContent.contains('[TASK_PLAN_READY]')) {
+              detectedTaskPlan = true;
+              displayContent = fullContent
+                  .substring(0, fullContent.indexOf('[TASK_PLAN_READY]'))
+                  .trim();
+
+              final updatedMessages = state.messages.map((msg) {
+                if (msg.id == aiMessageId) {
+                  return msg.copyWith(
+                    content: displayContent,
+                    isStreaming: true,
+                  );
+                }
+                return msg;
+              }).toList();
+
+              state = state.copyWith(messages: updatedMessages);
               continue;
             }
 
-            try {
-              final json = jsonDecode(data);
-              final chunkText = json['text'] as String? ?? '';
-              fullContent += chunkText;
-
-              // 檢查是否遇到任務計劃標記
-              if (!detectedTaskPlan &&
-                  fullContent.contains('[TASK_PLAN_READY]')) {
-                detectedTaskPlan = true;
-                displayContent = fullContent
-                    .substring(0, fullContent.indexOf('[TASK_PLAN_READY]'))
-                    .trim();
+            // 如果還沒遇到標記，逐字顯示
+            if (!detectedTaskPlan) {
+              for (int i = 0; i < chunkText.length; i++) {
+                displayContent += chunkText[i];
 
                 final updatedMessages = state.messages.map((msg) {
                   if (msg.id == aiMessageId) {
@@ -254,98 +313,78 @@ class ChatNotifier extends StateNotifier<ChatState> {
                 }).toList();
 
                 state = state.copyWith(messages: updatedMessages);
-                continue;
+                await Future.delayed(const Duration(milliseconds: 20));
               }
-
-              // 如果還沒遇到標記，逐字顯示
-              if (!detectedTaskPlan) {
-                for (int i = 0; i < chunkText.length; i++) {
-                  displayContent += chunkText[i];
-
-                  final updatedMessages = state.messages.map((msg) {
-                    if (msg.id == aiMessageId) {
-                      return msg.copyWith(
-                        content: displayContent,
-                        isStreaming: true,
-                      );
-                    }
-                    return msg;
-                  }).toList();
-
-                  state = state.copyWith(messages: updatedMessages);
-                  await Future.delayed(const Duration(milliseconds: 20));
-                }
-              }
-            } catch (e) {
-              // 忽略解析錯誤
             }
+          } catch (e) {
+            // 忽略解析錯誤
           }
         }
       }
+    }
 
-      // 處理任務計劃
-      TaskPlan? taskPlan;
+    // 處理任務計劃
+    TaskPlan? taskPlan;
 
-      if (fullContent.contains('[TASK_PLAN_READY]')) {
-        try {
-          final startMarker = '[TASK_PLAN_READY]';
-          final endMarker = '[/TASK_PLAN_READY]';
-          final startIndex = fullContent.indexOf(startMarker);
-          final endIndex = fullContent.indexOf(endMarker);
-
-          if (startIndex != -1 && endIndex != -1) {
-            final jsonStr = fullContent
-                .substring(startIndex + startMarker.length, endIndex)
-                .trim();
-
-            final jsonData = jsonDecode(jsonStr) as Map<String, dynamic>;
-            taskPlan = TaskPlan.fromJson(jsonData);
-
-            displayContent = fullContent.substring(0, startIndex).trim();
-          }
-        } catch (e) {
-          debugPrint('Failed to parse task plan: $e');
-        }
-      }
-
-      // 標記 streaming 結束
-      final updatedMessages = state.messages.map((msg) {
-        if (msg.id == aiMessageId) {
-          return msg.copyWith(
-            content: displayContent,
-            isStreaming: false,
-            taskPlan: taskPlan,
-          );
-        }
-        return msg;
-      }).toList();
-
-      state = state.copyWith(messages: updatedMessages, isLoading: false);
-      final finalMessage = updatedMessages.firstWhere(
-        (msg) => msg.id == aiMessageId,
-      );
+    if (fullContent.contains('[TASK_PLAN_READY]')) {
       try {
-        final activeSessionId = state.currentSessionId;
-        if (activeSessionId != null) {
-          await _db.insertChatMessage(finalMessage, sessionId: activeSessionId);
-          await _db.touchChatSession(activeSessionId);
-          await _reloadSessions(currentSessionId: activeSessionId);
+        final startMarker = '[TASK_PLAN_READY]';
+        final endMarker = '[/TASK_PLAN_READY]';
+        final startIndex = fullContent.indexOf(startMarker);
+        final endIndex = fullContent.indexOf(endMarker);
+
+        if (startIndex != -1 && endIndex != -1) {
+          final jsonStr = fullContent
+              .substring(startIndex + startMarker.length, endIndex)
+              .trim();
+
+          final jsonData = jsonDecode(jsonStr) as Map<String, dynamic>;
+          taskPlan = TaskPlan.fromJson(jsonData);
+
+          displayContent = fullContent.substring(0, startIndex).trim();
         }
       } catch (e) {
-        debugPrint('Failed to persist assistant message: $e');
+        debugPrint('Failed to parse task plan: $e');
+      }
+    }
+
+    // 標記 streaming 結束
+    final updatedMessages = state.messages.map((msg) {
+      if (msg.id == aiMessageId) {
+        return msg.copyWith(
+          content: displayContent,
+          isStreaming: false,
+          taskPlan: taskPlan,
+        );
+      }
+      return msg;
+    }).toList();
+
+    state = state.copyWith(messages: updatedMessages, isLoading: false);
+    final finalMessage = updatedMessages.firstWhere(
+      (msg) => msg.id == aiMessageId,
+    );
+    try {
+      final activeSessionId = state.currentSessionId;
+      if (activeSessionId != null) {
+        await _db.insertChatMessage(finalMessage, sessionId: activeSessionId);
+        await _db.touchChatSession(activeSessionId);
+        await _reloadSessions(currentSessionId: activeSessionId);
       }
     } catch (e) {
-      // Remove only the placeholder AI message, keep user messages
-      final updatedMessages = state.messages
-          .where((msg) => msg.id != aiMessageId)
-          .toList();
-
-      state = state.copyWith(
-        messages: updatedMessages,
-        error: '[AI_RESPONSE_FAILED]: $e',
-        isLoading: false,
-      );
+      debugPrint('Failed to persist assistant message: $e');
     }
+  }
+
+  void _resetStreamingMessage(String aiMessageId) {
+    final updatedMessages = state.messages.map((msg) {
+      if (msg.id == aiMessageId) {
+        return msg.copyWith(content: '', isStreaming: true, taskPlan: null);
+      }
+      return msg;
+    }).toList();
+
+    state = state.copyWith(messages: updatedMessages, error: null);
   }
 
   // 清空對話
