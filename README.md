@@ -84,6 +84,36 @@ flutter pub get
 
 ### Run Locally
 
+Run the app with the local AI backend:
+
+```bash
+scripts/run_local_ai.sh
+```
+
+By default this uses `API_BASE_URL=http://localhost:3000`, which is the right setting for iOS Simulator, macOS, and Chrome.
+
+Pass normal `flutter run` arguments after the script name:
+
+```bash
+scripts/run_local_ai.sh -d "iPhone Air"
+```
+
+For a real iPhone, add `--real-device` so the script uses your Mac LAN IP instead of `localhost`:
+
+```bash
+scripts/run_local_ai.sh --real-device -d "Wing的iPhone"
+```
+
+If LAN IP detection fails, override it manually:
+
+```bash
+LAN_IP=192.168.1.23 scripts/run_local_ai.sh --real-device -d "Wing的iPhone"
+```
+
+The backend still needs a `.env` file in `focus-backend/` with an AI provider key such as `OPENROUTER_API_KEY` or `GEMINI_API_KEY`.
+
+Manual Flutter-only run:
+
 ```bash
 flutter run --dart-define=API_BASE_URL=http://localhost:3000
 ```
