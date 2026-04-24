@@ -2,11 +2,34 @@ import Flutter
 import EventKit
 import EventKitUI
 import UIKit
+import UserNotifications
+
+#if canImport(AlarmKit)
+import AlarmKit
+import SwiftUI
+#endif
+
+#if canImport(AlarmKit)
+@available(iOS 26.0, *)
+struct FocusTaskAlarmMetadata: AlarmMetadata {
+  let taskId: String
+  let nextTaskId: String?
+  let sectionId: String?
+  let phaseIndex: Int
+  let payloadType: String
+  let taskTitle: String
+  let pomodoroProgress: String
+}
+#endif
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, EKEventEditViewDelegate {
   private let eventStore = EKEventStore()
   private var pendingCalendarResult: FlutterResult?
+  private var taskTimerChannel: FlutterMethodChannel?
+  private var pendingTaskTimerPayload: [String: Any]?
+  private let taskTimerNotificationPrefix = "focus.taskTimer"
+  private let taskTimerAlarmIdsKeyPrefix = "focus.taskTimer.alarmIds"
 
   override func application(
     _ application: UIApplication,
@@ -20,6 +43,16 @@ import UIKit
     GeneratedPluginRegistrant.register(with: self)
 
     if let controller = window?.rootViewController as? FlutterViewController {
+      let taskTimerChannel = FlutterMethodChannel(
+        name: "focus/task_timer_system",
+        binaryMessenger: controller.binaryMessenger
+      )
+      self.taskTimerChannel = taskTimerChannel
+      taskTimerChannel.setMethodCallHandler { [weak self] call, result in
+        self?.handleTaskTimerCall(call, result: result)
+      }
+      flushPendingTaskTimerPayload()
+
       let channel = FlutterMethodChannel(
         name: "focus/calendar",
         binaryMessenger: controller.binaryMessenger
@@ -72,6 +105,365 @@ import UIKit
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  private func handleTaskTimerCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    switch call.method {
+    case "scheduleTaskTimeline":
+      guard let args = call.arguments as? [String: Any] else {
+        result(FlutterError(code: "BAD_ARGS", message: "Missing task timer plan", details: nil))
+        return
+      }
+      scheduleTaskTimeline(args, result: result)
+    case "cancelTaskTimeline":
+      guard
+        let args = call.arguments as? [String: Any],
+        let taskId = args["taskId"] as? String
+      else {
+        result(FlutterError(code: "BAD_ARGS", message: "Missing taskId", details: nil))
+        return
+      }
+      cancelTaskTimeline(taskId: taskId)
+      result(nil)
+    case "requestAuthorization":
+      requestTaskTimerAuthorization(result: result)
+    default:
+      result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private func requestTaskTimerAuthorization(result: @escaping FlutterResult) {
+    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in
+#if canImport(AlarmKit)
+      if #available(iOS 26.0, *) {
+        Task {
+          do {
+            let state = try await AlarmManager.shared.requestAuthorization()
+            DispatchQueue.main.async {
+              result(String(describing: state))
+            }
+          } catch {
+            DispatchQueue.main.async {
+              result(FlutterError(code: "AUTH_FAILED", message: error.localizedDescription, details: nil))
+            }
+          }
+        }
+        return
+      }
+#endif
+      DispatchQueue.main.async {
+        result("notificationsOnly")
+      }
+    }
+  }
+
+  private func scheduleTaskTimeline(_ args: [String: Any], result: @escaping FlutterResult) {
+    guard
+      let taskId = args["taskId"] as? String,
+      let taskTitle = args["taskTitle"] as? String,
+      let phases = args["phases"] as? [[String: Any]]
+    else {
+      result(FlutterError(code: "BAD_ARGS", message: "Invalid task timer plan", details: nil))
+      return
+    }
+
+    cancelTaskTimeline(taskId: taskId)
+
+    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] _, _ in
+      guard let self = self else { return }
+
+#if canImport(AlarmKit)
+      if #available(iOS 26.0, *) {
+        Task {
+          let alarmIdsByPhase = await self.scheduleAlarmKitTimeline(
+            taskId: taskId,
+            taskTitle: taskTitle,
+            sectionId: args["sectionId"] as? String,
+            nextTaskId: args["nextTaskId"] as? String,
+            phases: phases
+          )
+          UserDefaults.standard.set(
+            alarmIdsByPhase.values.map { $0.uuidString },
+            forKey: self.taskTimerAlarmIdsKey(taskId)
+          )
+          let alarmedPhaseIndexes = Set(alarmIdsByPhase.keys)
+          for phase in phases {
+            let phaseIndex = (phase["phaseIndex"] as? NSNumber)?.intValue ?? -1
+            if alarmedPhaseIndexes.contains(phaseIndex) {
+              continue
+            }
+            self.scheduleTaskTimerNotification(
+              taskId: taskId,
+              taskTitle: taskTitle,
+              sectionId: args["sectionId"] as? String,
+              nextTaskId: args["nextTaskId"] as? String,
+              nextTaskTitle: args["nextTaskTitle"] as? String,
+              phase: phase
+            )
+          }
+          DispatchQueue.main.async {
+            result(nil)
+          }
+        }
+        return
+      }
+#endif
+
+      for phase in phases {
+        self.scheduleTaskTimerNotification(
+          taskId: taskId,
+          taskTitle: taskTitle,
+          sectionId: args["sectionId"] as? String,
+          nextTaskId: args["nextTaskId"] as? String,
+          nextTaskTitle: args["nextTaskTitle"] as? String,
+          phase: phase
+        )
+      }
+
+      DispatchQueue.main.async {
+        result(nil)
+      }
+    }
+  }
+
+  private func scheduleTaskTimerNotification(
+    taskId: String,
+    taskTitle: String,
+    sectionId: String?,
+    nextTaskId: String?,
+    nextTaskTitle: String?,
+    phase: [String: Any]
+  ) {
+    guard
+      let phaseIndex = (phase["phaseIndex"] as? NSNumber)?.intValue,
+      let endAtMillis = (phase["endAt"] as? NSNumber)?.doubleValue
+    else {
+      return
+    }
+
+    let endAt = Date(timeIntervalSince1970: endAtMillis / 1000.0)
+    guard endAt > Date() else {
+      return
+    }
+
+    let content = UNMutableNotificationContent()
+    content.title = phase["alertTitle"] as? String ?? taskTitle
+    content.body = phase["alertBody"] as? String ?? ""
+    content.sound = .default
+    content.userInfo = taskTimerPayload(
+      taskId: taskId,
+      sectionId: sectionId,
+      nextTaskId: nextTaskId,
+      phaseIndex: phaseIndex,
+      payloadType: phase["payloadType"] as? String ?? "phaseEnd"
+    )
+
+    let components = Calendar.current.dateComponents(
+      [.year, .month, .day, .hour, .minute, .second],
+      from: endAt
+    )
+    let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+    let request = UNNotificationRequest(
+      identifier: taskTimerNotificationIdentifier(taskId: taskId, phaseIndex: phaseIndex),
+      content: content,
+      trigger: trigger
+    )
+    UNUserNotificationCenter.current().add(request)
+  }
+
+#if canImport(AlarmKit)
+  @available(iOS 26.0, *)
+  private func scheduleAlarmKitTimeline(
+    taskId: String,
+    taskTitle: String,
+    sectionId: String?,
+    nextTaskId: String?,
+    phases: [[String: Any]]
+  ) async -> [Int: UUID] {
+    do {
+      let authorization = try await AlarmManager.shared.requestAuthorization()
+      guard authorization == .authorized else {
+        return [:]
+      }
+    } catch {
+      return [:]
+    }
+
+    var alarmIdsByPhase: [Int: UUID] = [:]
+    for phase in phases {
+      guard
+        let phaseIndex = (phase["phaseIndex"] as? NSNumber)?.intValue,
+        let endAtMillis = (phase["endAt"] as? NSNumber)?.doubleValue
+      else {
+        continue
+      }
+
+      let endAt = Date(timeIntervalSince1970: endAtMillis / 1000.0)
+      guard endAt > Date() else {
+        continue
+      }
+
+      let title = phase["alertTitle"] as? String ?? taskTitle
+      let body = phase["alertBody"] as? String ?? ""
+      let payloadType = phase["payloadType"] as? String ?? "phaseEnd"
+      let completed = (phase["completedPomodorosAtEnd"] as? NSNumber)?.intValue ?? 0
+      let total = (phase["totalPomodoros"] as? NSNumber)?.intValue ?? 0
+      let progress = "\(completed)/\(total)"
+      let stopButton = AlarmButton(
+        text: localizedResource("Stop"),
+        textColor: .blue,
+        systemImageName: "stop.circle"
+      )
+      let pauseButton = AlarmButton(
+        text: localizedResource("Pause"),
+        textColor: .blue,
+        systemImageName: "pause.circle"
+      )
+      let resumeButton = AlarmButton(
+        text: localizedResource("Resume"),
+        textColor: .blue,
+        systemImageName: "play.circle"
+      )
+      let alert = AlarmPresentation.Alert(
+        title: localizedResource(title),
+        stopButton: stopButton
+      )
+      // Keep one AlarmKit countdown active at a time to avoid stacking multiple
+      // system timer presentations for a single task timeline.
+      guard phaseIndex == 0 else {
+        continue
+      }
+
+      let countdown = AlarmPresentation.Countdown(title: localizedResource(body.isEmpty ? taskTitle : body), pauseButton: pauseButton)
+      let paused = AlarmPresentation.Paused(title: localizedResource("Timer paused"), resumeButton: resumeButton)
+      let presentation = AlarmPresentation(alert: alert, countdown: countdown, paused: paused)
+      let metadata = FocusTaskAlarmMetadata(
+        taskId: taskId,
+        nextTaskId: nextTaskId,
+        sectionId: sectionId,
+        phaseIndex: phaseIndex,
+        payloadType: payloadType,
+        taskTitle: taskTitle,
+        pomodoroProgress: progress
+      )
+      let attributes = AlarmAttributes(
+        presentation: presentation,
+        metadata: metadata,
+        tintColor: .blue
+      )
+      let duration = max(1, endAt.timeIntervalSinceNow)
+      let configuration = AlarmManager.AlarmConfiguration.timer(
+        duration: duration,
+        attributes: attributes
+      )
+      let alarmId = UUID()
+
+      do {
+        _ = try await AlarmManager.shared.schedule(id: alarmId, configuration: configuration)
+        alarmIdsByPhase[phaseIndex] = alarmId
+      } catch {
+        continue
+      }
+    }
+
+    return alarmIdsByPhase
+  }
+
+  @available(iOS 26.0, *)
+  private func localizedResource(_ text: String) -> LocalizedStringResource {
+    LocalizedStringResource(String.LocalizationValue(stringLiteral: text))
+  }
+#endif
+
+  private func cancelTaskTimeline(taskId: String) {
+    UNUserNotificationCenter.current().getPendingNotificationRequests { [weak self] requests in
+      guard let self = self else { return }
+      let prefix = "\(self.taskTimerNotificationPrefix).\(taskId)."
+      let identifiers = requests
+        .map { $0.identifier }
+        .filter { $0.hasPrefix(prefix) }
+      UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
+    }
+
+#if canImport(AlarmKit)
+    if #available(iOS 26.0, *) {
+      let key = taskTimerAlarmIdsKey(taskId)
+      let alarmIdStrings = UserDefaults.standard.stringArray(forKey: key) ?? []
+      for alarmIdString in alarmIdStrings {
+        guard let alarmId = UUID(uuidString: alarmIdString) else {
+          continue
+        }
+        try? AlarmManager.shared.cancel(id: alarmId)
+      }
+      UserDefaults.standard.removeObject(forKey: key)
+    }
+#endif
+  }
+
+  private func taskTimerNotificationIdentifier(taskId: String, phaseIndex: Int) -> String {
+    "\(taskTimerNotificationPrefix).\(taskId).\(phaseIndex)"
+  }
+
+  private func taskTimerAlarmIdsKey(_ taskId: String) -> String {
+    "\(taskTimerAlarmIdsKeyPrefix).\(taskId)"
+  }
+
+  private func taskTimerPayload(
+    taskId: String,
+    sectionId: String?,
+    nextTaskId: String?,
+    phaseIndex: Int,
+    payloadType: String
+  ) -> [String: Any] {
+    [
+      "source": "taskTimer",
+      "type": payloadType,
+      "taskId": taskId,
+      "nextTaskId": nextTaskId as Any,
+      "sectionId": sectionId as Any,
+      "phaseIndex": phaseIndex,
+    ]
+  }
+
+  private func forwardTaskTimerPayload(_ payload: [String: Any]) {
+    if let channel = taskTimerChannel {
+      channel.invokeMethod("taskTimerPayload", arguments: payload)
+      return
+    }
+    pendingTaskTimerPayload = payload
+  }
+
+  private func flushPendingTaskTimerPayload() {
+    guard let payload = pendingTaskTimerPayload else {
+      return
+    }
+    pendingTaskTimerPayload = nil
+    forwardTaskTimerPayload(payload)
+  }
+
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    let userInfo = response.notification.request.content.userInfo
+    if userInfo["source"] as? String == "taskTimer" {
+      var payload: [String: Any] = [:]
+      for (key, value) in userInfo {
+        if let key = key as? String {
+          payload[key] = value
+        }
+      }
+      forwardTaskTimerPayload(payload)
+      completionHandler()
+      return
+    }
+
+    super.userNotificationCenter(
+      center,
+      didReceive: response,
+      withCompletionHandler: completionHandler
+    )
   }
 
   private func presentCalendarEditor(

@@ -541,6 +541,61 @@
   },
   "notificationTaskReminderChannelName": "Task Reminders",
   "notificationTaskReminderChannelDescription": "Daily reminders for pending tasks",
+  "notificationPomodoroFocusCompleteTitle": "Pomodoro {completed}/{total} complete",
+  "@notificationPomodoroFocusCompleteTitle": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationPomodoroStartBreakBody": "Start {breakName}",
+  "@notificationPomodoroStartBreakBody": {
+    "placeholders": {
+      "breakName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPomodoroBreakCompleteTitle": "{breakName} complete",
+  "@notificationPomodoroBreakCompleteTitle": {
+    "placeholders": {
+      "breakName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPomodoroStartFocusBody": "Start pomodoro {pomodoroIndex}",
+  "@notificationPomodoroStartFocusBody": {
+    "placeholders": {
+      "pomodoroIndex": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationPomodoroNextTaskBody": "Ready to start \"{nextTaskTitle}\"?",
+  "@notificationPomodoroNextTaskBody": {
+    "placeholders": {
+      "nextTaskTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "startNextTaskTitle": "Start next task?",
+  "startNextTaskMessage": "\"{completedTaskTitle}\" is complete. Start \"{nextTaskTitle}\" now?",
+  "@startNextTaskMessage": {
+    "placeholders": {
+      "completedTaskTitle": {
+        "type": "String"
+      },
+      "nextTaskTitle": {
+        "type": "String"
+      }
+    }
+  },
   "taskCelebrationMessage": "\"{taskTitle}\" completed. Nice work.",
   "@taskCelebrationMessage": {
     "placeholders": {

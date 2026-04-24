@@ -41,6 +41,10 @@
 	<string>Allow Flow to create calendar events for your focus tasks.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Allow Flow to show contact info when adding calendar events.</string>
+	<key>NSAlarmKitUsageDescription</key>
+	<string>Allow Flow to schedule focus timers and break alerts.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

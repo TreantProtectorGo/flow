@@ -14,6 +14,8 @@ import 'screens/settings_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'services/notification_service.dart';
 import 'services/firebase_service.dart';
+import 'services/task_timer_system_scheduler.dart';
+import 'providers/task_completion_event_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +25,7 @@ void main() async {
 
   // Initialize notification service
   await NotificationService.instance.initialize();
+  await PlatformTaskTimerSystemScheduler.instance.initialize();
 
   runApp(const ProviderScope(child: FocusApp()));
 }
@@ -34,6 +37,29 @@ class FocusApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
+
+    ref.listen<AsyncValue<TaskTimerSystemPayload>>(
+      taskTimerSystemPayloadProvider,
+      (
+        AsyncValue<TaskTimerSystemPayload>? previous,
+        AsyncValue<TaskTimerSystemPayload> next,
+      ) {
+        next.whenData((TaskTimerSystemPayload payload) {
+          if (payload.taskId.isEmpty) {
+            return;
+          }
+          if (payload.nextTaskId != null && payload.nextTaskId!.isNotEmpty) {
+            ref
+                .read(pendingNextTaskPromptProvider.notifier)
+                .state = PendingNextTaskPrompt(
+              completedTaskId: payload.taskId,
+              nextTaskId: payload.nextTaskId!,
+            );
+          }
+          _router.go('/tasks');
+        });
+      },
+    );
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightColorScheme, ColorScheme? darkColorScheme) {

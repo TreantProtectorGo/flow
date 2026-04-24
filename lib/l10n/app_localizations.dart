@@ -2001,6 +2001,48 @@ abstract class AppLocalizations {
   /// **'待辦任務的每日提醒通知'**
   String get notificationTaskReminderChannelDescription;
 
+  /// No description provided for @notificationPomodoroFocusCompleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'第 {completed}/{total} 個番茄鐘完成'**
+  String notificationPomodoroFocusCompleteTitle(int completed, int total);
+
+  /// No description provided for @notificationPomodoroStartBreakBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'開始{breakName}'**
+  String notificationPomodoroStartBreakBody(String breakName);
+
+  /// No description provided for @notificationPomodoroBreakCompleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{breakName}完成'**
+  String notificationPomodoroBreakCompleteTitle(String breakName);
+
+  /// No description provided for @notificationPomodoroStartFocusBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'開始第 {pomodoroIndex} 個番茄鐘'**
+  String notificationPomodoroStartFocusBody(int pomodoroIndex);
+
+  /// No description provided for @notificationPomodoroNextTaskBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'要開始「{nextTaskTitle}」嗎？'**
+  String notificationPomodoroNextTaskBody(String nextTaskTitle);
+
+  /// No description provided for @startNextTaskTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'開始下一個任務？'**
+  String get startNextTaskTitle;
+
+  /// No description provided for @startNextTaskMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'「{completedTaskTitle}」已完成。要而家開始「{nextTaskTitle}」嗎？'**
+  String startNextTaskMessage(String completedTaskTitle, String nextTaskTitle);
+
   /// No description provided for @taskCelebrationMessage.
   ///
   /// In zh, this message translates to:

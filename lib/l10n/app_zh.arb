@@ -628,6 +628,61 @@
   },
   "notificationTaskReminderChannelName": "任務提醒",
   "notificationTaskReminderChannelDescription": "待辦任務的每日提醒通知",
+  "notificationPomodoroFocusCompleteTitle": "第 {completed}/{total} 個番茄鐘完成",
+  "@notificationPomodoroFocusCompleteTitle": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationPomodoroStartBreakBody": "開始{breakName}",
+  "@notificationPomodoroStartBreakBody": {
+    "placeholders": {
+      "breakName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPomodoroBreakCompleteTitle": "{breakName}完成",
+  "@notificationPomodoroBreakCompleteTitle": {
+    "placeholders": {
+      "breakName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPomodoroStartFocusBody": "開始第 {pomodoroIndex} 個番茄鐘",
+  "@notificationPomodoroStartFocusBody": {
+    "placeholders": {
+      "pomodoroIndex": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationPomodoroNextTaskBody": "要開始「{nextTaskTitle}」嗎？",
+  "@notificationPomodoroNextTaskBody": {
+    "placeholders": {
+      "nextTaskTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "startNextTaskTitle": "開始下一個任務？",
+  "startNextTaskMessage": "「{completedTaskTitle}」已完成。要而家開始「{nextTaskTitle}」嗎？",
+  "@startNextTaskMessage": {
+    "placeholders": {
+      "completedTaskTitle": {
+        "type": "String"
+      },
+      "nextTaskTitle": {
+        "type": "String"
+      }
+    }
+  },
   "taskCelebrationMessage": "「{taskTitle}」已完成，做得好！",
   "@taskCelebrationMessage": {
     "placeholders": {

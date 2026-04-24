@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/task.dart';
 import '../services/focus_repository.dart';
 import '../services/notification_client.dart';
+import '../services/task_timer_system_scheduler.dart';
 import 'notification_strings_provider.dart';
 import 'settings_provider.dart';
 import 'statistics_provider.dart';
@@ -173,6 +175,7 @@ class TimerProvider with ChangeNotifier {
       debugPrint(
         '⏱️ [TIMER] Starting new pomodoro session (ID: $_currentSessionId)',
       );
+      unawaited(_scheduleSystemTimelineForCurrentTask());
     }
 
     notifyListeners();
@@ -192,11 +195,15 @@ class TimerProvider with ChangeNotifier {
 
     _timer?.cancel();
     _state = TimerState.paused;
+    if (_mode == TimerMode.focus) {
+      unawaited(_cancelSystemTimelineForCurrentTask());
+    }
     notifyListeners();
   }
 
   Future<void> stopTimer() async {
     _timer?.cancel();
+    await _cancelSystemTimelineForCurrentTask();
     _state = TimerState.stopped;
 
     // If in focus mode and has start time, record as incomplete session
@@ -209,6 +216,7 @@ class TimerProvider with ChangeNotifier {
   }
 
   void skipTimer() {
+    unawaited(_cancelSystemTimelineForCurrentTask());
     _onTimerComplete();
   }
 
@@ -258,6 +266,7 @@ class TimerProvider with ChangeNotifier {
             .markTaskAsCompleted(currentTask.id);
 
         // Reset to focus mode but don't auto-start
+        await _cancelSystemTimelineForCurrentTask(taskId: currentTask.id);
         _mode = TimerMode.focus;
         _updateTimeForCurrentMode();
         _saveSettings();
@@ -381,6 +390,7 @@ class TimerProvider with ChangeNotifier {
       _updateTimeForCurrentMode();
     }
     _saveSettings();
+    unawaited(_rescheduleSystemTimelineForCurrentTask());
     notifyListeners();
   }
 
@@ -390,6 +400,7 @@ class TimerProvider with ChangeNotifier {
       _updateTimeForCurrentMode();
     }
     _saveSettings();
+    unawaited(_rescheduleSystemTimelineForCurrentTask());
     notifyListeners();
   }
 
@@ -399,7 +410,115 @@ class TimerProvider with ChangeNotifier {
       _updateTimeForCurrentMode();
     }
     _saveSettings();
+    unawaited(_rescheduleSystemTimelineForCurrentTask());
     notifyListeners();
+  }
+
+  Future<void> _scheduleSystemTimelineForCurrentTask() async {
+    final Task? currentTask = _ref.read(taskProvider.notifier).currentTask;
+    final DateTime? startAt = _currentSessionStartTime;
+    if (currentTask == null || startAt == null || _mode != TimerMode.focus) {
+      return;
+    }
+
+    final Task? nextTask = _ref
+        .read(taskProvider.notifier)
+        .findNextIncompleteTaskAfter(currentTask.id);
+    final NotificationStrings strings = _ref.read(notificationStringsProvider);
+    final int longBreakFrequency = _ref
+        .read(settingsProvider)
+        .longBreakFrequency;
+    final TaskTimerPlan plan =
+        TaskTimerPlan.create(
+          task: currentTask,
+          startAt: startAt,
+          focusMinutes: _focusTimeInMinutes,
+          shortBreakMinutes: _shortBreakTimeInMinutes,
+          longBreakMinutes: _longBreakTimeInMinutes,
+          longBreakFrequency: longBreakFrequency,
+          nextTaskId: nextTask?.id,
+          nextTaskTitle: nextTask?.title,
+          firstFocusSeconds: _timeLeftInSeconds,
+        ).withAlertText(
+          (TaskTimerPhase phase) => _phaseAlertTitle(phase, strings),
+          (TaskTimerPhase phase) => _phaseAlertBody(phase, strings),
+        );
+
+    await _ref
+        .read(taskTimerSystemSchedulerProvider)
+        .scheduleTaskTimeline(plan);
+  }
+
+  Future<void> _cancelSystemTimelineForCurrentTask({String? taskId}) async {
+    final String? id =
+        taskId ?? _ref.read(taskProvider.notifier).currentTask?.id;
+    if (id == null) {
+      return;
+    }
+
+    await _ref.read(taskTimerSystemSchedulerProvider).cancelTaskTimeline(id);
+  }
+
+  Future<void> _rescheduleSystemTimelineForCurrentTask() async {
+    if (_state != TimerState.running || _mode != TimerMode.focus) {
+      return;
+    }
+
+    await _cancelSystemTimelineForCurrentTask();
+    await _scheduleSystemTimelineForCurrentTask();
+  }
+
+  String _phaseAlertTitle(TaskTimerPhase phase, NotificationStrings strings) {
+    switch (phase.payloadType) {
+      case TaskTimerPayloadType.phaseEnd:
+        return strings.pomodoroFocusCompleteTitle(
+          phase.completedPomodorosAtEnd,
+          phase.totalPomodoros,
+        );
+      case TaskTimerPayloadType.phaseStart:
+        return strings.pomodoroBreakCompleteTitle(
+          phase.kind == TaskTimerPhaseKind.longBreak
+              ? strings.longBreak
+              : strings.shortBreak,
+        );
+      case TaskTimerPayloadType.taskComplete:
+      case TaskTimerPayloadType.nextTaskPrompt:
+        return strings.taskCompleteTitle;
+    }
+  }
+
+  String _phaseAlertBody(TaskTimerPhase phase, NotificationStrings strings) {
+    switch (phase.payloadType) {
+      case TaskTimerPayloadType.phaseEnd:
+        final int longBreakFrequency = _ref
+            .read(settingsProvider)
+            .longBreakFrequency;
+        final int normalizedLongBreakFrequency = longBreakFrequency <= 0
+            ? 4
+            : longBreakFrequency;
+        final bool nextBreakIsLong =
+            phase.completedPomodorosAtEnd > 0 &&
+            phase.completedPomodorosAtEnd % normalizedLongBreakFrequency == 0;
+        return strings.pomodoroStartBreakBody(
+          nextBreakIsLong ? strings.longBreak : strings.shortBreak,
+        );
+      case TaskTimerPayloadType.phaseStart:
+        return strings.pomodoroStartFocusBody(phase.pomodoroIndex + 1);
+      case TaskTimerPayloadType.taskComplete:
+        return strings.taskCompleteBody(
+          _ref.read(taskProvider.notifier).currentTask?.title ?? '',
+        );
+      case TaskTimerPayloadType.nextTaskPrompt:
+        return strings.pomodoroNextTaskBody(
+          _ref
+                  .read(taskProvider.notifier)
+                  .findNextIncompleteTaskAfter(
+                    _ref.read(taskProvider.notifier).currentTask?.id ?? '',
+                  )
+                  ?.title ??
+              '',
+        );
+    }
   }
 
   @override

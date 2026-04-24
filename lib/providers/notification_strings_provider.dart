@@ -49,4 +49,16 @@ class NotificationStrings {
       _l10n.notificationTaskReminderChannelName;
   String get taskReminderChannelDescription =>
       _l10n.notificationTaskReminderChannelDescription;
+  String get shortBreak => _l10n.shortBreak;
+  String get longBreak => _l10n.longBreak;
+  String pomodoroFocusCompleteTitle(int completed, int total) =>
+      _l10n.notificationPomodoroFocusCompleteTitle(completed, total);
+  String pomodoroStartBreakBody(String breakName) =>
+      _l10n.notificationPomodoroStartBreakBody(breakName);
+  String pomodoroBreakCompleteTitle(String breakName) =>
+      _l10n.notificationPomodoroBreakCompleteTitle(breakName);
+  String pomodoroStartFocusBody(int pomodoroIndex) =>
+      _l10n.notificationPomodoroStartFocusBody(pomodoroIndex);
+  String pomodoroNextTaskBody(String nextTaskTitle) =>
+      _l10n.notificationPomodoroNextTaskBody(nextTaskTitle);
 }

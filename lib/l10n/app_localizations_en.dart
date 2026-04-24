@@ -1050,6 +1050,39 @@ class AppLocalizationsEn extends AppLocalizations {
       'Daily reminders for pending tasks';
 
   @override
+  String notificationPomodoroFocusCompleteTitle(int completed, int total) {
+    return 'Pomodoro $completed/$total complete';
+  }
+
+  @override
+  String notificationPomodoroStartBreakBody(String breakName) {
+    return 'Start $breakName';
+  }
+
+  @override
+  String notificationPomodoroBreakCompleteTitle(String breakName) {
+    return '$breakName complete';
+  }
+
+  @override
+  String notificationPomodoroStartFocusBody(int pomodoroIndex) {
+    return 'Start pomodoro $pomodoroIndex';
+  }
+
+  @override
+  String notificationPomodoroNextTaskBody(String nextTaskTitle) {
+    return 'Ready to start \"$nextTaskTitle\"?';
+  }
+
+  @override
+  String get startNextTaskTitle => 'Start next task?';
+
+  @override
+  String startNextTaskMessage(String completedTaskTitle, String nextTaskTitle) {
+    return '\"$completedTaskTitle\" is complete. Start \"$nextTaskTitle\" now?';
+  }
+
+  @override
   String taskCelebrationMessage(String taskTitle) {
     return '\"$taskTitle\" completed. Nice work.';
   }

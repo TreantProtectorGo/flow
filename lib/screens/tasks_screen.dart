@@ -36,7 +36,35 @@ class TasksScreen extends ConsumerWidget {
           context,
           message: l10n.taskCelebrationMessage(next.taskTitle),
         );
+        if (next.nextTaskId != null) {
+          _showNextTaskPrompt(
+            context: context,
+            ref: ref,
+            completedTaskId: next.taskId,
+            nextTaskId: next.nextTaskId!,
+            l10n: l10n,
+          );
+        }
       }
+    });
+
+    ref.listen<PendingNextTaskPrompt?>(pendingNextTaskPromptProvider, (
+      PendingNextTaskPrompt? previous,
+      PendingNextTaskPrompt? next,
+    ) {
+      if (next == null ||
+          (previous?.completedTaskId == next.completedTaskId &&
+              previous?.nextTaskId == next.nextTaskId)) {
+        return;
+      }
+      _showNextTaskPrompt(
+        context: context,
+        ref: ref,
+        completedTaskId: next.completedTaskId,
+        nextTaskId: next.nextTaskId,
+        l10n: l10n,
+      );
+      ref.read(pendingNextTaskPromptProvider.notifier).state = null;
     });
 
     final taskNotifier = ref.watch(taskProvider);
@@ -846,6 +874,63 @@ class TasksScreen extends ConsumerWidget {
         message: l10n.continueTask(task.title),
       );
     }
+  }
+
+  void _showNextTaskPrompt({
+    required BuildContext context,
+    required WidgetRef ref,
+    required String completedTaskId,
+    required String nextTaskId,
+    required AppLocalizations l10n,
+  }) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!context.mounted) {
+        return;
+      }
+
+      final tasks = ref.read(taskProvider).tasks;
+      final Task? completedTask = _findTaskById(tasks, completedTaskId);
+      final Task? nextTask = _findTaskById(tasks, nextTaskId);
+      if (nextTask == null || nextTask.status == TaskStatus.completed) {
+        return;
+      }
+
+      final bool? shouldStart = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext dialogContext) => AlertDialog(
+          title: Text(l10n.startNextTaskTitle),
+          content: Text(
+            l10n.startNextTaskMessage(
+              completedTask?.title ?? '',
+              nextTask.title,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(l10n.start),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldStart == true && context.mounted) {
+        _startPomodoroForTask(context, ref, nextTask, l10n);
+      }
+    });
+  }
+
+  Task? _findTaskById(List<Task> tasks, String taskId) {
+    for (final Task task in tasks) {
+      if (task.id == taskId) {
+        return task;
+      }
+    }
+    return null;
   }
 
   Future<void> _quickAddTaskToCalendar(

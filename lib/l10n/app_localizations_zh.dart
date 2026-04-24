@@ -1030,6 +1030,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get notificationTaskReminderChannelDescription => '待辦任務的每日提醒通知';
 
   @override
+  String notificationPomodoroFocusCompleteTitle(int completed, int total) {
+    return '第 $completed/$total 個番茄鐘完成';
+  }
+
+  @override
+  String notificationPomodoroStartBreakBody(String breakName) {
+    return '開始$breakName';
+  }
+
+  @override
+  String notificationPomodoroBreakCompleteTitle(String breakName) {
+    return '$breakName完成';
+  }
+
+  @override
+  String notificationPomodoroStartFocusBody(int pomodoroIndex) {
+    return '開始第 $pomodoroIndex 個番茄鐘';
+  }
+
+  @override
+  String notificationPomodoroNextTaskBody(String nextTaskTitle) {
+    return '要開始「$nextTaskTitle」嗎？';
+  }
+
+  @override
+  String get startNextTaskTitle => '開始下一個任務？';
+
+  @override
+  String startNextTaskMessage(String completedTaskTitle, String nextTaskTitle) {
+    return '「$completedTaskTitle」已完成。要而家開始「$nextTaskTitle」嗎？';
+  }
+
+  @override
   String taskCelebrationMessage(String taskTitle) {
     return '「$taskTitle」已完成，做得好！';
   }
@@ -2141,6 +2174,39 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get notificationTaskReminderChannelDescription => '待辦任務的每日提醒通知';
+
+  @override
+  String notificationPomodoroFocusCompleteTitle(int completed, int total) {
+    return '第 $completed/$total 個番茄鐘完成';
+  }
+
+  @override
+  String notificationPomodoroStartBreakBody(String breakName) {
+    return '開始$breakName';
+  }
+
+  @override
+  String notificationPomodoroBreakCompleteTitle(String breakName) {
+    return '$breakName完成';
+  }
+
+  @override
+  String notificationPomodoroStartFocusBody(int pomodoroIndex) {
+    return '開始第 $pomodoroIndex 個番茄鐘';
+  }
+
+  @override
+  String notificationPomodoroNextTaskBody(String nextTaskTitle) {
+    return '要開始「$nextTaskTitle」嗎？';
+  }
+
+  @override
+  String get startNextTaskTitle => '開始下一個任務？';
+
+  @override
+  String startNextTaskMessage(String completedTaskTitle, String nextTaskTitle) {
+    return '「$completedTaskTitle」已完成。要現在開始「$nextTaskTitle」嗎？';
+  }
 
   @override
   String taskCelebrationMessage(String taskTitle) {

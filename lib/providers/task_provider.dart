@@ -516,7 +516,7 @@ class TaskProvider with ChangeNotifier {
       return;
     }
 
-    final Task? nextTask = _findNextIncompleteTaskAfter(previousTask.id);
+    final Task? nextTask = findNextIncompleteTaskAfter(previousTask.id);
     if (nextTask == null || nextTask.dailyReminderTime != null) {
       return;
     }
@@ -538,7 +538,7 @@ class TaskProvider with ChangeNotifier {
     await _syncReminderForTask(updatedNextTask);
   }
 
-  Task? _findNextIncompleteTaskAfter(String taskId) {
+  Task? findNextIncompleteTaskAfter(String taskId) {
     final int currentIndex = _tasks.indexWhere(
       (Task task) => task.id == taskId,
     );
@@ -577,10 +577,13 @@ class TaskProvider with ChangeNotifier {
       return;
     }
 
+    final Task? nextTask = findNextIncompleteTaskAfter(updatedTask.id);
     _ref.read(taskCompletionEventProvider.notifier).state = TaskCompletionEvent(
       eventId: DateTime.now().microsecondsSinceEpoch.toString(),
       taskId: updatedTask.id,
       taskTitle: updatedTask.title,
+      nextTaskId: nextTask?.id,
+      nextTaskTitle: nextTask?.title,
     );
   }
 }
